@@ -1,0 +1,15 @@
+[package]
+name = "cep-1155-test-contract"
+version = "1.0.0"
+edition = "2018"
+
+[[bin]]
+name = "cep_1155_test_contract"
+path = "src/main.rs"
+bench = false
+doctest = false
+test = false
+
+[dependencies]
+casper-contract = "3.0.0"
+casper-types = "3.0.0"
