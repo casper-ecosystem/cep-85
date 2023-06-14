@@ -6,7 +6,7 @@ use casper_types::{CLType, EntryPoint, EntryPointAccess, EntryPointType, EntryPo
 use crate::constants::ENTRY_POINT_INIT;
 
 /// Returns the `init` entry point.
-fn init() -> EntryPoint {
+pub(crate) fn init() -> EntryPoint {
     EntryPoint::new(
         String::from(ENTRY_POINT_INIT),
         Vec::new(),

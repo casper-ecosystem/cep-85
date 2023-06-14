@@ -1,5 +1,3 @@
-use core::convert::TryInto;
-
 use crate::error::Cep1155Error;
 use alloc::vec::Vec;
 use casper_contract::{
@@ -12,6 +10,7 @@ use casper_types::{
     bytesrepr::{self, FromBytes},
     ApiError, CLTyped, URef,
 };
+use core::convert::TryInto;
 
 /// Gets [`URef`] under a name.
 pub fn get_uref(name: &str) -> URef {

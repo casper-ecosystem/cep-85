@@ -20,6 +20,7 @@ test: build-contract
 
 clippy:
 	cd contract && cargo clippy --target wasm32-unknown-unknown --bins -- -D warnings
+	cd contract && cargo clippy --lib -- -D warnings
 	cd contract && cargo clippy --no-default-features --lib -- -D warnings
 	cd test-contract && cargo clippy --target wasm32-unknown-unknown -- -D warnings
 	cd tests && cargo clippy --all-targets -- -D warnings
