@@ -14,8 +14,8 @@ build-contract:
 
 test: build-contract
 	mkdir -p tests/wasm
-	cp $(CONTRACT_TARGET_DIR)/cep_1155.wasm tests/wasm
-		cp $(CONTRACT_TARGET_DIR)/cep_1155_test_contract.wasm tests/wasm
+	cp $(CONTRACT_TARGET_DIR)/cep1155.wasm tests/wasm
+	cp $(CONTRACT_TARGET_DIR)/cep1155_test_contract.wasm tests/wasm
 	cd tests && cargo test
 
 clippy:

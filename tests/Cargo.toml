@@ -11,6 +11,7 @@ casper-contract = { version = "3.0.0", default-features = false, features = [
 casper-engine-test-support = { version = "5.0.0", features = ["test-support"] }
 casper-execution-engine = "5.0.0"
 casper-types = "3.0.0"
+casper-event-standard = { version = "0.4.0", default-features = false }
 
 [lib]
 name = "tests"

@@ -12,15 +12,15 @@ use casper_types::ApiError;
 #[derive(Clone, Copy)]
 pub enum Cep1155Error {
     /// An invalid event mode was specified.
-    InvalidEventsMode = 60006,
+    InvalidEventsMode = 60001,
     /// The event mode required was not specified.
-    MissingEventsMode = 60007,
-    /// An unknown error occurred.
-    Phantom = 60008,
+    MissingEventsMode = 60002,
+    /// Missing optional named arg
+    Phantom = 60003,
     /// Failed to read the runtime arguments provided.
-    FailedToGetArgBytes = 60009,
+    FailedToGetArgBytes = 60004,
     /// This contract instance cannot be initialized again.
-    AlreadyInitialized = 60015,
+    ContractAlreadyInitialized = 6005,
 }
 
 impl From<Cep1155Error> for ApiError {

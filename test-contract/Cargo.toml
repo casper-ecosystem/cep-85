@@ -4,7 +4,7 @@ version = "1.0.0"
 edition = "2018"
 
 [[bin]]
-name = "cep_1155_test_contract"
+name = "cep1155_test_contract"
 path = "src/main.rs"
 bench = false
 doctest = false

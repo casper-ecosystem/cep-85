@@ -15,7 +15,7 @@ casper-types = "3.0.0"
 casper-event-standard = { version = "0.4.0", default-features = false }
 
 [[bin]]
-name = "cep_1155"
+name = "cep1155"
 path = "src/main.rs"
 bench = false
 doctest = false
