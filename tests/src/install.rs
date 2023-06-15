@@ -50,6 +50,7 @@ fn should_only_allow_init_during_installation_session() {
 }
 
 // TODO
+// TOFIX
 #[test]
 fn should_not_store_balances_or_allowances_under_account_after_install() {
     let (builder, TestContext { cep1155_token, .. }) = setup();

@@ -40,11 +40,6 @@ pub extern "C" fn init() {
     }
     let package_hash = get_named_arg::<Key>(PACKAGE_HASH);
     put_key(PACKAGE_HASH, package_hash);
-    // storage::new_dictionary(ALLOWANCES).unwrap_or_revert();
-    // let balances_uref = storage::new_dictionary(BALANCES).unwrap_or_revert();
-    // let initial_supply = get_named_arg(TOTAL_SUPPLY);
-    // let caller = get_caller();
-    // write_balance_to(balances_uref, caller.into(), initial_supply);
     init_events();
 }
 
