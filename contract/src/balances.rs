@@ -1,8 +1,8 @@
 // //! Implementation of balances.
-use alloc::string::String;
 
-use casper_contract::{contract_api::storage, unwrap_or_revert::UnwrapOrRevert};
-use casper_types::{bytesrepr::ToBytes, Key, URef, U256};
+
+
+use casper_types::{URef};
 
 use crate::{constants::BALANCES, utils};
 

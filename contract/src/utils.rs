@@ -6,7 +6,7 @@ use alloc::{
 };
 use casper_contract::{
     contract_api::{self, runtime, storage},
-    ext_ffi::{self, casper_get_named_arg_size, casper_read_host_buffer},
+    ext_ffi::{self, casper_get_named_arg_size},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
