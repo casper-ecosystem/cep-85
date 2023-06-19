@@ -2,6 +2,7 @@
 
 extern crate alloc;
 
+pub mod balances;
 pub mod constants;
 pub mod entry_points;
 pub mod error;

@@ -1,5 +1,5 @@
 [package]
-name = "cep-1155"
+name = "cep1155"
 version = "1.0.0"
 edition = "2018"
 description = "A library for developing CEP-1155 tokens for the Casper network."
@@ -13,6 +13,8 @@ license-file = "../LICENSE"
 casper-contract = { version = "3.0.0", optional = true }
 casper-types = "3.0.0"
 casper-event-standard = { version = "0.4.0", default-features = false }
+hex = { version = "0.4.3", default-features = false }
+base64 = { version = "0.21.2", default-features = false, features = ["alloc"] }
 
 [[bin]]
 name = "cep1155"

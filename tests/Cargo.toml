@@ -4,7 +4,7 @@ version = "1.0.0"
 edition = "2018"
 
 [dev-dependencies]
-cep-1155 = { path = "../contract" }
+cep1155 = { path = "../contract" }
 casper-contract = { version = "3.0.0", default-features = false, features = [
   "test-support",
 ] }

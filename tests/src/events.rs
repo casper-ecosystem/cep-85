@@ -4,8 +4,9 @@ use crate::utility::{
 };
 use casper_event_standard::{Schemas, EVENTS_SCHEMA};
 use casper_types::{runtime_args, RuntimeArgs};
-use cep_1155::{
+use cep1155::{
     constants::{EVENTS_MODE, NAME},
+    events::{Burn, Mint, Transfer, TransferFrom},
     modalities::EventsMode,
 };
 
@@ -15,8 +16,11 @@ fn should_have_events_schema_in_events_mode() {
         NAME => TOKEN_NAME,
         EVENTS_MODE => EventsMode::CES as u8
     });
-    // Expects Schemas to be registerd.
-    let expected_schemas = Schemas::new();
+    let expected_schemas = Schemas::new()
+        .with::<Mint>()
+        .with::<Burn>()
+        .with::<Transfer>()
+        .with::<TransferFrom>();
     let actual_schemas: Schemas = builder.get_value(cep1155_token, EVENTS_SCHEMA);
     assert_eq!(actual_schemas, expected_schemas, "Schemas mismatch.");
 }

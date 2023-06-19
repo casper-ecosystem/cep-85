@@ -11,6 +11,7 @@ use casper_types::ApiError;
 #[repr(u16)]
 #[derive(Clone, Copy)]
 pub enum Cep1155Error {
+    InvalidKey = 6000,
     /// An invalid event mode was specified.
     InvalidEventsMode = 60001,
     /// The event mode required was not specified.
@@ -21,6 +22,17 @@ pub enum Cep1155Error {
     FailedToGetArgBytes = 60004,
     /// This contract instance cannot be initialized again.
     ContractAlreadyInitialized = 6005,
+    // Identifier Mode is not correct
+    InvalidIdentifierMode = 60006,
+    MissingIdentifierMode = 60007,
+    UnexpectedKeyVariant = 60008,
+    MissingStorageUref = 60009,
+    InvalidStorageUref = 60010,
+    MissingNumberOfMintedTokens = 60011,
+    InvalidNumberOfMintedTokens = 60012,
+    MissingTotalTokenSupply = 60013,
+    InvalidTotalTokenSupply = 60014,
+    TokenSupplyDepleted = 60015,
 }
 
 impl From<Cep1155Error> for ApiError {

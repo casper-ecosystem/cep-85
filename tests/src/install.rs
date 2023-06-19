@@ -5,7 +5,7 @@ use crate::utility::{
 };
 use casper_engine_test_support::{ExecuteRequestBuilder, DEFAULT_ACCOUNT_ADDR};
 use casper_types::{runtime_args, RuntimeArgs};
-use cep_1155::{
+use cep1155::{
     constants::{ENTRY_POINT_INIT, NAME, PACKAGE_HASH},
     error::Cep1155Error,
 };

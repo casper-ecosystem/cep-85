@@ -3,7 +3,7 @@ use casper_engine_test_support::{
     PRODUCTION_RUN_GENESIS_REQUEST,
 };
 use casper_types::{runtime_args, ContractHash, ContractPackageHash, RuntimeArgs};
-use cep_1155::constants::NAME;
+use cep1155::constants::NAME;
 
 use super::constants::{
     CEP1155_CONTRACT_WASM, CEP1155_TEST_CONTRACT_WASM, CEP1155_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME,

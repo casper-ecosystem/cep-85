@@ -1,4 +1,4 @@
-ALL_CONTRACTS = cep-1155 cep-1155-test-contract
+ALL_CONTRACTS = cep1155 cep1155-test-contract
 CONTRACT_TARGET_DIR = target/wasm32-unknown-unknown/release
 PINNED_TOOLCHAIN := $(shell cat rust-toolchain)
 
@@ -7,7 +7,7 @@ prepare:
 	rustup component add clippy --toolchain ${PINNED_TOOLCHAIN}
 	rustup component add rustfmt --toolchain ${PINNED_TOOLCHAIN}
 
-	.PHONY:	build-contract
+.PHONY:	build-contract
 build-contract:
 	cargo build --release --target wasm32-unknown-unknown $(patsubst %,-p %, $(ALL_CONTRACTS))
 	$(foreach WASM, $(ALL_CONTRACTS), wasm-strip $(CONTRACT_TARGET_DIR)/$(subst -,_,$(WASM)).wasm ;)
