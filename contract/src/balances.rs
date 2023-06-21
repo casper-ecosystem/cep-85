@@ -61,7 +61,7 @@ pub fn transfer_balance(
 
     // Check if the recipient is the contract address
     let contract_key =
-        get_key(CONTRACT_HASH).unwrap_or_revert_with(Cep1155Error::MissingContractHashKey);
+        get_key(CONTRACT_HASH).unwrap_or_revert_with(Cep1155Error::MissingContractHash);
     if recipient == contract_key {
         return Err(Cep1155Error::InvalidRecipient);
     }

@@ -27,7 +27,6 @@ pub const ARG_OPERATOR: &str = "operator";
 pub const ARG_OWNER: &str = "owner";
 pub const ARG_RECIPIENT: &str = "recipient";
 pub const ARG_TO: &str = "to";
-pub const ARG_TOKEN_CONTRACT: &str = "token_contract";
 
 pub const BALANCES: &str = "balances";
 pub const CONTRACT_HASH: &str = "contract_hash";
@@ -38,4 +37,6 @@ pub const NAME: &str = "name";
 pub const NUMBER_OF_MINTED_TOKENS: &str = "number_of_minted_tokens";
 pub const OPERATORS: &str = "operators";
 pub const PACKAGE_HASH: &str = "package_hash";
+pub const TOKEN_CONTRACT: &str = "token_contract";
 pub const TOTAL_TOKEN_SUPPLY: &str = "total_token_supply";
+pub const TRANSFER_FILTER_CONTRACT: &str = "transfer_filter_contract";

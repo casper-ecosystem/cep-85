@@ -8,8 +8,6 @@ compile_error!("target arch should be wasm32: compile with '--target wasm32-unkn
 // `no_std` environment.
 extern crate alloc;
 
-use core::convert::TryInto;
-
 use alloc::{
     format,
     string::{String, ToString},
@@ -17,20 +15,23 @@ use alloc::{
 };
 use casper_contract::{
     contract_api::{
-        runtime::{self, get_key, get_named_arg, put_key, revert},
+        runtime::{self, get_key, put_key, revert},
         storage,
     },
     unwrap_or_revert::UnwrapOrRevert,
 };
-use casper_types::{contracts::NamedKeys, runtime_args, CLValue, Key, RuntimeArgs, U256};
+use casper_types::{
+    contracts::NamedKeys, runtime_args, CLValue, ContractHash, Key, RuntimeArgs, U256,
+};
 use cep1155::{
+    self,
     balances::{batch_transfer_balance, read_balance_from, transfer_balance, write_balance_to},
     constants::{
         ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA, ARG_FROM,
         ARG_ID, ARG_IDS, ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TO, BALANCES, CONTRACT_HASH,
         ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS, PACKAGE_HASH,
         PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
-        PREFIX_CONTRACT_VERSION,
+        PREFIX_CONTRACT_VERSION, TRANSFER_FILTER_CONTRACT,
     },
     entry_points::generate_entry_points,
     error::Cep1155Error,
@@ -38,8 +39,8 @@ use cep1155::{
     modalities::TokenIdentifier,
     operators::{read_operator, write_operator},
     utils::{
-        self, get_named_arg_with_user_errors, get_stored_value_with_user_errors,
-        get_token_id_from_identifier_mode,
+        get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
+        get_stored_value_with_user_errors, get_token_id_from_identifier_mode,
     },
 };
 
@@ -51,14 +52,45 @@ pub extern "C" fn init() {
     if get_key(PACKAGE_HASH).is_some() {
         revert(Cep1155Error::ContractAlreadyInitialized);
     }
-    let package_hash = get_named_arg::<Key>(PACKAGE_HASH);
-    put_key(PACKAGE_HASH, package_hash);
 
-    let contract_hash = get_named_arg::<Key>(CONTRACT_HASH);
-    put_key(CONTRACT_HASH, contract_hash);
+    put_key(
+        PACKAGE_HASH,
+        get_named_arg_with_user_errors::<Key>(
+            PACKAGE_HASH,
+            Cep1155Error::MissingPackageHash,
+            Cep1155Error::InvalidPackageHash,
+        )
+        .unwrap_or_revert(),
+    );
+
+    put_key(
+        CONTRACT_HASH,
+        get_named_arg_with_user_errors::<Key>(
+            CONTRACT_HASH,
+            Cep1155Error::MissingPackageHash,
+            Cep1155Error::InvalidPackageHash,
+        )
+        .unwrap_or_revert(),
+    );
+
+    let transfer_filter_contract_key: Option<Key> =
+        get_optional_named_arg_with_user_errors::<Option<Key>>(
+            TRANSFER_FILTER_CONTRACT,
+            Cep1155Error::InvalidTransferFilterContract,
+        )
+        .unwrap_or_default();
+
+    let transfer_filter_contract: Option<ContractHash> =
+        transfer_filter_contract_key.map(|transfer_filter_contract_key| {
+            ContractHash::from(transfer_filter_contract_key.into_hash().unwrap_or_revert())
+        });
+
+    runtime::put_key(
+        TRANSFER_FILTER_CONTRACT,
+        storage::new_uref(transfer_filter_contract).into(),
+    );
 
     storage::new_dictionary(BALANCES).unwrap_or_revert_with(Cep1155Error::FailedToCreateDictionary);
-
     storage::new_dictionary(OPERATORS)
         .unwrap_or_revert_with(Cep1155Error::FailedToCreateDictionary);
 
@@ -199,7 +231,7 @@ pub extern "C" fn safe_transfer_from() {
     )
     .unwrap_or_revert();
 
-    /// TODO
+    // TODO
     let _data: Vec<u8> = get_named_arg_with_user_errors(
         ARG_DATA,
         Cep1155Error::MissingData,
@@ -331,11 +363,13 @@ pub extern "C" fn mint() {
 
 #[no_mangle]
 pub extern "C" fn batch_mint() {
-    if 0 == get_stored_value_with_user_errors::<u8>(
-        ENABLE_MINT_BURN,
-        Cep1155Error::MissingEnableMBFlag,
-        Cep1155Error::InvalidEnableMBFlag,
-    ) {
+    if 0_u8
+        == get_stored_value_with_user_errors::<u8>(
+            ENABLE_MINT_BURN,
+            Cep1155Error::MissingEnableMBFlag,
+            Cep1155Error::InvalidEnableMBFlag,
+        )
+    {
         revert(Cep1155Error::MintBurnDisabled);
     };
 
@@ -476,20 +510,29 @@ pub extern "C" fn batch_burn() {
         }));
     }
 }
+
 fn install_contract() {
-    let name: String = get_named_arg(NAME);
-
-    let events_mode: u8 = utils::get_optional_named_arg_with_user_errors(
-        EVENTS_MODE,
-        Cep1155Error::InvalidEventsMode,
+    let name: String = get_named_arg_with_user_errors(
+        NAME,
+        Cep1155Error::MissingCollectionName,
+        Cep1155Error::InvalidCollectionName,
     )
-    .unwrap_or_default();
+    .unwrap_or_revert();
 
-    let enable_mint_burn: u8 = utils::get_optional_named_arg_with_user_errors(
+    let events_mode: u8 =
+        get_optional_named_arg_with_user_errors(EVENTS_MODE, Cep1155Error::InvalidEventsMode)
+            .unwrap_or_default();
+
+    let enable_mint_burn: u8 = get_optional_named_arg_with_user_errors(
         ENABLE_MINT_BURN,
         Cep1155Error::InvalidEnableMBFlag,
     )
     .unwrap_or_default();
+
+    let transfer_filter_contract_key: Option<Key> = get_optional_named_arg_with_user_errors(
+        TRANSFER_FILTER_CONTRACT,
+        Cep1155Error::InvalidTransferFilterContract,
+    );
 
     let mut named_keys = NamedKeys::new();
     named_keys.insert(NAME.to_string(), storage::new_uref(name.clone()).into());
@@ -530,6 +573,25 @@ fn install_contract() {
     };
 
     runtime::call_contract::<()>(contract_hash, ENTRY_POINT_INIT, init_args);
+}
+
+fn before_token_transfer(
+    operator: Key,
+    from: Key,
+    to: Key,
+    ids: Vec<TokenIdentifier>,
+    amounts: Vec<U256>,
+    data: Vec<u8>,
+) {
+    if amounts.len() != ids.len() {
+        runtime::revert(Cep1155Error::MismatchParamsLength);
+    }
+
+    for amount in amounts {
+        if amount == U256::zero() {
+            runtime::revert(Cep1155Error::InvalidAmount);
+        }
+    }
 }
 
 #[no_mangle]

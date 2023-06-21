@@ -7,7 +7,7 @@ use casper_contract::{
 };
 use casper_types::{bytesrepr::ToBytes, CLTyped, ContractHash, Key};
 
-use crate::{ARG_TOKEN_CONTRACT, RESULT_KEY};
+use crate::{RESULT_KEY, TOKEN_CONTRACT};
 
 pub fn store_result<T: CLTyped + ToBytes>(result: T) {
     match runtime::get_key(RESULT_KEY) {
@@ -21,6 +21,6 @@ pub fn store_result<T: CLTyped + ToBytes>(result: T) {
 }
 
 pub fn get_token_contract() -> ContractHash {
-    let key = get_key(ARG_TOKEN_CONTRACT).unwrap_or_revert();
+    let key = get_key(TOKEN_CONTRACT).unwrap_or_revert();
     key.into_hash().unwrap_or_revert().into()
 }

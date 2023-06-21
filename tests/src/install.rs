@@ -8,9 +8,12 @@ use casper_engine_test_support::{
     PRODUCTION_RUN_GENESIS_REQUEST,
 };
 use casper_execution_engine::core::{engine_state::Error as EngineStateError, execution};
-use casper_types::{runtime_args, ApiError, RuntimeArgs};
+use casper_types::{runtime_args, ApiError, ContractHash, Key, RuntimeArgs};
 use cep1155::{
-    constants::{BALANCES, ENTRY_POINT_INIT, NAME, PACKAGE_HASH},
+    constants::{
+        BALANCES, ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS, PACKAGE_HASH,
+        TRANSFER_FILTER_CONTRACT,
+    },
     error::Cep1155Error,
 };
 
@@ -29,7 +32,15 @@ fn should_install_contract() {
 fn should_have_queryable_properties() {
     let (mut builder, TestContext { cep1155_token, .. }) = setup();
     let name: String = builder.get_value(cep1155_token, NAME);
+    let events_mode: u8 = builder.get_value(cep1155_token, EVENTS_MODE);
+    let enable_mint_burn: u8 = builder.get_value(cep1155_token, ENABLE_MINT_BURN);
+    let transfer_filter_contract: Option<ContractHash> =
+        builder.get_value(cep1155_token, TRANSFER_FILTER_CONTRACT);
+
     assert_eq!(name, TOKEN_NAME);
+    assert_eq!(events_mode, 0u8);
+    assert_eq!(enable_mint_burn, 0u8);
+    assert_eq!(transfer_filter_contract, None);
 }
 
 #[test]
@@ -64,8 +75,7 @@ fn should_not_store_balances_or_allowances_under_account_after_install() {
 
     let named_keys = account.named_keys();
     assert!(!named_keys.contains_key(BALANCES), "{:?}", named_keys);
-    // TOFIX
-    // assert!(!named_keys.contains_key(ALLOWANCE), "{:?}", named_keys);
+    assert!(!named_keys.contains_key(OPERATORS), "{:?}", named_keys);
 }
 
 #[test]
@@ -83,15 +93,11 @@ fn should_reject_invalid_collection_name() {
 
     builder.exec(install_request).expect_failure();
 
-    let error = ApiError::InvalidArgument;
-    let expected_error = EngineStateError::Exec(execution::Error::Revert(error));
-    let actual_error = builder.get_error().expect("must have error");
+    let error = builder.get_error().expect("must have error");
 
-    if let EngineStateError::Exec(execution::Error::Revert(ref api_error)) = actual_error {
-        if api_error == &error {
-            return;
-        }
-    }
-
-    panic!("Expected {:?}, received {:?}", expected_error, actual_error);
+    assert_expected_error(
+        error,
+        Cep1155Error::InvalidCollectionName as u16,
+        "should not allow calls to init() after installation",
+    );
 }

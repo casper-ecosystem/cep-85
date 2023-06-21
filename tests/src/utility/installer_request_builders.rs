@@ -3,7 +3,7 @@ use casper_engine_test_support::{
     PRODUCTION_RUN_GENESIS_REQUEST,
 };
 use casper_types::{runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs};
-use cep1155::constants::{ARG_TOKEN_CONTRACT, NAME};
+use cep1155::constants::{NAME, TOKEN_CONTRACT};
 
 use super::constants::{
     CEP1155_CONTRACT_WASM, CEP1155_TEST_CONTRACT_WASM, CEP1155_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME,
@@ -48,7 +48,7 @@ pub(crate) fn setup_with_args(install_args: RuntimeArgs) -> (InMemoryWasmTestBui
         *DEFAULT_ACCOUNT_ADDR,
         CEP1155_TEST_CONTRACT_WASM,
         runtime_args! {
-            ARG_TOKEN_CONTRACT => Key::from(cep1155_token)
+            TOKEN_CONTRACT => Key::from(cep1155_token)
         },
     )
     .build();

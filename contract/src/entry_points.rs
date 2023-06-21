@@ -5,16 +5,24 @@ use casper_types::{CLType, EntryPoint, EntryPointAccess, EntryPointType, EntryPo
 
 use crate::constants::{
     ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED, ARG_FROM, ARG_ID, ARG_IDS,
-    ARG_OPERATOR, ARG_TO, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT,
-    ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
-    ENTRY_POINT_SAFE_TRANSFER, ENTRY_POINT_SET_APPROVAL_FOR_ALL,
+    ARG_OPERATOR, ARG_TO, CONTRACT_HASH, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH,
+    ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
+    ENTRY_POINT_SAFE_TRANSFER, ENTRY_POINT_SET_APPROVAL_FOR_ALL, PACKAGE_HASH,
+    TRANSFER_FILTER_CONTRACT,
 };
 
 /// Returns the `init` entry point.
 pub(crate) fn init() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_INIT,
-        vec![],
+        vec![
+            Parameter::new(PACKAGE_HASH, CLType::Key),
+            Parameter::new(CONTRACT_HASH, CLType::U256),
+            Parameter::new(
+                TRANSFER_FILTER_CONTRACT,
+                CLType::Option(Box::new(CLType::Key)),
+            ),
+        ],
         CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,
