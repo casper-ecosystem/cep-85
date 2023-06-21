@@ -23,7 +23,7 @@ make test
 Find the Wasm for the contract in the following directory:
 
 ```
-casper/cep1155/target/wasm32-unknown-unknown/release/cep1155_token.wasm
+./target/wasm32-unknown-unknown/release/cep1155_token.wasm
 ```
 
 ## A JavaScript Client SDK
