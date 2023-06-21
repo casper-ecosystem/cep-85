@@ -8,6 +8,8 @@ compile_error!("target arch should be wasm32: compile with '--target wasm32-unkn
 // `no_std` environment.
 extern crate alloc;
 
+use core::convert::TryInto;
+
 use alloc::{
     format,
     string::{String, ToString},
@@ -22,19 +24,23 @@ use casper_contract::{
 };
 use casper_types::{contracts::NamedKeys, runtime_args, CLValue, Key, RuntimeArgs, U256};
 use cep1155::{
-    balances::{batch_transfer_balance, read_balance_from, transfer_balance},
+    balances::{batch_transfer_balance, read_balance_from, transfer_balance, write_balance_to},
     constants::{
         ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA, ARG_FROM,
-        ARG_ID, ARG_IDS, ARG_OPERATOR, ARG_OWNER, ARG_TO, BALANCES, CONTRACT_HASH,
-        ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS, PACKAGE_HASH, PREFIX_ACCESS_KEY_NAME,
-        PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME, PREFIX_CONTRACT_VERSION,
+        ARG_ID, ARG_IDS, ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TO, BALANCES, CONTRACT_HASH,
+        ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS, PACKAGE_HASH,
+        PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
+        PREFIX_CONTRACT_VERSION,
     },
     entry_points::generate_entry_points,
     error::Cep1155Error,
-    events::{self, init_events, ApprovalForAll, Event, TransferBatch, TransferSingle},
+    events::{self, init_events, ApprovalForAll, Burn, Event, Mint, TransferBatch, TransferSingle},
     modalities::TokenIdentifier,
     operators::{read_operator, write_operator},
-    utils::{self, get_named_arg_with_user_errors, get_token_id_from_identifier_mode},
+    utils::{
+        self, get_named_arg_with_user_errors, get_stored_value_with_user_errors,
+        get_token_id_from_identifier_mode,
+    },
 };
 
 /// Initiates the contracts states. Only used by the installer call,
@@ -278,6 +284,198 @@ pub extern "C" fn safe_batch_transfer_from() {
     }));
 }
 
+#[no_mangle]
+pub extern "C" fn mint() {
+    if 0 == get_stored_value_with_user_errors::<u8>(
+        ENABLE_MINT_BURN,
+        Cep1155Error::MissingEnableMBFlag,
+        Cep1155Error::InvalidEnableMBFlag,
+    ) {
+        revert(Cep1155Error::MintBurnDisabled);
+    };
+
+    // TODO ADMIN
+    // sec_check(vec![SecurityBadge::Admin, SecurityBadge::Minter]);
+
+    let recipient: Key = get_named_arg_with_user_errors(
+        ARG_RECIPIENT,
+        Cep1155Error::MissingRecipient,
+        Cep1155Error::InvalidRecipient,
+    )
+    .unwrap_or_revert();
+
+    let id: U256 =
+        get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)
+            .unwrap_or_revert();
+    let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&id);
+
+    let amount: U256 = get_named_arg_with_user_errors(
+        ARG_AMOUNT,
+        Cep1155Error::MissingAmount,
+        Cep1155Error::InvalidAmount,
+    )
+    .unwrap_or_revert();
+
+    // TODO check if token_id already exists
+
+    let recipient_balance = read_balance_from(&recipient, &token_id);
+    let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_revert();
+    write_balance_to(&recipient, &token_id, &new_recipient_balance);
+
+    events::record_event_dictionary(Event::Mint(Mint {
+        id: token_id,
+        recipient,
+        amount,
+    }))
+}
+
+#[no_mangle]
+pub extern "C" fn batch_mint() {
+    if 0 == get_stored_value_with_user_errors::<u8>(
+        ENABLE_MINT_BURN,
+        Cep1155Error::MissingEnableMBFlag,
+        Cep1155Error::InvalidEnableMBFlag,
+    ) {
+        revert(Cep1155Error::MintBurnDisabled);
+    };
+
+    // TODO ADMIN
+    // sec_check(vec![SecurityBadge::Admin, SecurityBadge::Minter]);
+
+    let recipient: Key = get_named_arg_with_user_errors(
+        ARG_RECIPIENT,
+        Cep1155Error::MissingRecipient,
+        Cep1155Error::InvalidRecipient,
+    )
+    .unwrap_or_revert();
+
+    let ids: Vec<U256> =
+        get_named_arg_with_user_errors(ARG_IDS, Cep1155Error::MissingIds, Cep1155Error::InvalidIds)
+            .unwrap_or_revert();
+
+    let amounts: Vec<U256> = get_named_arg_with_user_errors(
+        ARG_AMOUNTS,
+        Cep1155Error::MissingAmounts,
+        Cep1155Error::InvalidAmounts,
+    )
+    .unwrap_or_revert();
+
+    // Vérifier si les vecteurs ids et amounts ont la même longueur
+    if ids.len() != amounts.len() {
+        revert(Cep1155Error::MismatchParamsLength);
+    }
+
+    // Parcourir les vecteurs ids et amounts et effectuer les mintings
+    for (i, &id) in ids.iter().enumerate() {
+        let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&id);
+        let amount = amounts[i];
+
+        // TODO check if token_id already exists
+
+        let recipient_balance = read_balance_from(&recipient, &token_id);
+        let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_revert();
+        write_balance_to(&recipient, &token_id, &new_recipient_balance);
+
+        events::record_event_dictionary(Event::Mint(Mint {
+            id: token_id,
+            recipient,
+            amount,
+        }));
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn burn() {
+    if 0 == get_stored_value_with_user_errors::<u8>(
+        ENABLE_MINT_BURN,
+        Cep1155Error::MissingEnableMBFlag,
+        Cep1155Error::InvalidEnableMBFlag,
+    ) {
+        revert(Cep1155Error::MintBurnDisabled);
+    };
+
+    // TODO ADMIN
+    // sec_check(vec![SecurityBadge::Admin, SecurityBadge::Burner]);
+
+    let owner: Key = get_named_arg_with_user_errors(
+        ARG_OWNER,
+        Cep1155Error::MissingOwner,
+        Cep1155Error::InvalidOwner,
+    )
+    .unwrap_or_revert();
+
+    let id: U256 =
+        get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)
+            .unwrap_or_revert();
+    let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&id);
+
+    let amount: U256 = get_named_arg_with_user_errors(
+        ARG_AMOUNT,
+        Cep1155Error::MissingAmount,
+        Cep1155Error::InvalidAmount,
+    )
+    .unwrap_or_revert();
+
+    let owner_balance = read_balance_from(&owner, &token_id);
+    let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_revert();
+    write_balance_to(&owner, &token_id, &new_owner_balance);
+
+    events::record_event_dictionary(Event::Burn(Burn {
+        id: token_id,
+        owner,
+        amount,
+    }));
+}
+
+#[no_mangle]
+pub extern "C" fn batch_burn() {
+    if 0 == get_stored_value_with_user_errors::<u8>(
+        ENABLE_MINT_BURN,
+        Cep1155Error::MissingEnableMBFlag,
+        Cep1155Error::InvalidEnableMBFlag,
+    ) {
+        revert(Cep1155Error::MintBurnDisabled);
+    };
+
+    // TODO ADMIN
+    // sec_check(vec![SecurityBadge::Admin, SecurityBadge::Burner]);
+
+    let owner: Key = get_named_arg_with_user_errors(
+        ARG_OWNER,
+        Cep1155Error::MissingOwner,
+        Cep1155Error::InvalidOwner,
+    )
+    .unwrap_or_revert();
+
+    let ids: Vec<U256> =
+        get_named_arg_with_user_errors(ARG_IDS, Cep1155Error::MissingIds, Cep1155Error::InvalidIds)
+            .unwrap_or_revert();
+
+    let amounts: Vec<U256> = get_named_arg_with_user_errors(
+        ARG_AMOUNTS,
+        Cep1155Error::MissingAmounts,
+        Cep1155Error::InvalidAmounts,
+    )
+    .unwrap_or_revert();
+
+    if ids.len() != amounts.len() {
+        revert(Cep1155Error::MismatchParamsLength);
+    }
+
+    for (i, id) in ids.iter().enumerate() {
+        let amount = amounts[i];
+        let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&id);
+        let owner_balance = read_balance_from(&owner, &token_id);
+        let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_revert();
+        write_balance_to(&owner, &token_id, &new_owner_balance);
+
+        events::record_event_dictionary(Event::Burn(Burn {
+            id: token_id,
+            owner,
+            amount,
+        }));
+    }
+}
 fn install_contract() {
     let name: String = get_named_arg(NAME);
 
@@ -287,11 +485,21 @@ fn install_contract() {
     )
     .unwrap_or_default();
 
+    let enable_mint_burn: u8 = utils::get_optional_named_arg_with_user_errors(
+        ENABLE_MINT_BURN,
+        Cep1155Error::InvalidEnableMBFlag,
+    )
+    .unwrap_or_default();
+
     let mut named_keys = NamedKeys::new();
     named_keys.insert(NAME.to_string(), storage::new_uref(name.clone()).into());
     named_keys.insert(
         EVENTS_MODE.to_string(),
         storage::new_uref(events_mode).into(),
+    );
+    named_keys.insert(
+        ENABLE_MINT_BURN.to_string(),
+        storage::new_uref(enable_mint_burn).into(),
     );
 
     let entry_points = generate_entry_points();

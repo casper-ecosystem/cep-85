@@ -2,8 +2,8 @@ use casper_engine_test_support::{
     ExecuteRequestBuilder, InMemoryWasmTestBuilder, DEFAULT_ACCOUNT_ADDR,
     PRODUCTION_RUN_GENESIS_REQUEST,
 };
-use casper_types::{runtime_args, ContractHash, ContractPackageHash, RuntimeArgs};
-use cep1155::constants::NAME;
+use casper_types::{runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs};
+use cep1155::constants::{ARG_TOKEN_CONTRACT, NAME};
 
 use super::constants::{
     CEP1155_CONTRACT_WASM, CEP1155_TEST_CONTRACT_WASM, CEP1155_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME,
@@ -24,19 +24,14 @@ pub(crate) fn setup_with_args(install_args: RuntimeArgs) -> (InMemoryWasmTestBui
     let mut builder = InMemoryWasmTestBuilder::default();
     builder.run_genesis(&PRODUCTION_RUN_GENESIS_REQUEST);
 
-    let install_request_1 =
+    let install_request_contract =
         ExecuteRequestBuilder::standard(*DEFAULT_ACCOUNT_ADDR, CEP1155_CONTRACT_WASM, install_args)
             .build();
 
-    let install_request_2 = ExecuteRequestBuilder::standard(
-        *DEFAULT_ACCOUNT_ADDR,
-        CEP1155_TEST_CONTRACT_WASM,
-        RuntimeArgs::default(),
-    )
-    .build();
-
-    builder.exec(install_request_1).expect_success().commit();
-    builder.exec(install_request_2).expect_success().commit();
+    builder
+        .exec(install_request_contract)
+        .expect_success()
+        .commit();
 
     let account = builder
         .get_account(*DEFAULT_ACCOUNT_ADDR)
@@ -48,6 +43,20 @@ pub(crate) fn setup_with_args(install_args: RuntimeArgs) -> (InMemoryWasmTestBui
         .and_then(|key| key.into_hash())
         .map(ContractHash::new)
         .expect("should have contract hash");
+
+    let install_request_contract_test = ExecuteRequestBuilder::standard(
+        *DEFAULT_ACCOUNT_ADDR,
+        CEP1155_TEST_CONTRACT_WASM,
+        runtime_args! {
+            ARG_TOKEN_CONTRACT => Key::from(cep1155_token)
+        },
+    )
+    .build();
+
+    builder
+        .exec(install_request_contract_test)
+        .expect_success()
+        .commit();
 
     let cep1155_test_contract_package = account
         .named_keys()

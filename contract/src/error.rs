@@ -68,7 +68,11 @@ pub enum Cep1155Error {
     FailToTransferBalance = 60045,
     FailToBatchTransferBalance = 60046,
     InvalidRecipient = 60047,
-    MissingContractHashKey = 60048,
+    MissingRecipient = 60048,
+    MissingContractHashKey = 60049,
+    MintBurnDisabled = 60050,
+    InvalidEnableMBFlag = 60051,
+    MissingEnableMBFlag = 60052,
 }
 
 impl From<Cep1155Error> for ApiError {

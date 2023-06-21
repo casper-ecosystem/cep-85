@@ -25,10 +25,13 @@ pub const ARG_ID: &str = "id";
 pub const ARG_IDS: &str = "ids";
 pub const ARG_OPERATOR: &str = "operator";
 pub const ARG_OWNER: &str = "owner";
+pub const ARG_RECIPIENT: &str = "recipient";
 pub const ARG_TO: &str = "to";
+pub const ARG_TOKEN_CONTRACT: &str = "token_contract";
 
 pub const BALANCES: &str = "balances";
 pub const CONTRACT_HASH: &str = "contract_hash";
+pub const ENABLE_MINT_BURN: &str = "enable_mint_burn";
 pub const EVENTS_MODE: &str = "events_mode";
 pub const IDENTIFIER_MODE: &str = "identifier_mode";
 pub const NAME: &str = "name";

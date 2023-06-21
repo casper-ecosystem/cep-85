@@ -17,15 +17,14 @@ use casper_types::{
 };
 use cep1155::constants::{
     ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR,
-    ARG_TO, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT,
-    ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
+    ARG_TO, ARG_TOKEN_CONTRACT, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH,
+    ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
     ENTRY_POINT_SAFE_TRANSFER, ENTRY_POINT_SET_APPROVAL_FOR_ALL,
 };
 use utils::{get_token_contract, store_result};
 mod utils;
 
 const CEP1155_TEST_PACKAGE_NAME: &str = "cep1155_test_contract_package_hash";
-const TOKEN_CONTRACT: &str = "token_contract";
 const RESULT_KEY: &str = "result";
 
 const ENTRY_POINT_CHECK_BALANCE: &str = "check_balance_of";
@@ -37,8 +36,8 @@ const ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM: &str = "check_safe_batch_trans
 
 #[no_mangle]
 pub extern "C" fn init() {
-    let token_contract = get_named_arg::<Key>(TOKEN_CONTRACT);
-    put_key(TOKEN_CONTRACT, token_contract);
+    let token_contract = get_named_arg::<Key>(ARG_TOKEN_CONTRACT);
+    put_key(ARG_TOKEN_CONTRACT, token_contract);
 }
 
 #[no_mangle]
@@ -231,10 +230,10 @@ pub extern "C" fn call() {
         Some(CEP1155_TEST_PACKAGE_NAME.to_string()),
         None,
     );
-    let token_contract = get_named_arg::<Key>(TOKEN_CONTRACT);
+    let token_contract = get_named_arg::<Key>(ARG_TOKEN_CONTRACT);
     // Call contract to initialize it
     let init_args = runtime_args! {
-        TOKEN_CONTRACT => token_contract,
+        ARG_TOKEN_CONTRACT => token_contract,
     };
     runtime::call_contract::<()>(contract_hash, ENTRY_POINT_INIT, init_args);
 }
