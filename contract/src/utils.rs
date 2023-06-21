@@ -1,4 +1,8 @@
-use crate::error::Cep1155Error;
+use crate::{
+    constants::IDENTIFIER_MODE,
+    error::Cep1155Error,
+    modalities::{TokenIdentifier, TokenIdentifierMode},
+};
 use alloc::{
     string::{String, ToString},
     vec,
@@ -6,13 +10,13 @@ use alloc::{
 };
 use casper_contract::{
     contract_api::{self, runtime, storage},
-    ext_ffi::{self, casper_get_named_arg_size},
+    ext_ffi,
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
     api_error,
     bytesrepr::{self, FromBytes, ToBytes},
-    ApiError, CLTyped, ContractHash, Key, URef,
+    ApiError, CLTyped, ContractHash, Key, URef, U256,
 };
 use core::{convert::TryInto, mem::MaybeUninit};
 
@@ -23,13 +27,6 @@ where
     let uref = get_uref(name);
     let value: T = storage::read(uref).unwrap_or_revert().unwrap_or_revert();
     value
-}
-
-pub fn get_uref(name: &str) -> URef {
-    let key = runtime::get_key(name)
-        .ok_or(ApiError::MissingKey)
-        .unwrap_or_revert();
-    key.try_into().unwrap_or_revert()
 }
 
 pub fn get_named_arg_with_user_errors<T: FromBytes>(
@@ -90,7 +87,8 @@ pub fn stringify_key<T: CLTyped>(key: Key) -> String {
     }
 }
 
-pub fn make_dictionary_item<T: CLTyped + ToBytes, V: CLTyped + ToBytes>(
+#[inline]
+pub fn make_dictionary_item_key<T: CLTyped + ToBytes, V: CLTyped + ToBytes>(
     key: &T,
     value: &V,
 ) -> String {
@@ -117,6 +115,47 @@ pub fn get_dictionary_value_from_key<T: CLTyped + FromBytes>(
         Ok(maybe_value) => maybe_value,
         Err(error) => runtime::revert(error),
     }
+}
+
+pub fn set_dictionary_value_for_key<T: CLTyped + ToBytes + Copy>(
+    dictionary_name: &str,
+    key: &str,
+    value: &T,
+) {
+    let seed_uref = get_uref_with_user_errors(
+        dictionary_name,
+        Cep1155Error::MissingStorageUref,
+        Cep1155Error::InvalidStorageUref,
+    );
+    storage::dictionary_put::<T>(seed_uref, key, *value)
+}
+
+pub fn get_identifier_mode() -> TokenIdentifierMode {
+    get_stored_value_with_user_errors::<u8>(
+        IDENTIFIER_MODE,
+        Cep1155Error::MissingIdentifierMode,
+        Cep1155Error::InvalidIdentifierMode,
+    )
+    .try_into()
+    .unwrap_or_revert()
+}
+
+pub fn get_token_id_from_identifier_mode(&id: &U256) -> TokenIdentifier {
+    let identifier_mode = get_identifier_mode();
+    let token_id: TokenIdentifier = match identifier_mode {
+        TokenIdentifierMode::Ordinal => TokenIdentifier::Index(id),
+        // TokenIdentifierMode::Hash => TokenIdentifier::Hash(base16::encode_lower(
+        //     &runtime::blake2b(token_metadata.clone()),
+        // )),
+    };
+    token_id
+}
+
+fn get_uref(name: &str) -> URef {
+    let key = runtime::get_key(name)
+        .ok_or(ApiError::MissingKey)
+        .unwrap_or_revert();
+    key.try_into().unwrap_or_revert()
 }
 
 fn get_uref_with_user_errors(name: &str, missing: Cep1155Error, invalid: Cep1155Error) -> URef {
@@ -204,7 +243,7 @@ fn to_ptr<T: ToBytes>(t: T) -> (*const u8, usize, Vec<u8>) {
 fn get_named_arg_size(name: &str) -> Option<usize> {
     let mut arg_size: usize = 0;
     let ret = unsafe {
-        casper_get_named_arg_size(
+        ext_ffi::casper_get_named_arg_size(
             name.as_bytes().as_ptr(),
             name.len(),
             &mut arg_size as *mut usize,

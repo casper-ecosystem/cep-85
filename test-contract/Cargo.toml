@@ -11,5 +11,6 @@ doctest = false
 test = false
 
 [dependencies]
+cep1155 = { path = "../contract" }
 casper-contract = "3.0.0"
 casper-types = "3.0.0"

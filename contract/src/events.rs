@@ -1,4 +1,4 @@
-use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_event_standard::{emit, Event, Schemas};
 use casper_types::{Key, U256};
@@ -13,8 +13,9 @@ use crate::{
 pub enum Event {
     Mint(Mint),
     Burn(Burn),
-    Transfer(Transfer),
-    TransferFrom(TransferFrom),
+    ApprovalForAll(ApprovalForAll),
+    TransferSingle(TransferSingle),
+    TransferBatch(TransferBatch),
 }
 
 pub fn record_event_dictionary(event: Event) {
@@ -29,15 +30,15 @@ pub fn record_event_dictionary(event: Event) {
 
 #[derive(Event, Debug, PartialEq, Eq)]
 pub struct Mint {
-    pub token_id: String,
+    pub id: TokenIdentifier,
     pub recipient: Key,
     pub amount: U256,
 }
 
 impl Mint {
-    pub fn new(token_id: TokenIdentifier, recipient: Key, amount: U256) -> Self {
+    pub fn new(id: TokenIdentifier, recipient: Key, amount: U256) -> Self {
         Self {
-            token_id: token_id.to_string(),
+            id,
             recipient,
             amount,
         }
@@ -46,63 +47,78 @@ impl Mint {
 
 #[derive(Event, Debug, PartialEq, Eq)]
 pub struct Burn {
-    pub token_id: String,
+    pub id: TokenIdentifier,
     pub owner: Key,
     pub amount: U256,
 }
 
 impl Burn {
-    pub fn new(owner: Key, token_id: TokenIdentifier, amount: U256) -> Self {
-        Self {
-            token_id: token_id.to_string(),
-            owner,
-            amount,
-        }
+    pub fn new(owner: Key, id: TokenIdentifier, amount: U256) -> Self {
+        Self { id, owner, amount }
     }
 }
 
 #[derive(Event, Debug, PartialEq, Eq)]
-pub struct Transfer {
-    pub token_id: String,
-    pub sender: Key,
-    pub recipient: Key,
-    pub amount: U256,
-}
-
-impl Transfer {
-    pub fn new(token_id: TokenIdentifier, sender: Key, recipient: Key, amount: U256) -> Self {
-        Self {
-            token_id: token_id.to_string(),
-            sender,
-            recipient,
-            amount,
-        }
-    }
-}
-
-#[derive(Event, Debug, PartialEq, Eq)]
-pub struct TransferFrom {
-    pub token_id: String,
-    pub spender: Option<Key>,
+pub struct ApprovalForAll {
     pub owner: Key,
-    pub recipient: Key,
-    pub amount: U256,
+    pub operator: Key,
+    pub approved: bool,
 }
 
-impl TransferFrom {
+impl ApprovalForAll {
+    pub fn new(owner: Key, operator: Key, approved: bool) -> Self {
+        Self {
+            owner,
+            operator,
+            approved,
+        }
+    }
+}
+
+#[derive(Event, Debug, PartialEq, Eq)]
+pub struct TransferSingle {
+    pub operator: Key,
+    pub from: Key,
+    pub to: Key,
+    pub id: TokenIdentifier,
+    pub value: U256,
+}
+
+impl TransferSingle {
+    pub fn new(operator: Key, from: Key, to: Key, id: TokenIdentifier, value: U256) -> Self {
+        Self {
+            operator,
+            from,
+            to,
+            id,
+            value,
+        }
+    }
+}
+
+#[derive(Event, Debug, PartialEq, Eq)]
+pub struct TransferBatch {
+    pub operator: Key,
+    pub from: Key,
+    pub to: Key,
+    pub ids: Vec<TokenIdentifier>,
+    pub values: Vec<U256>,
+}
+
+impl TransferBatch {
     pub fn new(
-        token_id: TokenIdentifier,
-        owner: Key,
-        spender: Option<Key>,
-        recipient: Key,
-        amount: U256,
+        operator: Key,
+        from: Key,
+        to: Key,
+        ids: Vec<TokenIdentifier>,
+        values: Vec<U256>,
     ) -> Self {
         Self {
-            token_id: token_id.to_string(),
-            owner,
-            spender,
-            recipient,
-            amount,
+            operator,
+            from,
+            to,
+            ids,
+            values,
         }
     }
 }
@@ -111,8 +127,9 @@ fn ces(event: Event) {
     match event {
         Event::Mint(ev) => emit(ev),
         Event::Burn(ev) => emit(ev),
-        Event::Transfer(ev) => emit(ev),
-        Event::TransferFrom(ev) => emit(ev),
+        Event::ApprovalForAll(ev) => emit(ev),
+        Event::TransferSingle(ev) => emit(ev),
+        Event::TransferBatch(ev) => emit(ev),
     }
 }
 
@@ -123,8 +140,9 @@ pub fn init_events() {
         let schemas = Schemas::new()
             .with::<Mint>()
             .with::<Burn>()
-            .with::<Transfer>()
-            .with::<TransferFrom>();
+            .with::<ApprovalForAll>()
+            .with::<TransferSingle>()
+            .with::<TransferBatch>();
         casper_event_standard::init(schemas);
     }
 }

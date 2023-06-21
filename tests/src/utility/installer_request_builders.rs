@@ -24,16 +24,16 @@ pub(crate) fn setup_with_args(install_args: RuntimeArgs) -> (InMemoryWasmTestBui
     let mut builder = InMemoryWasmTestBuilder::default();
     builder.run_genesis(&PRODUCTION_RUN_GENESIS_REQUEST);
 
+    let install_request_1 =
+        ExecuteRequestBuilder::standard(*DEFAULT_ACCOUNT_ADDR, CEP1155_CONTRACT_WASM, install_args)
+            .build();
+
     let install_request_2 = ExecuteRequestBuilder::standard(
         *DEFAULT_ACCOUNT_ADDR,
         CEP1155_TEST_CONTRACT_WASM,
         RuntimeArgs::default(),
     )
     .build();
-
-    let install_request_1 =
-        ExecuteRequestBuilder::standard(*DEFAULT_ACCOUNT_ADDR, CEP1155_CONTRACT_WASM, install_args)
-            .build();
 
     builder.exec(install_request_1).expect_success().commit();
     builder.exec(install_request_2).expect_success().commit();
