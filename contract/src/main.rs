@@ -168,6 +168,7 @@ pub extern "C" fn safe_transfer_from() {
     )
     .unwrap_or_revert();
 
+    // TODO get_verified_caller ?
     let caller = Key::from(runtime::get_caller());
 
     // Check if the caller is the spender or an operator
@@ -238,6 +239,7 @@ pub extern "C" fn safe_batch_transfer_from() {
     )
     .unwrap_or_revert();
 
+    // TODO get_verified_caller ?
     let caller = Key::from(runtime::get_caller());
 
     // Check if the caller is the spender or an operator
