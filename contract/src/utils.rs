@@ -1,7 +1,6 @@
 use crate::{
-    constants::{IDENTIFIER_MODE, TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD},
+    constants::{TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD},
     error::Cep1155Error,
-    modalities::{TokenIdentifier, TokenIdentifierMode},
 };
 use alloc::{
     string::{String, ToString},
@@ -16,7 +15,7 @@ use casper_contract::{
 use casper_types::{
     api_error,
     bytesrepr::{self, FromBytes, ToBytes},
-    ApiError, CLTyped, ContractHash, Key, URef, U256,
+    ApiError, CLTyped, ContractHash, Key, URef,
 };
 use core::{convert::TryInto, mem::MaybeUninit};
 
@@ -128,27 +127,6 @@ pub fn set_dictionary_value_for_key<T: CLTyped + ToBytes + Copy>(
         Cep1155Error::InvalidStorageUref,
     );
     storage::dictionary_put::<T>(seed_uref, key, *value)
-}
-
-pub fn get_identifier_mode() -> TokenIdentifierMode {
-    get_stored_value_with_user_errors::<u8>(
-        IDENTIFIER_MODE,
-        Cep1155Error::MissingIdentifierMode,
-        Cep1155Error::InvalidIdentifierMode,
-    )
-    .try_into()
-    .unwrap_or_revert()
-}
-
-pub fn get_token_id_from_identifier_mode(id: U256) -> TokenIdentifier {
-    let identifier_mode = get_identifier_mode();
-    let token_id: TokenIdentifier = match identifier_mode {
-        TokenIdentifierMode::Ordinal => TokenIdentifier::Index(id),
-        // TokenIdentifierMode::Hash => TokenIdentifier::Hash(base16::encode_lower(
-        //     &runtime::blake2b(token_metadata.clone()),
-        // )),
-    };
-    token_id
 }
 
 pub fn get_transfer_filter_contract() -> Option<ContractHash> {

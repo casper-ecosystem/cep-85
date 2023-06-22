@@ -4,11 +4,7 @@ use casper_event_standard::{emit, Event, Schemas};
 use casper_types::{Key, U256};
 use core::convert::TryFrom;
 
-use crate::{
-    constants::EVENTS_MODE,
-    modalities::{EventsMode, TokenIdentifier},
-    utils::get_stored_value,
-};
+use crate::{constants::EVENTS_MODE, modalities::EventsMode, utils::get_stored_value};
 
 pub enum Event {
     Mint(Mint),
@@ -30,13 +26,13 @@ pub fn record_event_dictionary(event: Event) {
 
 #[derive(Event, Debug, PartialEq, Eq)]
 pub struct Mint {
-    pub id: TokenIdentifier,
+    pub id: U256,
     pub recipient: Key,
     pub amount: U256,
 }
 
 impl Mint {
-    pub fn new(id: TokenIdentifier, recipient: Key, amount: U256) -> Self {
+    pub fn new(id: U256, recipient: Key, amount: U256) -> Self {
         Self {
             id,
             recipient,
@@ -47,13 +43,13 @@ impl Mint {
 
 #[derive(Event, Debug, PartialEq, Eq)]
 pub struct Burn {
-    pub id: TokenIdentifier,
+    pub id: U256,
     pub owner: Key,
     pub amount: U256,
 }
 
 impl Burn {
-    pub fn new(owner: Key, id: TokenIdentifier, amount: U256) -> Self {
+    pub fn new(owner: Key, id: U256, amount: U256) -> Self {
         Self { id, owner, amount }
     }
 }
@@ -80,12 +76,12 @@ pub struct TransferSingle {
     pub operator: Key,
     pub from: Key,
     pub to: Key,
-    pub id: TokenIdentifier,
+    pub id: U256,
     pub value: U256,
 }
 
 impl TransferSingle {
-    pub fn new(operator: Key, from: Key, to: Key, id: TokenIdentifier, value: U256) -> Self {
+    pub fn new(operator: Key, from: Key, to: Key, id: U256, value: U256) -> Self {
         Self {
             operator,
             from,
@@ -101,18 +97,12 @@ pub struct TransferBatch {
     pub operator: Key,
     pub from: Key,
     pub to: Key,
-    pub ids: Vec<TokenIdentifier>,
+    pub ids: Vec<U256>,
     pub values: Vec<U256>,
 }
 
 impl TransferBatch {
-    pub fn new(
-        operator: Key,
-        from: Key,
-        to: Key,
-        ids: Vec<TokenIdentifier>,
-        values: Vec<U256>,
-    ) -> Self {
+    pub fn new(operator: Key, from: Key, to: Key, ids: Vec<U256>, values: Vec<U256>) -> Self {
         Self {
             operator,
             from,

@@ -8,6 +8,7 @@ pub mod entry_points;
 pub mod error;
 pub mod modalities;
 pub mod operators;
+pub mod supply;
 
 // A feature to allow the contract to be used
 // as a library and a binary.
