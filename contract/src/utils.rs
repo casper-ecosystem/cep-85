@@ -3,6 +3,7 @@ use crate::{
     error::Cep1155Error,
 };
 use alloc::{
+    borrow::ToOwned,
     string::{String, ToString},
     vec,
     vec::Vec,
@@ -13,11 +14,47 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
+    account::AccountHash,
     api_error,
     bytesrepr::{self, FromBytes, ToBytes},
-    ApiError, CLTyped, ContractHash, Key, URef,
+    system::CallStackElement,
+    ApiError, CLTyped, ContractHash, ContractPackageHash, Key, URef,
 };
 use core::{convert::TryInto, mem::MaybeUninit};
+
+pub enum Caller {
+    Session(AccountHash),
+    StoredCaller(ContractHash, ContractPackageHash),
+}
+
+pub fn get_verified_caller() -> (Key, Option<Key>) {
+    let get_verified_caller: Result<Caller, Cep1155Error> = match *runtime::get_call_stack()
+        .iter()
+        .nth_back(1)
+        .to_owned()
+        .unwrap_or_revert()
+    {
+        CallStackElement::Session {
+            account_hash: calling_account_hash,
+        } => Ok(Caller::Session(calling_account_hash)),
+        CallStackElement::StoredSession {
+            contract_hash,
+            contract_package_hash,
+            ..
+        }
+        | CallStackElement::StoredContract {
+            contract_hash,
+            contract_package_hash,
+        } => Ok(Caller::StoredCaller(contract_hash, contract_package_hash)),
+    };
+
+    match get_verified_caller.unwrap_or_revert() {
+        Caller::Session(account_hash) => (account_hash.into(), None),
+        Caller::StoredCaller(contract_hash, package_hash) => {
+            (contract_hash.into(), Some(package_hash.into()))
+        }
+    }
+}
 
 pub fn get_stored_value<T>(name: &str) -> T
 where

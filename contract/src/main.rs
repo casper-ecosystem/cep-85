@@ -46,7 +46,7 @@ use cep1155::{
     utils::{
         get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
         get_stored_value_with_user_errors, get_transfer_filter_contract,
-        get_transfer_filter_method,
+        get_transfer_filter_method, get_verified_caller,
     },
 };
 
@@ -190,8 +190,7 @@ pub extern "C" fn set_approval_for_all() {
     )
     .unwrap_or_revert();
 
-    // TODO get_verified_caller
-    let caller = Key::from(runtime::get_caller());
+    let (caller, _) = get_verified_caller();
 
     // If caller tries to approve itself as operator that's probably a mistake and we revert.
     if caller == operator {
@@ -225,8 +224,7 @@ pub extern "C" fn safe_transfer_from() {
     )
     .unwrap_or_revert();
 
-    // TODO get_verified_caller ?
-    let caller = Key::from(runtime::get_caller());
+    let (caller, _) = get_verified_caller();
 
     // Check if the caller is the spender or an operator
     let is_approved: bool = read_operator(&from, &caller);
@@ -296,8 +294,7 @@ pub extern "C" fn safe_batch_transfer_from() {
     )
     .unwrap_or_revert();
 
-    // TODO get_verified_caller ?
-    let caller = Key::from(runtime::get_caller());
+    let (caller, _) = get_verified_caller();
 
     // Check if the caller is the spender or an operator
     let is_approved: bool = read_operator(&from, &caller);
@@ -454,15 +451,16 @@ pub extern "C" fn burn() {
         revert(Cep1155Error::MintBurnDisabled);
     };
 
-    // TODO ADMIN
-    // sec_check(vec![SecurityBadge::Admin, SecurityBadge::Burner]);
-
     let owner: Key = get_named_arg_with_user_errors(
         ARG_OWNER,
         Cep1155Error::MissingOwner,
         Cep1155Error::InvalidOwner,
     )
     .unwrap_or_revert();
+    let (caller, _) = get_verified_caller();
+    if owner != caller {
+        revert(Cep1155Error::InvalidBurnTarget);
+    }
 
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)

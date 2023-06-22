@@ -3,7 +3,12 @@
 
 extern crate alloc;
 
-use alloc::{boxed::Box, string::ToString, vec, vec::Vec};
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 use casper_contract::{
     self,
     contract_api::{
@@ -19,7 +24,8 @@ use cep1155::constants::{
     ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR,
     ARG_TO, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT,
     ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
-    ENTRY_POINT_SAFE_TRANSFER, ENTRY_POINT_SET_APPROVAL_FOR_ALL, TOKEN_CONTRACT,
+    ENTRY_POINT_SAFE_TRANSFER, ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_URI,
+    ENTRY_POINT_URI, TOKEN_CONTRACT, URI,
 };
 use utils::{get_token_contract, store_result};
 mod utils;
@@ -33,6 +39,9 @@ const ENTRY_POINT_CHECK_SET_APPROVAL_FOR_ALL: &str = "check_set_approval_for_all
 const ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL: &str = "check_is_approved_for_all";
 const ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM: &str = "check_safe_transfer_from";
 const ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM: &str = "check_safe_batch_transfer_from";
+const ENTRY_POINT_CHECK_SUPPLY_OF: &str = "check_supply_of";
+const ENTRY_POINT_CHECK_URI: &str = "check_uri";
+const ENTRY_POINT_CHECK_SET_URI: &str = "check_set_uri";
 
 #[no_mangle]
 pub extern "C" fn init() {
@@ -144,6 +153,44 @@ extern "C" fn check_safe_batch_transfer_from() {
 }
 
 #[no_mangle]
+extern "C" fn check_supply_of() {
+    let token_contract: ContractHash = get_token_contract();
+    let id: U256 = get_named_arg(ARG_ID);
+    let check_supply_of_args = runtime_args! {
+        ARG_ID => id,
+    };
+    let result: U256 = runtime::call_contract(
+        token_contract,
+        ENTRY_POINT_CHECK_SUPPLY_OF,
+        check_supply_of_args,
+    );
+    store_result(result);
+}
+
+#[no_mangle]
+extern "C" fn check_uri() {
+    let token_contract: ContractHash = get_token_contract();
+    let id: U256 = get_named_arg(ARG_ID);
+    let check_uri_args = runtime_args! {
+        ARG_ID => id,
+    };
+    let result: String = runtime::call_contract(token_contract, ENTRY_POINT_URI, check_uri_args);
+    store_result(result);
+}
+
+#[no_mangle]
+extern "C" fn check_set_uri() {
+    let token_contract: ContractHash = get_token_contract();
+    let id: U256 = get_named_arg(ARG_ID);
+    let uri: String = get_named_arg(URI);
+    let set_uri_args = runtime_args! {
+        ARG_ID => id,
+        URI => uri,
+    };
+    runtime::call_contract::<()>(token_contract, ENTRY_POINT_SET_URI, set_uri_args);
+}
+
+#[no_mangle]
 pub extern "C" fn call() {
     let mut entry_points = EntryPoints::new();
     let init = EntryPoint::new(
@@ -217,6 +264,31 @@ pub extern "C" fn call() {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     );
+    let check_supply_of = EntryPoint::new(
+        ENTRY_POINT_CHECK_SUPPLY_OF,
+        vec![Parameter::new(ARG_ID, CLType::U256)],
+        CLType::U256,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    );
+    let check_uri = EntryPoint::new(
+        ENTRY_POINT_CHECK_URI,
+        vec![Parameter::new(ARG_ID, CLType::U256)],
+        CLType::String,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    );
+    let check_set_uri = EntryPoint::new(
+        ENTRY_POINT_CHECK_SET_URI,
+        vec![
+            Parameter::new(ARG_ID, CLType::U256),
+            Parameter::new(URI, CLType::String),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    );
+
     entry_points.add_entry_point(init);
     entry_points.add_entry_point(check_balance_of_entrypoint);
     entry_points.add_entry_point(check_balance_of_batch_entrypoint);
@@ -224,6 +296,10 @@ pub extern "C" fn call() {
     entry_points.add_entry_point(check_is_approved_for_all_entrypoint);
     entry_points.add_entry_point(check_safe_transfer_from_entrypoint);
     entry_points.add_entry_point(check_safe_batch_transfer_from_entrypoint);
+    entry_points.add_entry_point(check_supply_of);
+    entry_points.add_entry_point(check_uri);
+    entry_points.add_entry_point(check_set_uri);
+
     let (contract_hash, _version) = storage::new_contract(
         entry_points,
         None,

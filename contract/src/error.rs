@@ -85,6 +85,7 @@ pub enum Cep1155Error {
     MissingTransferFilterMethod = 60062,
     MissingUri = 60063,
     InvalidUri = 60064,
+    InvalidBurnTarget = 60065,
 }
 
 impl From<Cep1155Error> for ApiError {
