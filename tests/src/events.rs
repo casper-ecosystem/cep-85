@@ -1,11 +1,11 @@
 use crate::utility::{
-    constants::TOKEN_NAME,
+    constants::{TOKEN_NAME, TOKEN_URI},
     installer_request_builders::{setup_with_args, TestContext},
 };
 use casper_event_standard::{Schemas, EVENTS_SCHEMA};
 use casper_types::{runtime_args, RuntimeArgs};
 use cep1155::{
-    constants::{EVENTS_MODE, NAME},
+    constants::{EVENTS_MODE, NAME, URI},
     events::{ApprovalForAll, Burn, Mint, TransferBatch, TransferSingle},
     modalities::EventsMode,
 };
@@ -14,6 +14,7 @@ use cep1155::{
 fn should_have_events_schema_in_events_mode() {
     let (mut builder, TestContext { cep1155_token, .. }) = setup_with_args(runtime_args! {
         NAME => TOKEN_NAME,
+        URI => TOKEN_URI,
         EVENTS_MODE => EventsMode::CES as u8
     });
     let expected_schemas = Schemas::new()

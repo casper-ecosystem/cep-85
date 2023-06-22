@@ -83,6 +83,8 @@ pub enum Cep1155Error {
     TransferFilterContractDenied = 60060,
     InvalidTransferFilterMethod = 60061,
     MissingTransferFilterMethod = 60062,
+    MissingUri = 60063,
+    InvalidUri = 60064,
 }
 
 impl From<Cep1155Error> for ApiError {

@@ -33,7 +33,8 @@ use cep1155::{
         ARG_ID, ARG_IDS, ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TO, BALANCES, CONTRACT_HASH,
         ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS, PACKAGE_HASH,
         PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
-        PREFIX_CONTRACT_VERSION, SUPPLY, TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD,
+        PREFIX_CONTRACT_VERSION, SUPPLY, TOKEN_URI, TRANSFER_FILTER_CONTRACT,
+        TRANSFER_FILTER_METHOD, URI,
     },
     entry_points::generate_entry_points,
     error::Cep1155Error,
@@ -41,6 +42,7 @@ use cep1155::{
     modalities::TransferFilterContractResult,
     operators::{read_operator, write_operator},
     supply::{read_supply_of, write_supply_of},
+    uri::{read_uri_of, write_uri_of},
     utils::{
         get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
         get_stored_value_with_user_errors, get_transfer_filter_contract,
@@ -110,6 +112,8 @@ pub extern "C" fn init() {
     storage::new_dictionary(OPERATORS)
         .unwrap_or_revert_with(Cep1155Error::FailedToCreateDictionary);
     storage::new_dictionary(SUPPLY).unwrap_or_revert_with(Cep1155Error::FailedToCreateDictionary);
+    storage::new_dictionary(TOKEN_URI)
+        .unwrap_or_revert_with(Cep1155Error::FailedToCreateDictionary);
 
     init_events();
 }
@@ -548,10 +552,53 @@ pub extern "C" fn supply_of() {
     runtime::ret(CLValue::from_t(supply).unwrap_or_revert());
 }
 
+#[no_mangle]
+pub extern "C" fn uri() {
+    let id: Option<U256> =
+        get_optional_named_arg_with_user_errors(ARG_ID, Cep1155Error::InvalidId).unwrap_or_revert();
+
+    let uri: String = match id {
+        Some(id) => read_uri_of(&id),
+        None => get_stored_value_with_user_errors(
+            URI,
+            Cep1155Error::MissingUri,
+            Cep1155Error::InvalidUri,
+        ),
+    };
+    runtime::ret(CLValue::from_t(uri).unwrap_or_revert());
+}
+
+#[no_mangle]
+pub extern "C" fn set_uri() {
+    // TODO ADMIN
+    // sec_check(vec![SecurityBadge::Admin, SecurityBadge::Meta]);
+
+    let id: Option<U256> =
+        get_optional_named_arg_with_user_errors(ARG_ID, Cep1155Error::InvalidId).unwrap_or_revert();
+
+    let uri: String = get_named_arg_with_user_errors(
+        URI,
+        Cep1155Error::MissingAccount,
+        Cep1155Error::InvalidAccount,
+    )
+    .unwrap_or_revert();
+    match id {
+        Some(id) => write_uri_of(&id, &uri),
+        None => put_key(URI, storage::new_uref(uri).into()),
+    }
+}
+
 fn install_contract() {
     let name: String = get_named_arg_with_user_errors(
         NAME,
         Cep1155Error::MissingCollectionName,
+        Cep1155Error::InvalidCollectionName,
+    )
+    .unwrap_or_revert();
+
+    let uri: String = get_named_arg_with_user_errors(
+        URI,
+        Cep1155Error::MissingUri,
         Cep1155Error::InvalidCollectionName,
     )
     .unwrap_or_revert();
@@ -578,6 +625,7 @@ fn install_contract() {
 
     let mut named_keys = NamedKeys::new();
     named_keys.insert(NAME.to_string(), storage::new_uref(name.clone()).into());
+    named_keys.insert(URI.to_string(), storage::new_uref(uri.clone()).into());
     named_keys.insert(
         EVENTS_MODE.to_string(),
         storage::new_uref(events_mode).into(),

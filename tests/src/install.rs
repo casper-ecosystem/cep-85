@@ -1,5 +1,5 @@
 use crate::utility::{
-    constants::{CEP1155_CONTRACT_WASM, CEP1155_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME},
+    constants::{CEP1155_CONTRACT_WASM, CEP1155_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME, TOKEN_URI},
     installer_request_builders::{setup, TestContext},
     support::assert_expected_error,
 };
@@ -12,7 +12,7 @@ use casper_types::{runtime_args, ContractHash, RuntimeArgs};
 use cep1155::{
     constants::{
         BALANCES, ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS, PACKAGE_HASH,
-        TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD,
+        TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD, URI,
     },
     error::Cep1155Error,
 };
@@ -32,6 +32,7 @@ fn should_install_contract() {
 fn should_have_queryable_properties() {
     let (mut builder, TestContext { cep1155_token, .. }) = setup();
     let name: String = builder.get_value(cep1155_token, NAME);
+    let uri: String = builder.get_value(cep1155_token, URI);
     let events_mode: u8 = builder.get_value(cep1155_token, EVENTS_MODE);
     let enable_mint_burn: u8 = builder.get_value(cep1155_token, ENABLE_MINT_BURN);
     let transfer_filter_contract: Option<ContractHash> =
@@ -40,6 +41,7 @@ fn should_have_queryable_properties() {
         builder.get_value(cep1155_token, TRANSFER_FILTER_METHOD);
 
     assert_eq!(name, TOKEN_NAME);
+    assert_eq!(uri, TOKEN_URI);
     assert_eq!(events_mode, 0u8);
     assert_eq!(enable_mint_burn, 0u8);
     assert_eq!(transfer_filter_contract, None);
@@ -100,6 +102,7 @@ fn should_reject_invalid_collection_name() {
         CEP1155_CONTRACT_WASM,
         runtime_args! {
             NAME => 0u64,
+            URI => TOKEN_URI,
         },
     )
     .build();

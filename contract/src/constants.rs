@@ -14,6 +14,8 @@ pub const ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM: &str = "safe_batch_transfer_from
 pub const ENTRY_POINT_SAFE_TRANSFER: &str = "safe_transfer_from";
 pub const ENTRY_POINT_SET_APPROVAL_FOR_ALL: &str = "set_approval_for_all";
 pub const ENTRY_POINT_SUPPLY_OF: &str = "supply_of";
+pub const ENTRY_POINT_URI: &str = "uri";
+pub const ENTRY_POINT_SET_URI: &str = "set_uri";
 
 pub const ARG_ACCOUNT: &str = "account";
 pub const ARG_ACCOUNTS: &str = "accounts";
@@ -42,3 +44,5 @@ pub const SUPPLY: &str = "supply";
 pub const TOKEN_CONTRACT: &str = "token_contract";
 pub const TRANSFER_FILTER_CONTRACT: &str = "transfer_filter_contract";
 pub const TRANSFER_FILTER_METHOD: &str = "transfer_filter_method";
+pub const TOKEN_URI: &str = "token_uri";
+pub const URI: &str = "uri";
