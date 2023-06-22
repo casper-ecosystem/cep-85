@@ -13,6 +13,7 @@ pub const ENTRY_POINT_IS_APPROVED_FOR_ALL: &str = "is_approved_for_all";
 pub const ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM: &str = "safe_batch_transfer_from";
 pub const ENTRY_POINT_SAFE_TRANSFER: &str = "safe_transfer_from";
 pub const ENTRY_POINT_SET_APPROVAL_FOR_ALL: &str = "set_approval_for_all";
+pub const ENTRY_POINT_SUPPLY_OF: &str = "supply_of";
 
 pub const ARG_ACCOUNT: &str = "account";
 pub const ARG_ACCOUNTS: &str = "accounts";
@@ -37,7 +38,7 @@ pub const NAME: &str = "name";
 pub const NUMBER_OF_MINTED_TOKENS: &str = "number_of_minted_tokens";
 pub const OPERATORS: &str = "operators";
 pub const PACKAGE_HASH: &str = "package_hash";
+pub const SUPPLY: &str = "supply";
 pub const TOKEN_CONTRACT: &str = "token_contract";
-pub const TOTAL_TOKEN_SUPPLY: &str = "total_token_supply";
 pub const TRANSFER_FILTER_CONTRACT: &str = "transfer_filter_contract";
 pub const TRANSFER_FILTER_METHOD: &str = "transfer_filter_method";

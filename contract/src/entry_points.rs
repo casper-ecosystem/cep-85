@@ -7,8 +7,8 @@ use crate::constants::{
     ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED, ARG_FROM, ARG_ID, ARG_IDS,
     ARG_OPERATOR, ARG_TO, CONTRACT_HASH, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH,
     ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
-    ENTRY_POINT_SAFE_TRANSFER, ENTRY_POINT_SET_APPROVAL_FOR_ALL, PACKAGE_HASH,
-    TRANSFER_FILTER_CONTRACT,
+    ENTRY_POINT_SAFE_TRANSFER, ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SUPPLY_OF,
+    PACKAGE_HASH, TRANSFER_FILTER_CONTRACT,
 };
 
 /// Returns the `init` entry point.
@@ -116,6 +116,32 @@ pub fn safe_batch_transfer_from() -> EntryPoint {
     )
 }
 
+/// Returns the `total_supply` entry point.
+pub fn supply_of() -> EntryPoint {
+    EntryPoint::new(
+        ENTRY_POINT_SUPPLY_OF,
+        vec![Parameter::new(ARG_ID, CLType::U256)],
+        CLType::U256,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    )
+}
+
+// TODO ?
+// /// Returns the `set_total_supply` entry point.
+// pub fn set_total_supply() -> EntryPoint {
+//     EntryPoint::new(
+//         ENTRY_POINT_SET_TOTAL_SUPPLY,
+//         vec![
+//             Parameter::new(ARG_ID, CLType::U256),
+//             Parameter::new(ARG_TOTAL_SUPPLY, CLType::U256),
+//         ],
+//         CLType::Unit,
+//         EntryPointAccess::Public,
+//         EntryPointType::Contract,
+//     )
+// }
+
 /// Returns the default set of CEP1155 token entry points.
 pub fn generate_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -126,5 +152,6 @@ pub fn generate_entry_points() -> EntryPoints {
     entry_points.add_entry_point(is_approved_for_all());
     entry_points.add_entry_point(safe_transfer_from());
     entry_points.add_entry_point(safe_batch_transfer_from());
+    entry_points.add_entry_point(supply_of());
     entry_points
 }

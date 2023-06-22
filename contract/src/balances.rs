@@ -10,26 +10,21 @@ use casper_types::{Key, U256};
 use crate::{
     constants::{BALANCES, CONTRACT_HASH},
     error::Cep1155Error,
-    modalities::TokenIdentifier,
     utils::{
         get_dictionary_value_from_key, make_dictionary_item_key, set_dictionary_value_for_key,
     },
 };
 
 /// Writes token balance of a specified account into a dictionary.
-pub fn write_balance_to(account: &Key, token_id: &TokenIdentifier, amount: U256) {
-    set_dictionary_value_for_key(
-        BALANCES,
-        &make_dictionary_item_key(account, token_id),
-        &amount,
-    )
+pub fn write_balance_to(account: &Key, id: U256, amount: U256) {
+    set_dictionary_value_for_key(BALANCES, &make_dictionary_item_key(account, &id), &amount)
 }
 
 /// Reads token balance of a specified account.
 ///
 /// If a given account does not have balances in the system, then a 0 is returned.
-pub fn read_balance_from(account: &Key, token_id: &TokenIdentifier) -> U256 {
-    get_dictionary_value_from_key(BALANCES, &make_dictionary_item_key(account, token_id))
+pub fn read_balance_from(account: &Key, id: U256) -> U256 {
+    get_dictionary_value_from_key(BALANCES, &make_dictionary_item_key(account, &id))
         .unwrap_or_default()
 }
 
@@ -40,7 +35,7 @@ pub fn read_balance_from(account: &Key, token_id: &TokenIdentifier) -> U256 {
 pub fn transfer_balance(
     sender: &Key,
     recipient: &Key,
-    token_id: &TokenIdentifier,
+    id: U256,
     amount: U256,
 ) -> Result<(), Cep1155Error> {
     if amount.is_zero() {
@@ -68,21 +63,21 @@ pub fn transfer_balance(
     }
 
     let new_sender_balance = {
-        let sender_balance = read_balance_from(sender, token_id);
+        let sender_balance = read_balance_from(sender, id);
         sender_balance
             .checked_sub(amount)
-            .ok_or(Cep1155Error::InsufficientBalance)?
+            .unwrap_or_revert_with(Cep1155Error::InsufficientBalance)
     };
 
     let new_recipient_balance = {
-        let recipient_balance = read_balance_from(recipient, token_id);
+        let recipient_balance = read_balance_from(recipient, id);
         recipient_balance
             .checked_add(amount)
-            .ok_or(Cep1155Error::Overflow)?
+            .unwrap_or_revert_with(Cep1155Error::Overflow)
     };
 
-    write_balance_to(sender, token_id, new_sender_balance);
-    write_balance_to(recipient, token_id, new_recipient_balance);
+    write_balance_to(sender, id, new_sender_balance);
+    write_balance_to(recipient, id, new_recipient_balance);
 
     Ok(())
 }
@@ -93,7 +88,7 @@ pub fn transfer_balance(
 pub fn batch_transfer_balance(
     sender: &Key,
     recipient: &Key,
-    ids: &Vec<TokenIdentifier>,
+    ids: &Vec<U256>,
     amounts: &Vec<U256>,
 ) -> Result<(), Cep1155Error> {
     if sender == recipient {
@@ -111,7 +106,7 @@ pub fn batch_transfer_balance(
             continue;
         }
 
-        transfer_balance(sender, recipient, &id, amount)
+        transfer_balance(sender, recipient, id, amount)
             .unwrap_or_revert_with(Cep1155Error::FailToTransferBalance);
     }
 
