@@ -40,3 +40,4 @@ pub const PACKAGE_HASH: &str = "package_hash";
 pub const TOKEN_CONTRACT: &str = "token_contract";
 pub const TOTAL_TOKEN_SUPPLY: &str = "total_token_supply";
 pub const TRANSFER_FILTER_CONTRACT: &str = "transfer_filter_contract";
+pub const TRANSFER_FILTER_METHOD: &str = "transfer_filter_method";

@@ -7,8 +7,8 @@ use casper_engine_test_support::{
     ExecuteRequestBuilder, InMemoryWasmTestBuilder, DEFAULT_ACCOUNT_ADDR,
     PRODUCTION_RUN_GENESIS_REQUEST,
 };
-use casper_execution_engine::core::{engine_state::Error as EngineStateError, execution};
-use casper_types::{runtime_args, ApiError, ContractHash, Key, RuntimeArgs};
+
+use casper_types::{runtime_args, ContractHash, RuntimeArgs};
 use cep1155::{
     constants::{
         BALANCES, ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS, PACKAGE_HASH,
@@ -45,7 +45,7 @@ fn should_have_queryable_properties() {
 
 #[test]
 fn should_only_allow_init_during_installation_session() {
-    let (mut builder, TestContext { cep1155_token, .. }) = setup();
+    let (mut builder, TestContext { cep1155_token: _, .. }) = setup();
 
     let init_request = ExecuteRequestBuilder::contract_call_by_name(
         *DEFAULT_ACCOUNT_ADDR,
@@ -67,7 +67,7 @@ fn should_only_allow_init_during_installation_session() {
 
 #[test]
 fn should_not_store_balances_or_allowances_under_account_after_install() {
-    let (builder, TestContext { cep1155_token, .. }) = setup();
+    let (builder, TestContext { cep1155_token: _, .. }) = setup();
 
     let account = builder
         .get_account(*DEFAULT_ACCOUNT_ADDR)

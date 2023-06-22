@@ -11,11 +11,12 @@ extern crate alloc;
 use alloc::{
     format,
     string::{String, ToString},
+    vec,
     vec::Vec,
 };
 use casper_contract::{
     contract_api::{
-        runtime::{self, get_key, put_key, revert},
+        runtime::{self, call_contract, get_key, put_key, revert},
         storage,
     },
     unwrap_or_revert::UnwrapOrRevert,
@@ -36,11 +37,12 @@ use cep1155::{
     entry_points::generate_entry_points,
     error::Cep1155Error,
     events::{self, init_events, ApprovalForAll, Burn, Event, Mint, TransferBatch, TransferSingle},
-    modalities::TokenIdentifier,
+    modalities::{TokenIdentifier, TransferFilterContractResult},
     operators::{read_operator, write_operator},
     utils::{
         get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
         get_stored_value_with_user_errors, get_token_id_from_identifier_mode,
+        get_transfer_filter_contract, get_transfer_filter_method,
     },
 };
 
@@ -109,7 +111,7 @@ pub extern "C" fn balance_of() {
         get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)
             .unwrap_or_revert();
 
-    let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&id);
+    let token_id: TokenIdentifier = get_token_id_from_identifier_mode(id);
     let balance: U256 = read_balance_from(&account, &token_id);
     runtime::ret(CLValue::from_t(balance).unwrap_or_revert());
 }
@@ -133,7 +135,7 @@ pub extern "C" fn balance_of_batch() {
     let mut batch_balances = Vec::new();
 
     for i in 0..accounts.len() {
-        let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&ids[i]);
+        let token_id: TokenIdentifier = get_token_id_from_identifier_mode(ids[i]);
         let balance: U256 = read_balance_from(&accounts[i], &token_id);
         batch_balances.push(balance);
     }
@@ -222,7 +224,7 @@ pub extern "C" fn safe_transfer_from() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)
             .unwrap_or_revert();
-    let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&id);
+    let token_id: TokenIdentifier = get_token_id_from_identifier_mode(id);
 
     let amount: U256 = get_named_arg_with_user_errors(
         ARG_AMOUNT,
@@ -231,15 +233,16 @@ pub extern "C" fn safe_transfer_from() {
     )
     .unwrap_or_revert();
 
-    // TODO
-    let _data: Vec<u8> = get_named_arg_with_user_errors(
+    let data: Vec<u8> = get_named_arg_with_user_errors(
         ARG_DATA,
         Cep1155Error::MissingData,
         Cep1155Error::InvalidData,
     )
     .unwrap_or_revert();
 
-    transfer_balance(&from, &to, &token_id, &amount)
+    before_token_transfer(&caller, &from, &to, &vec![token_id], &vec![amount], data);
+
+    transfer_balance(&from, &to, &token_id, amount)
         .unwrap_or_revert_with(Cep1155Error::FailToTransferBalance);
     events::record_event_dictionary(Event::TransferSingle(TransferSingle {
         operator: caller,
@@ -288,21 +291,22 @@ pub extern "C" fn safe_batch_transfer_from() {
 
     let mut token_ids: Vec<TokenIdentifier> = Vec::new();
     for id in &ids {
-        let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&id);
+        let token_id: TokenIdentifier = get_token_id_from_identifier_mode(*id);
         token_ids.push(token_id)
     }
 
-    // TODO
-    let _data: Vec<u8> = get_named_arg_with_user_errors(
+    let to: Key =
+        get_named_arg_with_user_errors(ARG_TO, Cep1155Error::MissingTo, Cep1155Error::InvalidTo)
+            .unwrap_or_revert();
+
+    let data: Vec<u8> = get_named_arg_with_user_errors(
         ARG_DATA,
         Cep1155Error::MissingData,
         Cep1155Error::InvalidData,
     )
     .unwrap_or_revert();
 
-    let to: Key =
-        get_named_arg_with_user_errors(ARG_TO, Cep1155Error::MissingTo, Cep1155Error::InvalidTo)
-            .unwrap_or_revert();
+    before_token_transfer(&caller, &from, &to, &token_ids, &amounts, data);
 
     batch_transfer_balance(&from, &to, &token_ids, &amounts)
         .unwrap_or_revert_with(Cep1155Error::FailToBatchTransferBalance);
@@ -339,7 +343,7 @@ pub extern "C" fn mint() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)
             .unwrap_or_revert();
-    let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&id);
+    let token_id: TokenIdentifier = get_token_id_from_identifier_mode(id);
 
     let amount: U256 = get_named_arg_with_user_errors(
         ARG_AMOUNT,
@@ -352,7 +356,7 @@ pub extern "C" fn mint() {
 
     let recipient_balance = read_balance_from(&recipient, &token_id);
     let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_revert();
-    write_balance_to(&recipient, &token_id, &new_recipient_balance);
+    write_balance_to(&recipient, &token_id, new_recipient_balance);
 
     events::record_event_dictionary(Event::Mint(Mint {
         id: token_id,
@@ -401,14 +405,14 @@ pub extern "C" fn batch_mint() {
 
     // Parcourir les vecteurs ids et amounts et effectuer les mintings
     for (i, &id) in ids.iter().enumerate() {
-        let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&id);
+        let token_id: TokenIdentifier = get_token_id_from_identifier_mode(id);
         let amount = amounts[i];
 
         // TODO check if token_id already exists
 
         let recipient_balance = read_balance_from(&recipient, &token_id);
         let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_revert();
-        write_balance_to(&recipient, &token_id, &new_recipient_balance);
+        write_balance_to(&recipient, &token_id, new_recipient_balance);
 
         events::record_event_dictionary(Event::Mint(Mint {
             id: token_id,
@@ -441,7 +445,7 @@ pub extern "C" fn burn() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)
             .unwrap_or_revert();
-    let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&id);
+    let token_id: TokenIdentifier = get_token_id_from_identifier_mode(id);
 
     let amount: U256 = get_named_arg_with_user_errors(
         ARG_AMOUNT,
@@ -452,7 +456,7 @@ pub extern "C" fn burn() {
 
     let owner_balance = read_balance_from(&owner, &token_id);
     let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_revert();
-    write_balance_to(&owner, &token_id, &new_owner_balance);
+    write_balance_to(&owner, &token_id, new_owner_balance);
 
     events::record_event_dictionary(Event::Burn(Burn {
         id: token_id,
@@ -498,10 +502,10 @@ pub extern "C" fn batch_burn() {
 
     for (i, id) in ids.iter().enumerate() {
         let amount = amounts[i];
-        let token_id: TokenIdentifier = get_token_id_from_identifier_mode(&id);
+        let token_id: TokenIdentifier = get_token_id_from_identifier_mode(*id);
         let owner_balance = read_balance_from(&owner, &token_id);
         let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_revert();
-        write_balance_to(&owner, &token_id, &new_owner_balance);
+        write_balance_to(&owner, &token_id, new_owner_balance);
 
         events::record_event_dictionary(Event::Burn(Burn {
             id: token_id,
@@ -570,26 +574,45 @@ fn install_contract() {
     let init_args = runtime_args! {
         CONTRACT_HASH => contract_hash_key,
         PACKAGE_HASH => package_hash_key,
+        TRANSFER_FILTER_CONTRACT => transfer_filter_contract_key
     };
 
     runtime::call_contract::<()>(contract_hash, ENTRY_POINT_INIT, init_args);
 }
 
 fn before_token_transfer(
-    operator: Key,
-    from: Key,
-    to: Key,
-    ids: Vec<TokenIdentifier>,
-    amounts: Vec<U256>,
+    operator: &Key,
+    from: &Key,
+    to: &Key,
+    ids: &Vec<TokenIdentifier>,
+    amounts: &Vec<U256>,
     data: Vec<u8>,
 ) {
     if amounts.len() != ids.len() {
         runtime::revert(Cep1155Error::MismatchParamsLength);
     }
 
-    for amount in amounts {
+    for amount in amounts.clone() {
         if amount == U256::zero() {
             runtime::revert(Cep1155Error::InvalidAmount);
+        }
+    }
+
+    if let Some(filter_contract) = get_transfer_filter_contract() {
+        if let Some(filter_method) = get_transfer_filter_method() {
+            let mut args = RuntimeArgs::new();
+            args.insert(ARG_OPERATOR, *operator).unwrap();
+            args.insert(ARG_FROM, *from).unwrap();
+            args.insert(ARG_TO, *to).unwrap();
+            args.insert(ARG_IDS, ids.clone()).unwrap();
+            args.insert(ARG_AMOUNTS, amounts.clone()).unwrap();
+            args.insert(ARG_DATA, data).unwrap();
+
+            let result: TransferFilterContractResult =
+                call_contract::<u8>(filter_contract, &filter_method, args).into();
+            if TransferFilterContractResult::DenyTransfer == result {
+                revert(Cep1155Error::TransferFilterContractDenied);
+            }
         }
     }
 }

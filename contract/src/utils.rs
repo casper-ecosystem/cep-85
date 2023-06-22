@@ -1,5 +1,5 @@
 use crate::{
-    constants::IDENTIFIER_MODE,
+    constants::{IDENTIFIER_MODE, TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD},
     error::Cep1155Error,
     modalities::{TokenIdentifier, TokenIdentifierMode},
 };
@@ -140,7 +140,7 @@ pub fn get_identifier_mode() -> TokenIdentifierMode {
     .unwrap_or_revert()
 }
 
-pub fn get_token_id_from_identifier_mode(&id: &U256) -> TokenIdentifier {
+pub fn get_token_id_from_identifier_mode(id: U256) -> TokenIdentifier {
     let identifier_mode = get_identifier_mode();
     let token_id: TokenIdentifier = match identifier_mode {
         TokenIdentifierMode::Ordinal => TokenIdentifier::Index(id),
@@ -149,6 +149,22 @@ pub fn get_token_id_from_identifier_mode(&id: &U256) -> TokenIdentifier {
         // )),
     };
     token_id
+}
+
+pub fn get_transfer_filter_contract() -> Option<ContractHash> {
+    get_stored_value_with_user_errors(
+        TRANSFER_FILTER_CONTRACT,
+        Cep1155Error::MissingTransferFilterContract,
+        Cep1155Error::InvalidTransferFilterContract,
+    )
+}
+
+pub fn get_transfer_filter_method() -> Option<String> {
+    get_stored_value_with_user_errors(
+        TRANSFER_FILTER_METHOD,
+        Cep1155Error::MissingTransferFilterContract,
+        Cep1155Error::InvalidTransferFilterContract,
+    )
 }
 
 fn get_uref(name: &str) -> URef {

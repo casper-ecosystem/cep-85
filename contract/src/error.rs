@@ -74,11 +74,13 @@ pub enum Cep1155Error {
     InvalidEnableMBFlag = 60051,
     MissingEnableMBFlag = 60052,
     InvalidTransferFilterContract = 60053,
-    MissingCollectionName = 60054,
-    InvalidCollectionName = 60055,
-    MissingPackageHash = 60056,
-    InvalidContractHash = 60057,
-    InvalidPackageHash = 60058,
+    MissingTransferFilterContract = 60054,
+    MissingCollectionName = 60055,
+    InvalidCollectionName = 60056,
+    MissingPackageHash = 60057,
+    InvalidContractHash = 60058,
+    InvalidPackageHash = 60059,
+    TransferFilterContractDenied = 60060,
 }
 
 impl From<Cep1155Error> for ApiError {
