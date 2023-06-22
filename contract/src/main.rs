@@ -38,7 +38,9 @@ use cep1155::{
     },
     entry_points::generate_entry_points,
     error::Cep1155Error,
-    events::{self, init_events, ApprovalForAll, Burn, Event, Mint, TransferBatch, TransferSingle},
+    events::{
+        self, init_events, ApprovalForAll, Burn, Event, Mint, TransferBatch, TransferSingle, Uri,
+    },
     modalities::TransferFilterContractResult,
     operators::{read_operator, write_operator},
     supply::{read_supply_of, write_supply_of},
@@ -371,6 +373,15 @@ pub extern "C" fn mint() {
 
     write_supply_of(&id, new_total_supply);
     write_balance_to(&recipient, id, new_recipient_balance);
+
+    let uri: String =
+        get_stored_value_with_user_errors(URI, Cep1155Error::MissingUri, Cep1155Error::InvalidUri);
+    write_uri_of(id, &uri);
+
+    events::record_event_dictionary(Event::Uri(Uri {
+        id: Some(id),
+        value: uri,
+    }));
     events::record_event_dictionary(Event::Mint(Mint {
         id,
         recipient,
@@ -433,6 +444,18 @@ pub extern "C" fn batch_mint() {
 
         write_supply_of(&id, new_total_supply);
         write_balance_to(&recipient, id, new_recipient_balance);
+
+        let uri: String = get_stored_value_with_user_errors(
+            URI,
+            Cep1155Error::MissingUri,
+            Cep1155Error::InvalidUri,
+        );
+        write_uri_of(id, &uri);
+
+        events::record_event_dictionary(Event::Uri(Uri {
+            id: Some(id),
+            value: uri,
+        }));
         events::record_event_dictionary(Event::Mint(Mint {
             id,
             recipient,
@@ -556,7 +579,7 @@ pub extern "C" fn uri() {
         get_optional_named_arg_with_user_errors(ARG_ID, Cep1155Error::InvalidId).unwrap_or_revert();
 
     let uri: String = match id {
-        Some(id) => read_uri_of(&id),
+        Some(id) => read_uri_of(id),
         None => get_stored_value_with_user_errors(
             URI,
             Cep1155Error::MissingUri,
@@ -581,9 +604,13 @@ pub extern "C" fn set_uri() {
     )
     .unwrap_or_revert();
     match id {
-        Some(id) => write_uri_of(&id, &uri),
-        None => put_key(URI, storage::new_uref(uri).into()),
+        Some(id) => write_uri_of(id, &uri),
+        None => put_key(URI, storage::new_uref(uri.to_owned()).into()),
     }
+    events::record_event_dictionary(Event::Uri(Uri {
+        id: None,
+        value: uri,
+    }));
 }
 
 fn install_contract() {

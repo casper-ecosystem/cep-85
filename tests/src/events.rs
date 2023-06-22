@@ -6,7 +6,7 @@ use casper_event_standard::{Schemas, EVENTS_SCHEMA};
 use casper_types::{runtime_args, RuntimeArgs};
 use cep1155::{
     constants::{EVENTS_MODE, NAME, URI},
-    events::{ApprovalForAll, Burn, Mint, TransferBatch, TransferSingle},
+    events::{ApprovalForAll, Burn, Mint, TransferBatch, TransferSingle, Uri},
     modalities::EventsMode,
 };
 
@@ -22,7 +22,8 @@ fn should_have_events_schema_in_events_mode() {
         .with::<Burn>()
         .with::<ApprovalForAll>()
         .with::<TransferSingle>()
-        .with::<TransferBatch>();
+        .with::<TransferBatch>()
+        .with::<Uri>();
     let actual_schemas: Schemas = builder.get_value(cep1155_token, EVENTS_SCHEMA);
     assert_eq!(actual_schemas, expected_schemas, "Schemas mismatch.");
 }

@@ -10,11 +10,11 @@ use crate::{
     utils::{get_dictionary_value_from_key, set_dictionary_value_for_key},
 };
 
-pub fn write_uri_of(id: &U256, uri: &str) {
+pub fn write_uri_of(id: U256, uri: &str) {
     set_dictionary_value_for_key(TOKEN_URI, &id.to_string(), &uri)
 }
 
-pub fn read_uri_of(id: &U256) -> String {
+pub fn read_uri_of(id: U256) -> String {
     // TODO Check if token id exists
 
     let raw_uri: String =

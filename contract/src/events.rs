@@ -1,4 +1,4 @@
-use alloc::vec::Vec;
+use alloc::{string::String, vec::Vec};
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_event_standard::{emit, Event, Schemas};
 use casper_types::{Key, U256};
@@ -12,6 +12,7 @@ pub enum Event {
     ApprovalForAll(ApprovalForAll),
     TransferSingle(TransferSingle),
     TransferBatch(TransferBatch),
+    Uri(Uri),
 }
 
 pub fn record_event_dictionary(event: Event) {
@@ -113,6 +114,18 @@ impl TransferBatch {
     }
 }
 
+#[derive(Event, Debug, PartialEq, Eq)]
+pub struct Uri {
+    pub value: String,
+    pub id: Option<U256>,
+}
+
+impl Uri {
+    pub fn new(value: String, id: Option<U256>) -> Self {
+        Self { value, id }
+    }
+}
+
 fn ces(event: Event) {
     match event {
         Event::Mint(ev) => emit(ev),
@@ -120,6 +133,7 @@ fn ces(event: Event) {
         Event::ApprovalForAll(ev) => emit(ev),
         Event::TransferSingle(ev) => emit(ev),
         Event::TransferBatch(ev) => emit(ev),
+        Event::Uri(ev) => emit(ev),
     }
 }
 
@@ -132,7 +146,8 @@ pub fn init_events() {
             .with::<Burn>()
             .with::<ApprovalForAll>()
             .with::<TransferSingle>()
-            .with::<TransferBatch>();
+            .with::<TransferBatch>()
+            .with::<Uri>();
         casper_event_standard::init(schemas);
     }
 }
