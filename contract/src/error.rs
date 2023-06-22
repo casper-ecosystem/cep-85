@@ -81,6 +81,8 @@ pub enum Cep1155Error {
     InvalidContractHash = 60058,
     InvalidPackageHash = 60059,
     TransferFilterContractDenied = 60060,
+    InvalidTransferFilterMethod = 60061,
+    MissingTransferFilterMethod = 60062,
 }
 
 impl From<Cep1155Error> for ApiError {

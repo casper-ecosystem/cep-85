@@ -32,7 +32,7 @@ use cep1155::{
         ARG_ID, ARG_IDS, ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TO, BALANCES, CONTRACT_HASH,
         ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS, PACKAGE_HASH,
         PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
-        PREFIX_CONTRACT_VERSION, TRANSFER_FILTER_CONTRACT,
+        PREFIX_CONTRACT_VERSION, TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD,
     },
     entry_points::generate_entry_points,
     error::Cep1155Error,
@@ -90,6 +90,18 @@ pub extern "C" fn init() {
     runtime::put_key(
         TRANSFER_FILTER_CONTRACT,
         storage::new_uref(transfer_filter_contract).into(),
+    );
+
+    let transfer_filter_method: Option<String> =
+        get_optional_named_arg_with_user_errors::<Option<String>>(
+            TRANSFER_FILTER_CONTRACT,
+            Cep1155Error::InvalidTransferFilterMethod,
+        )
+        .unwrap_or_default();
+
+    runtime::put_key(
+        TRANSFER_FILTER_METHOD,
+        storage::new_uref(transfer_filter_method).into(),
     );
 
     storage::new_dictionary(BALANCES).unwrap_or_revert_with(Cep1155Error::FailedToCreateDictionary);
@@ -538,6 +550,11 @@ fn install_contract() {
         Cep1155Error::InvalidTransferFilterContract,
     );
 
+    let transfer_filter_method: Option<String> = get_optional_named_arg_with_user_errors(
+        TRANSFER_FILTER_METHOD,
+        Cep1155Error::InvalidTransferFilterMethod,
+    );
+
     let mut named_keys = NamedKeys::new();
     named_keys.insert(NAME.to_string(), storage::new_uref(name.clone()).into());
     named_keys.insert(
@@ -574,7 +591,8 @@ fn install_contract() {
     let init_args = runtime_args! {
         CONTRACT_HASH => contract_hash_key,
         PACKAGE_HASH => package_hash_key,
-        TRANSFER_FILTER_CONTRACT => transfer_filter_contract_key
+        TRANSFER_FILTER_CONTRACT => transfer_filter_contract_key,
+        TRANSFER_FILTER_METHOD => transfer_filter_method
     };
 
     runtime::call_contract::<()>(contract_hash, ENTRY_POINT_INIT, init_args);

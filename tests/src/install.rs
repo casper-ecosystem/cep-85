@@ -12,7 +12,7 @@ use casper_types::{runtime_args, ContractHash, RuntimeArgs};
 use cep1155::{
     constants::{
         BALANCES, ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS, PACKAGE_HASH,
-        TRANSFER_FILTER_CONTRACT,
+        TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD,
     },
     error::Cep1155Error,
 };
@@ -36,16 +36,24 @@ fn should_have_queryable_properties() {
     let enable_mint_burn: u8 = builder.get_value(cep1155_token, ENABLE_MINT_BURN);
     let transfer_filter_contract: Option<ContractHash> =
         builder.get_value(cep1155_token, TRANSFER_FILTER_CONTRACT);
+    let transfer_filter_method: Option<String> =
+        builder.get_value(cep1155_token, TRANSFER_FILTER_METHOD);
 
     assert_eq!(name, TOKEN_NAME);
     assert_eq!(events_mode, 0u8);
     assert_eq!(enable_mint_burn, 0u8);
     assert_eq!(transfer_filter_contract, None);
+    assert_eq!(transfer_filter_method, None);
 }
 
 #[test]
 fn should_only_allow_init_during_installation_session() {
-    let (mut builder, TestContext { cep1155_token: _, .. }) = setup();
+    let (
+        mut builder,
+        TestContext {
+            cep1155_token: _, ..
+        },
+    ) = setup();
 
     let init_request = ExecuteRequestBuilder::contract_call_by_name(
         *DEFAULT_ACCOUNT_ADDR,
@@ -67,7 +75,12 @@ fn should_only_allow_init_during_installation_session() {
 
 #[test]
 fn should_not_store_balances_or_allowances_under_account_after_install() {
-    let (builder, TestContext { cep1155_token: _, .. }) = setup();
+    let (
+        builder,
+        TestContext {
+            cep1155_token: _, ..
+        },
+    ) = setup();
 
     let account = builder
         .get_account(*DEFAULT_ACCOUNT_ADDR)

@@ -162,8 +162,8 @@ pub fn get_transfer_filter_contract() -> Option<ContractHash> {
 pub fn get_transfer_filter_method() -> Option<String> {
     get_stored_value_with_user_errors(
         TRANSFER_FILTER_METHOD,
-        Cep1155Error::MissingTransferFilterContract,
-        Cep1155Error::InvalidTransferFilterContract,
+        Cep1155Error::MissingTransferFilterMethod,
+        Cep1155Error::InvalidTransferFilterMethod,
     )
 }
 
