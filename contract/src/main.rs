@@ -9,6 +9,7 @@ compile_error!("target arch should be wasm32: compile with '--target wasm32-unkn
 extern crate alloc;
 
 use alloc::{
+    borrow::ToOwned,
     format,
     string::{String, ToString},
     vec,
@@ -252,7 +253,7 @@ pub extern "C" fn safe_transfer_from() {
     )
     .unwrap_or_revert();
 
-    before_token_transfer(&caller, &from, &to, &vec![token_id], &vec![amount], data);
+    before_token_transfer(&caller, &from, &to, &vec![token_id], &vec![amount], &data);
 
     transfer_balance(&from, &to, &token_id, amount)
         .unwrap_or_revert_with(Cep1155Error::FailToTransferBalance);
@@ -318,7 +319,7 @@ pub extern "C" fn safe_batch_transfer_from() {
     )
     .unwrap_or_revert();
 
-    before_token_transfer(&caller, &from, &to, &token_ids, &amounts, data);
+    before_token_transfer(&caller, &from, &to, &token_ids, &amounts, &data);
 
     batch_transfer_balance(&from, &to, &token_ids, &amounts)
         .unwrap_or_revert_with(Cep1155Error::FailToBatchTransferBalance);
@@ -604,14 +605,14 @@ fn before_token_transfer(
     to: &Key,
     ids: &Vec<TokenIdentifier>,
     amounts: &Vec<U256>,
-    data: Vec<u8>,
+    data: &Vec<u8>,
 ) {
-    if amounts.len() != ids.len() {
+    if &amounts.len() != &ids.len() {
         runtime::revert(Cep1155Error::MismatchParamsLength);
     }
 
-    for amount in amounts.clone() {
-        if amount == U256::zero() {
+    for amount in &amounts.clone() {
+        if amount == &U256::zero() {
             runtime::revert(Cep1155Error::InvalidAmount);
         }
     }
@@ -622,9 +623,9 @@ fn before_token_transfer(
             args.insert(ARG_OPERATOR, *operator).unwrap();
             args.insert(ARG_FROM, *from).unwrap();
             args.insert(ARG_TO, *to).unwrap();
-            args.insert(ARG_IDS, ids.clone()).unwrap();
-            args.insert(ARG_AMOUNTS, amounts.clone()).unwrap();
-            args.insert(ARG_DATA, data).unwrap();
+            args.insert(ARG_IDS, ids.to_owned()).unwrap();
+            args.insert(ARG_AMOUNTS, amounts.to_owned()).unwrap();
+            args.insert(ARG_DATA, data.to_owned()).unwrap();
 
             let result: TransferFilterContractResult =
                 call_contract::<u8>(filter_contract, &filter_method, args).into();
