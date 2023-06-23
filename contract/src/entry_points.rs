@@ -9,8 +9,8 @@ use crate::constants::{
     ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL,
     ENTRY_POINT_IS_NON_FUNGIBLE, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER,
     ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_URI,
-    ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_TOTAL_SUPPLY_OF, ENTRY_POINT_URI, PACKAGE_HASH,
-    TRANSFER_FILTER_CONTRACT, URI,
+    ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_URI, PACKAGE_HASH, TRANSFER_FILTER_CONTRACT, URI,
 };
 
 pub(crate) fn init() -> EntryPoint {
@@ -178,6 +178,16 @@ pub fn is_non_fungible() -> EntryPoint {
     )
 }
 
+pub fn total_fungible_supply() -> EntryPoint {
+    EntryPoint::new(
+        ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
+        vec![Parameter::new(ARG_ID, CLType::U256)],
+        CLType::U256,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    )
+}
+
 /// Returns the default set of CEP1155 token entry points.
 pub fn generate_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -194,5 +204,6 @@ pub fn generate_entry_points() -> EntryPoints {
     entry_points.add_entry_point(uri());
     entry_points.add_entry_point(set_uri());
     entry_points.add_entry_point(is_non_fungible());
+    entry_points.add_entry_point(total_fungible_supply());
     entry_points
 }

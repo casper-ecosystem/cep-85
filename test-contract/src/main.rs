@@ -25,7 +25,8 @@ use cep1155::constants::{
     ARG_TO, ARG_URI, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT,
     ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE,
     ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER,
-    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_URI, ENTRY_POINT_URI, TOKEN_CONTRACT,
+    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_URI, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
+    ENTRY_POINT_URI, TOKEN_CONTRACT,
 };
 use utils::{get_token_contract, store_result};
 mod utils;
@@ -44,6 +45,7 @@ const ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF: &str = "check_total_supply_of";
 const ENTRY_POINT_CHECK_URI: &str = "check_uri";
 const ENTRY_POINT_CHECK_SET_URI: &str = "check_set_uri";
 const ENTRY_POINT_CHECK_IS_NON_FUNGIBLE: &str = "check_is_non_fungible";
+const ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY: &str = "check_total_fungible_supply";
 
 #[no_mangle]
 pub extern "C" fn init() {
@@ -225,6 +227,23 @@ extern "C" fn check_is_non_fungible() {
 }
 
 #[no_mangle]
+extern "C" fn check_total_fungible_supply() {
+    let token_contract: ContractHash = get_token_contract();
+    let id: U256 = get_named_arg(ARG_ID);
+
+    let total_fungible_supply_args = runtime_args! {
+        ARG_ID => id,
+    };
+
+    let total_fungible_supply_result: U256 = runtime::call_contract(
+        token_contract,
+        ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
+        total_fungible_supply_args,
+    );
+    store_result(total_fungible_supply_result.to_string());
+}
+
+#[no_mangle]
 pub extern "C" fn call() {
     let mut entry_points = EntryPoints::new();
     let init = EntryPoint::new(
@@ -329,11 +348,17 @@ pub extern "C" fn call() {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     );
-
     let check_is_non_fungible = EntryPoint::new(
         ENTRY_POINT_CHECK_IS_NON_FUNGIBLE,
         vec![Parameter::new(ARG_ID, CLType::U256)],
         CLType::Bool,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    );
+    let check_total_fungible_supply = EntryPoint::new(
+        ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY,
+        vec![Parameter::new(ARG_ID, CLType::U256)],
+        CLType::U256,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     );
@@ -350,6 +375,7 @@ pub extern "C" fn call() {
     entry_points.add_entry_point(check_uri);
     entry_points.add_entry_point(check_set_uri);
     entry_points.add_entry_point(check_is_non_fungible);
+    entry_points.add_entry_point(check_total_fungible_supply);
 
     let (contract_hash, _version) = storage::new_contract(
         entry_points,

@@ -666,6 +666,27 @@ pub extern "C" fn is_non_fungible() {
     runtime::ret(CLValue::from_t(is_non_fungible).unwrap_or_revert());
 }
 
+/// Calculates the difference between the total supply and the current supply of a token.
+/// If the token is a non-fungible token (NFT), or if total supply has been reached returns 0.
+#[no_mangle]
+pub extern "C" fn total_fungible_supply() {
+    let id: U256 =
+        get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)
+            .unwrap_or_revert();
+
+    let total_supply = read_total_supply_of(&id);
+    let current_supply = read_supply_of(&id);
+
+    let total_fungible_supply = if total_supply >= current_supply {
+        total_supply
+            .checked_sub(current_supply)
+            .unwrap_or(U256::zero());
+    } else {
+        U256::zero();
+    };
+    runtime::ret(CLValue::from_t(total_fungible_supply).unwrap_or_revert());
+}
+
 fn install_contract() {
     let name: String = get_named_arg_with_user_errors(
         NAME,
