@@ -11,8 +11,8 @@ use casper_engine_test_support::{
 use casper_types::{runtime_args, ContractHash, RuntimeArgs};
 use cep1155::{
     constants::{
-        BALANCES, ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS, PACKAGE_HASH,
-        TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD, URI,
+        ARG_NAME, ARG_URI, BALANCES, ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME,
+        OPERATORS, PACKAGE_HASH, TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD, URI,
     },
     error::Cep1155Error,
 };
@@ -101,8 +101,8 @@ fn should_reject_invalid_collection_name() {
         *DEFAULT_ACCOUNT_ADDR,
         CEP1155_CONTRACT_WASM,
         runtime_args! {
-            NAME => 0u64,
-            URI => TOKEN_URI,
+            ARG_NAME => 0_u64,
+            ARG_URI => TOKEN_URI,
         },
     )
     .build();

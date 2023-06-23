@@ -13,6 +13,7 @@ pub enum Event {
     TransferSingle(TransferSingle),
     TransferBatch(TransferBatch),
     Uri(Uri),
+    SetTotalSupply(SetTotalSupply),
 }
 
 pub fn record_event_dictionary(event: Event) {
@@ -126,6 +127,18 @@ impl Uri {
     }
 }
 
+#[derive(Event, Debug, PartialEq, Eq)]
+pub struct SetTotalSupply {
+    pub id: U256,
+    pub total_supply: U256,
+}
+
+impl SetTotalSupply {
+    pub fn new(id: U256, total_supply: U256) -> Self {
+        Self { id, total_supply }
+    }
+}
+
 fn ces(event: Event) {
     match event {
         Event::Mint(ev) => emit(ev),
@@ -134,6 +147,7 @@ fn ces(event: Event) {
         Event::TransferSingle(ev) => emit(ev),
         Event::TransferBatch(ev) => emit(ev),
         Event::Uri(ev) => emit(ev),
+        Event::SetTotalSupply(ev) => emit(ev),
     }
 }
 
@@ -147,7 +161,8 @@ pub fn init_events() {
             .with::<ApprovalForAll>()
             .with::<TransferSingle>()
             .with::<TransferBatch>()
-            .with::<Uri>();
+            .with::<Uri>()
+            .with::<SetTotalSupply>();
         casper_event_standard::init(schemas);
     }
 }

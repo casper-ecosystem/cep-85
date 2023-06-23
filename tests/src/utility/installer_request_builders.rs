@@ -3,7 +3,7 @@ use casper_engine_test_support::{
     PRODUCTION_RUN_GENESIS_REQUEST,
 };
 use casper_types::{runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs};
-use cep1155::constants::{NAME, TOKEN_CONTRACT, URI};
+use cep1155::constants::{ARG_NAME, ARG_URI, TOKEN_CONTRACT};
 
 use super::constants::{
     CEP1155_CONTRACT_WASM, CEP1155_TEST_CONTRACT_WASM, CEP1155_TEST_TOKEN_CONTRACT_NAME,
@@ -18,8 +18,8 @@ pub(crate) struct TestContext {
 
 pub(crate) fn setup() -> (InMemoryWasmTestBuilder, TestContext) {
     setup_with_args(runtime_args! {
-        NAME => TOKEN_NAME,
-        URI => TOKEN_URI,
+        ARG_NAME => TOKEN_NAME,
+        ARG_URI => TOKEN_URI,
     })
 }
 pub(crate) fn setup_with_args(install_args: RuntimeArgs) -> (InMemoryWasmTestBuilder, TestContext) {

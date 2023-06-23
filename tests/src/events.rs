@@ -5,17 +5,17 @@ use crate::utility::{
 use casper_event_standard::{Schemas, EVENTS_SCHEMA};
 use casper_types::{runtime_args, RuntimeArgs};
 use cep1155::{
-    constants::{EVENTS_MODE, NAME, URI},
-    events::{ApprovalForAll, Burn, Mint, TransferBatch, TransferSingle, Uri},
+    constants::{ARG_EVENTS_MODE, ARG_NAME, ARG_URI},
+    events::{ApprovalForAll, Burn, Mint, SetTotalSupply, TransferBatch, TransferSingle, Uri},
     modalities::EventsMode,
 };
 
 #[test]
 fn should_have_events_schema_in_events_mode() {
     let (mut builder, TestContext { cep1155_token, .. }) = setup_with_args(runtime_args! {
-        NAME => TOKEN_NAME,
-        URI => TOKEN_URI,
-        EVENTS_MODE => EventsMode::CES as u8
+        ARG_NAME => TOKEN_NAME,
+        ARG_URI => TOKEN_URI,
+        ARG_EVENTS_MODE => EventsMode::CES as u8
     });
     let expected_schemas = Schemas::new()
         .with::<Mint>()
@@ -23,7 +23,8 @@ fn should_have_events_schema_in_events_mode() {
         .with::<ApprovalForAll>()
         .with::<TransferSingle>()
         .with::<TransferBatch>()
-        .with::<Uri>();
+        .with::<Uri>()
+        .with::<SetTotalSupply>();
     let actual_schemas: Schemas = builder.get_value(cep1155_token, EVENTS_SCHEMA);
     assert_eq!(actual_schemas, expected_schemas, "Schemas mismatch.");
 }

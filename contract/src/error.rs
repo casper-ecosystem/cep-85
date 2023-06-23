@@ -52,7 +52,7 @@ pub enum Cep1155Error {
     InvalidAccounts = 60029,
     MissingIds = 60030,
     InvalidIds = 60031,
-    SelfOperatorApproveal = 60032,
+    SelfOperatorApproval = 60032,
     MissingFrom = 60033,
     InvalidFrom = 60034,
     MissingAmount = 60035,
@@ -86,6 +86,10 @@ pub enum Cep1155Error {
     MissingUri = 60063,
     InvalidUri = 60064,
     InvalidBurnTarget = 60065,
+    MissingTotalSupply = 60066,
+    InvalidTotalSupply = 60067,
+    ExceededMaxTotalSupply = 60068,
+    FailedToCreateArg = 60069,
 }
 
 impl From<Cep1155Error> for ApiError {

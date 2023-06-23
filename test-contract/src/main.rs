@@ -22,10 +22,10 @@ use casper_types::{
 };
 use cep1155::constants::{
     ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR,
-    ARG_TO, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT,
+    ARG_TO, ARG_URI, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT,
     ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
     ENTRY_POINT_SAFE_TRANSFER, ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_URI,
-    ENTRY_POINT_URI, TOKEN_CONTRACT, URI,
+    ENTRY_POINT_URI, TOKEN_CONTRACT,
 };
 use utils::{get_token_contract, store_result};
 mod utils;
@@ -182,10 +182,10 @@ extern "C" fn check_uri() {
 extern "C" fn check_set_uri() {
     let token_contract: ContractHash = get_token_contract();
     let id: U256 = get_named_arg(ARG_ID);
-    let uri: String = get_named_arg(URI);
+    let uri: String = get_named_arg(ARG_URI);
     let set_uri_args = runtime_args! {
         ARG_ID => id,
-        URI => uri,
+        ARG_URI => uri,
     };
     runtime::call_contract::<()>(token_contract, ENTRY_POINT_SET_URI, set_uri_args);
 }
@@ -282,7 +282,7 @@ pub extern "C" fn call() {
         ENTRY_POINT_CHECK_SET_URI,
         vec![
             Parameter::new(ARG_ID, CLType::U256),
-            Parameter::new(URI, CLType::String),
+            Parameter::new(ARG_URI, CLType::String),
         ],
         CLType::Unit,
         EntryPointAccess::Public,

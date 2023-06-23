@@ -13,7 +13,8 @@ pub const ENTRY_POINT_IS_APPROVED_FOR_ALL: &str = "is_approved_for_all";
 pub const ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM: &str = "safe_batch_transfer_from";
 pub const ENTRY_POINT_SAFE_TRANSFER: &str = "safe_transfer_from";
 pub const ENTRY_POINT_SET_APPROVAL_FOR_ALL: &str = "set_approval_for_all";
-pub const ENTRY_POINT_SUPPLY_OF: &str = "supply_of";
+pub const ENTRY_POINT_TOTAL_SUPPLY_OF: &str = "total_supply_of";
+pub const ENTRY_POINT_SET_TOTAL_SUPPLY_OF: &str = "set_total_supply_of";
 pub const ENTRY_POINT_URI: &str = "uri";
 pub const ENTRY_POINT_SET_URI: &str = "set_uri";
 
@@ -30,17 +31,21 @@ pub const ARG_OPERATOR: &str = "operator";
 pub const ARG_OWNER: &str = "owner";
 pub const ARG_RECIPIENT: &str = "recipient";
 pub const ARG_TO: &str = "to";
+pub const ARG_TOTAL_SUPPLY: &str = "total_supply";
+pub const ARG_URI: &str = "uri";
+pub const ARG_NAME: &str = "name";
+pub const ARG_EVENTS_MODE: &str = "events_mode";
 
 pub const BALANCES: &str = "balances";
 pub const CONTRACT_HASH: &str = "contract_hash";
 pub const ENABLE_MINT_BURN: &str = "enable_mint_burn";
 pub const EVENTS_MODE: &str = "events_mode";
-pub const IDENTIFIER_MODE: &str = "identifier_mode";
+
 pub const NAME: &str = "name";
-pub const NUMBER_OF_MINTED_TOKENS: &str = "number_of_minted_tokens";
 pub const OPERATORS: &str = "operators";
 pub const PACKAGE_HASH: &str = "package_hash";
 pub const SUPPLY: &str = "supply";
+pub const TOTAL_SUPPLY: &str = "total_supply";
 pub const TOKEN_CONTRACT: &str = "token_contract";
 pub const TRANSFER_FILTER_CONTRACT: &str = "transfer_filter_contract";
 pub const TRANSFER_FILTER_METHOD: &str = "transfer_filter_method";

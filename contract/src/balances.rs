@@ -52,14 +52,14 @@ pub fn transfer_balance(
             .as_uref()
             .unwrap_or_revert_with(Cep1155Error::InvalidRecipient),
     ) {
-        return Err(Cep1155Error::InvalidRecipient);
+        runtime::revert(Cep1155Error::InvalidRecipient);
     }
 
     // Check if the recipient is the contract address
     let contract_key =
         get_key(CONTRACT_HASH).unwrap_or_revert_with(Cep1155Error::MissingContractHash);
-    if contract_key == *recipient {
-        return Err(Cep1155Error::InvalidRecipient);
+    if &contract_key == recipient {
+        runtime::revert(Cep1155Error::InvalidRecipient);
     }
 
     let new_sender_balance = {
@@ -92,22 +92,24 @@ pub fn batch_transfer_balance(
     amounts: &Vec<U256>,
 ) -> Result<(), Cep1155Error> {
     if sender == recipient {
-        return Ok(());
+        runtime::revert(Cep1155Error::SelfTransfer);
     }
 
     if ids.len() != amounts.len() {
-        return Err(Cep1155Error::MismatchParamsLength);
+        runtime::revert(Cep1155Error::MismatchParamsLength);
     }
 
     for (i, &id) in ids.iter().enumerate() {
-        let amount = amounts[i];
+        if let Some(&amount) = amounts.get(i) {
+            if amount.is_zero() {
+                continue;
+            }
 
-        if amount.is_zero() {
-            continue;
+            transfer_balance(sender, recipient, id, amount)
+                .unwrap_or_revert_with(Cep1155Error::FailToTransferBalance);
+        } else {
+            runtime::revert(Cep1155Error::MismatchParamsLength);
         }
-
-        transfer_balance(sender, recipient, id, amount)
-            .unwrap_or_revert_with(Cep1155Error::FailToTransferBalance);
     }
 
     Ok(())
