@@ -7,12 +7,12 @@ use crate::constants::{
     ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED, ARG_FROM, ARG_ID, ARG_IDS,
     ARG_OPERATOR, ARG_TO, ARG_TOTAL_SUPPLY, CONTRACT_HASH, ENTRY_POINT_BALANCE_OF,
     ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL,
-    ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER,
+    ENTRY_POINT_IS_NON_FUNGIBLE, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER,
     ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_URI,
-    ENTRY_POINT_TOTAL_SUPPLY_OF, ENTRY_POINT_URI, PACKAGE_HASH, TRANSFER_FILTER_CONTRACT, URI,
+    ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_TOTAL_SUPPLY_OF, ENTRY_POINT_URI, PACKAGE_HASH,
+    TRANSFER_FILTER_CONTRACT, URI,
 };
 
-/// Returns the `init` entry point.
 pub(crate) fn init() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_INIT,
@@ -30,7 +30,6 @@ pub(crate) fn init() -> EntryPoint {
     )
 }
 
-/// Returns the `balance_of` entry point.
 pub fn balance_of() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_BALANCE_OF,
@@ -44,7 +43,6 @@ pub fn balance_of() -> EntryPoint {
     )
 }
 
-/// Returns the `balance_of_batch` entry point.
 pub fn balance_of_batch() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_BALANCE_OF_BATCH,
@@ -58,7 +56,6 @@ pub fn balance_of_batch() -> EntryPoint {
     )
 }
 
-/// Returns the `set_approval_for_all` entry point.
 pub fn set_approval_for_all() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_SET_APPROVAL_FOR_ALL,
@@ -72,7 +69,6 @@ pub fn set_approval_for_all() -> EntryPoint {
     )
 }
 
-/// Returns the `is_approved_for_all` entry point.
 pub fn is_approved_for_all() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_IS_APPROVED_FOR_ALL,
@@ -86,7 +82,6 @@ pub fn is_approved_for_all() -> EntryPoint {
     )
 }
 
-/// Returns the `safe_transfer_from` entry point.
 pub fn safe_transfer_from() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_SAFE_TRANSFER,
@@ -101,7 +96,7 @@ pub fn safe_transfer_from() -> EntryPoint {
         EntryPointType::Contract,
     )
 }
-/// Returns the `safe_batch_transfer_from` entry point.
+
 pub fn safe_batch_transfer_from() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
@@ -117,7 +112,16 @@ pub fn safe_batch_transfer_from() -> EntryPoint {
     )
 }
 
-/// Returns the `total_supply` entry point.
+pub fn supply_of() -> EntryPoint {
+    EntryPoint::new(
+        ENTRY_POINT_SUPPLY_OF,
+        vec![Parameter::new(ARG_ID, CLType::U256)],
+        CLType::U256,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    )
+}
+
 pub fn total_supply_of() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_TOTAL_SUPPLY_OF,
@@ -128,7 +132,6 @@ pub fn total_supply_of() -> EntryPoint {
     )
 }
 
-/// Returns the `set_total_supply_of` entry point.
 pub fn set_total_supply_of() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
@@ -142,7 +145,6 @@ pub fn set_total_supply_of() -> EntryPoint {
     )
 }
 
-/// Returns the `uri` entry point.
 pub fn uri() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_URI,
@@ -153,7 +155,6 @@ pub fn uri() -> EntryPoint {
     )
 }
 
-/// Returns the `set_uri` entry point
 pub fn set_uri() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_SET_URI,
@@ -162,6 +163,16 @@ pub fn set_uri() -> EntryPoint {
             Parameter::new(URI, CLType::String),
         ],
         CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    )
+}
+
+pub fn is_non_fungible() -> EntryPoint {
+    EntryPoint::new(
+        ENTRY_POINT_IS_NON_FUNGIBLE,
+        vec![Parameter::new(ARG_ID, CLType::U256)],
+        CLType::Bool,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )
@@ -177,9 +188,11 @@ pub fn generate_entry_points() -> EntryPoints {
     entry_points.add_entry_point(is_approved_for_all());
     entry_points.add_entry_point(safe_transfer_from());
     entry_points.add_entry_point(safe_batch_transfer_from());
+    entry_points.add_entry_point(supply_of());
     entry_points.add_entry_point(total_supply_of());
     entry_points.add_entry_point(set_total_supply_of());
     entry_points.add_entry_point(uri());
     entry_points.add_entry_point(set_uri());
+    entry_points.add_entry_point(is_non_fungible());
     entry_points
 }

@@ -13,10 +13,12 @@ pub const ENTRY_POINT_IS_APPROVED_FOR_ALL: &str = "is_approved_for_all";
 pub const ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM: &str = "safe_batch_transfer_from";
 pub const ENTRY_POINT_SAFE_TRANSFER: &str = "safe_transfer_from";
 pub const ENTRY_POINT_SET_APPROVAL_FOR_ALL: &str = "set_approval_for_all";
+pub const ENTRY_POINT_SUPPLY_OF: &str = "supply_of";
 pub const ENTRY_POINT_TOTAL_SUPPLY_OF: &str = "total_supply_of";
 pub const ENTRY_POINT_SET_TOTAL_SUPPLY_OF: &str = "set_total_supply_of";
 pub const ENTRY_POINT_URI: &str = "uri";
 pub const ENTRY_POINT_SET_URI: &str = "set_uri";
+pub const ENTRY_POINT_IS_NON_FUNGIBLE: &str = "is_non_fungible";
 
 pub const ARG_ACCOUNT: &str = "account";
 pub const ARG_ACCOUNTS: &str = "accounts";

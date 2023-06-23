@@ -16,15 +16,15 @@ use crate::{
 };
 
 /// Writes token balance of a specified account into a dictionary.
-pub fn write_balance_to(account: &Key, id: U256, amount: U256) {
-    set_dictionary_value_for_key(BALANCES, &make_dictionary_item_key(account, &id), &amount)
+pub fn write_balance_to(account: &Key, id: &U256, amount: &U256) {
+    set_dictionary_value_for_key(BALANCES, &make_dictionary_item_key(account, id), amount)
 }
 
 /// Reads token balance of a specified account.
 ///
 /// If a given account does not have balances in the system, then a 0 is returned.
-pub fn read_balance_from(account: &Key, id: U256) -> U256 {
-    get_dictionary_value_from_key(BALANCES, &make_dictionary_item_key(account, &id))
+pub fn read_balance_from(account: &Key, id: &U256) -> U256 {
+    get_dictionary_value_from_key(BALANCES, &make_dictionary_item_key(account, id))
         .unwrap_or_default()
 }
 
@@ -35,8 +35,8 @@ pub fn read_balance_from(account: &Key, id: U256) -> U256 {
 pub fn transfer_balance(
     sender: &Key,
     recipient: &Key,
-    id: U256,
-    amount: U256,
+    id: &U256,
+    amount: &U256,
 ) -> Result<(), Cep1155Error> {
     if amount.is_zero() {
         runtime::revert(Cep1155Error::InvalidAmount);
@@ -65,19 +65,19 @@ pub fn transfer_balance(
     let new_sender_balance = {
         let sender_balance = read_balance_from(sender, id);
         sender_balance
-            .checked_sub(amount)
+            .checked_sub(*amount)
             .unwrap_or_revert_with(Cep1155Error::InsufficientBalance)
     };
 
     let new_recipient_balance = {
         let recipient_balance = read_balance_from(recipient, id);
         recipient_balance
-            .checked_add(amount)
+            .checked_add(*amount)
             .unwrap_or_revert_with(Cep1155Error::Overflow)
     };
 
-    write_balance_to(sender, id, new_sender_balance);
-    write_balance_to(recipient, id, new_recipient_balance);
+    write_balance_to(sender, id, &new_sender_balance);
+    write_balance_to(recipient, id, &new_recipient_balance);
 
     Ok(())
 }
@@ -105,7 +105,7 @@ pub fn batch_transfer_balance(
                 continue;
             }
 
-            transfer_balance(sender, recipient, id, amount)
+            transfer_balance(sender, recipient, &id, &amount)
                 .unwrap_or_revert_with(Cep1155Error::FailToTransferBalance);
         } else {
             runtime::revert(Cep1155Error::MismatchParamsLength);

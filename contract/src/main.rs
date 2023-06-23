@@ -135,7 +135,7 @@ pub extern "C" fn balance_of() {
         get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)
             .unwrap_or_revert();
 
-    let balance: U256 = read_balance_from(&account, id);
+    let balance: U256 = read_balance_from(&account, &id);
     runtime::ret(CLValue::from_t(balance).unwrap_or_revert());
 }
 
@@ -158,7 +158,7 @@ pub extern "C" fn balance_of_batch() {
     let mut batch_balances = Vec::new();
 
     for i in 0_usize..accounts.len() {
-        let balance: U256 = read_balance_from(&accounts[i], ids[i]);
+        let balance: U256 = read_balance_from(&accounts[i], &ids[i]);
         batch_balances.push(balance);
     }
 
@@ -261,7 +261,7 @@ pub extern "C" fn safe_transfer_from() {
 
     before_token_transfer(&caller, &from, &to, &vec![id], &vec![amount], &data);
 
-    transfer_balance(&from, &to, id, amount)
+    transfer_balance(&from, &to, &id, &amount)
         .unwrap_or_revert_with(Cep1155Error::FailToTransferBalance);
     events::record_event_dictionary(Event::TransferSingle(TransferSingle {
         operator: caller,
@@ -364,7 +364,7 @@ pub extern "C" fn mint() {
     )
     .unwrap_or_revert();
 
-    let recipient_balance = read_balance_from(&recipient, id);
+    let recipient_balance = read_balance_from(&recipient, &id);
     let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_default();
     let new_total_supply = {
         let total_supply = read_supply_of(&id);
@@ -379,12 +379,12 @@ pub extern "C" fn mint() {
             .unwrap_or_revert_with(Cep1155Error::Overflow)
     };
 
-    write_supply_of(&id, new_total_supply);
-    write_balance_to(&recipient, id, new_recipient_balance);
+    write_supply_of(&id, &new_total_supply);
+    write_balance_to(&recipient, &id, &new_recipient_balance);
 
     let uri: String =
         get_stored_value_with_user_errors(URI, Cep1155Error::MissingUri, Cep1155Error::InvalidUri);
-    write_uri_of(id, &uri);
+    write_uri_of(&id, &uri);
 
     events::record_event_dictionary(Event::Uri(Uri {
         id: Some(id),
@@ -439,7 +439,7 @@ pub extern "C" fn batch_mint() {
     for (i, &id) in ids.iter().enumerate() {
         let amount = amounts[i];
 
-        let recipient_balance = read_balance_from(&recipient, id);
+        let recipient_balance = read_balance_from(&recipient, &id);
         let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_default();
         let new_total_supply = {
             let total_supply = read_supply_of(&id);
@@ -448,15 +448,15 @@ pub extern "C" fn batch_mint() {
                 .unwrap_or_revert_with(Cep1155Error::Overflow)
         };
 
-        write_supply_of(&id, new_total_supply);
-        write_balance_to(&recipient, id, new_recipient_balance);
+        write_supply_of(&id, &new_total_supply);
+        write_balance_to(&recipient, &id, &new_recipient_balance);
 
         let uri: String = get_stored_value_with_user_errors(
             URI,
             Cep1155Error::MissingUri,
             Cep1155Error::InvalidUri,
         );
-        write_uri_of(id, &uri);
+        write_uri_of(&id, &uri);
 
         events::record_event_dictionary(Event::Uri(Uri {
             id: Some(id),
@@ -504,7 +504,7 @@ pub extern "C" fn burn() {
     )
     .unwrap_or_revert();
 
-    let owner_balance = read_balance_from(&owner, id);
+    let owner_balance = read_balance_from(&owner, &id);
     let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_default();
     let new_total_supply = {
         let total_supply = read_supply_of(&id);
@@ -513,8 +513,8 @@ pub extern "C" fn burn() {
             .unwrap_or_revert_with(Cep1155Error::Overflow)
     };
 
-    write_supply_of(&id, new_total_supply);
-    write_balance_to(&owner, id, new_owner_balance);
+    write_supply_of(&id, &new_total_supply);
+    write_balance_to(&owner, &id, &new_owner_balance);
     events::record_event_dictionary(Event::Burn(Burn { id, owner, amount }));
 }
 
@@ -557,7 +557,7 @@ pub extern "C" fn batch_burn() {
 
     for (i, &id) in ids.iter().enumerate() {
         let amount = amounts[i];
-        let owner_balance = read_balance_from(&owner, id);
+        let owner_balance = read_balance_from(&owner, &id);
         let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_default();
 
         let new_total_supply = {
@@ -567,10 +567,20 @@ pub extern "C" fn batch_burn() {
                 .unwrap_or_revert_with(Cep1155Error::Overflow)
         };
 
-        write_supply_of(&id, new_total_supply);
-        write_balance_to(&owner, id, new_owner_balance);
+        write_supply_of(&id, &new_total_supply);
+        write_balance_to(&owner, &id, &new_owner_balance);
         events::record_event_dictionary(Event::Burn(Burn { id, owner, amount }));
     }
+}
+
+#[no_mangle]
+pub extern "C" fn supply_of() {
+    let id: U256 =
+        get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)
+            .unwrap_or_revert();
+
+    let supply: U256 = read_supply_of(&id);
+    runtime::ret(CLValue::from_t(supply).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -579,8 +589,8 @@ pub extern "C" fn total_supply_of() {
         get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)
             .unwrap_or_revert();
 
-    let supply: U256 = read_supply_of(&id);
-    runtime::ret(CLValue::from_t(supply).unwrap_or_revert());
+    let total_supply: U256 = read_total_supply_of(&id);
+    runtime::ret(CLValue::from_t(total_supply).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -599,7 +609,7 @@ pub extern "C" fn set_total_supply_of() {
     )
     .unwrap_or_revert();
 
-    write_supply_of(&id, total_supply);
+    write_supply_of(&id, &total_supply);
     events::record_event_dictionary(Event::SetTotalSupply(SetTotalSupply { id, total_supply }));
 }
 
@@ -609,7 +619,7 @@ pub extern "C" fn uri() {
         get_optional_named_arg_with_user_errors(ARG_ID, Cep1155Error::InvalidId).unwrap_or_revert();
 
     let uri: String = match id {
-        Some(id) => read_uri_of(id),
+        Some(id) => read_uri_of(&id),
         None => get_stored_value_with_user_errors(
             URI,
             Cep1155Error::MissingUri,
@@ -637,13 +647,23 @@ pub extern "C" fn set_uri() {
     )
     .unwrap_or_revert();
     match id {
-        Some(id) => write_uri_of(id, &uri),
+        Some(id) => write_uri_of(&id, &uri),
         None => put_key(URI, storage::new_uref(uri.to_owned()).into()),
     }
     events::record_event_dictionary(Event::Uri(Uri {
         id: None,
         value: uri,
     }));
+}
+
+#[no_mangle]
+pub extern "C" fn is_non_fungible() {
+    let id: U256 =
+        get_named_arg_with_user_errors(ARG_ID, Cep1155Error::MissingId, Cep1155Error::InvalidId)
+            .unwrap_or_revert();
+    let total_supply = read_total_supply_of(&id);
+    let is_non_fungible = total_supply == U256::from(1_u32);
+    runtime::ret(CLValue::from_t(is_non_fungible).unwrap_or_revert());
 }
 
 fn install_contract() {
