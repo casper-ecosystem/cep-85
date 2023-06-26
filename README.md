@@ -1,6 +1,6 @@
-# Casper Semi-Fungible Tokens (CEP-1155 Standard)
+# Casper Semi-Fungible Tokens (CEP-85 Standard)
 
-This repository contains a reference contract implementation and tests for Semi-Fungible Tokens on a Casper network, following the [CEP-1155 standard](https://github.com/casper-network/ceps/pull/1155).
+This repository contains a reference contract implementation and tests for Semi-Fungible Tokens on a Casper network, following the [CEP-85 standard](https://github.com/casper-network/ceps/pull/85).
 
 ## Preparation
 
@@ -23,7 +23,7 @@ make test
 Find the Wasm for the contract in the following directory:
 
 ```
-./target/wasm32-unknown-unknown/release/cep1155_token.wasm
+./target/wasm32-unknown-unknown/release/cep85_token.wasm
 ```
 
 ## A JavaScript Client SDK
