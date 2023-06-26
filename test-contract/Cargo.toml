@@ -1,16 +1,16 @@
 [package]
-name = "cep1155-test-contract"
+name = "cep85-test-contract"
 version = "1.0.0"
 edition = "2018"
 
 [[bin]]
-name = "cep1155_test_contract"
+name = "cep85_test_contract"
 path = "src/main.rs"
 bench = false
 doctest = false
 test = false
 
 [dependencies]
-cep1155 = { path = "../contract" }
+cep85 = { path = "../contract" }
 casper-contract = "3.0.0"
 casper-types = "3.0.0"

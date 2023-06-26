@@ -1,12 +1,12 @@
 [package]
-name = "cep1155"
+name = "cep85"
 version = "1.0.0"
 edition = "2018"
-description = "A library for developing CEP-1155 tokens for the Casper network."
+description = "A library for developing CEP-85 tokens for the Casper network."
 readme = "README.md"
-documentation = "https://docs.rs/casper-cep-1155"
+documentation = "https://docs.rs/casper-cep-85"
 homepage = "https://casperlabs.io"
-repository = "https://github.com/casper-ecosystem/cep-1155"
+repository = "https://github.com/casper-ecosystem/cep-85"
 license-file = "../LICENSE"
 
 [dependencies]
@@ -16,7 +16,7 @@ casper-event-standard = { version = "0.4.0", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 
 [[bin]]
-name = "cep1155"
+name = "cep85"
 path = "src/main.rs"
 bench = false
 doctest = false

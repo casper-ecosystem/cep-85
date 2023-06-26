@@ -10,7 +10,7 @@ use casper_types::ApiError;
 /// variant.
 #[repr(u16)]
 #[derive(Clone, Copy)]
-pub enum Cep1155Error {
+pub enum Cep85Error {
     InvalidKey = 6000,
     /// An invalid event mode was specified.
     InvalidEventsMode = 60001,
@@ -92,8 +92,8 @@ pub enum Cep1155Error {
     FailedToCreateArg = 60069,
 }
 
-impl From<Cep1155Error> for ApiError {
-    fn from(error: Cep1155Error) -> Self {
+impl From<Cep85Error> for ApiError {
+    fn from(error: Cep85Error) -> Self {
         ApiError::User(error as u16)
     }
 }

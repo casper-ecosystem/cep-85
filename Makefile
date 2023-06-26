@@ -1,4 +1,4 @@
-ALL_CONTRACTS = cep1155 cep1155-test-contract
+ALL_CONTRACTS = cep85 cep85-test-contract
 CONTRACT_TARGET_DIR = target/wasm32-unknown-unknown/release
 PINNED_TOOLCHAIN := $(shell cat rust-toolchain)
 
@@ -14,8 +14,8 @@ build-contract:
 
 test: build-contract
 	mkdir -p tests/wasm
-	cp $(CONTRACT_TARGET_DIR)/cep1155.wasm tests/wasm
-	cp $(CONTRACT_TARGET_DIR)/cep1155_test_contract.wasm tests/wasm
+	cp $(CONTRACT_TARGET_DIR)/cep85.wasm tests/wasm
+	cp $(CONTRACT_TARGET_DIR)/cep85_test_contract.wasm tests/wasm
 	cd tests && cargo test
 
 clippy:

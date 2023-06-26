@@ -20,7 +20,7 @@ use casper_types::{
     runtime_args, system::auction::ARG_AMOUNT, CLType, ContractHash, EntryPoint, EntryPointAccess,
     EntryPointType, EntryPoints, Key, Parameter, RuntimeArgs, U256,
 };
-use cep1155::constants::{
+use cep85::constants::{
     ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR,
     ARG_TO, ARG_URI, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT,
     ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE,
@@ -31,7 +31,7 @@ use cep1155::constants::{
 use utils::{get_token_contract, store_result};
 mod utils;
 
-const CEP1155_TEST_PACKAGE_NAME: &str = "cep1155_test_contract_package_hash";
+const CEP85_TEST_PACKAGE_NAME: &str = "cep85_test_contract_package_hash";
 const RESULT_KEY: &str = "result";
 
 const ENTRY_POINT_CHECK_BALANCE: &str = "check_balance_of";
@@ -380,7 +380,7 @@ pub extern "C" fn call() {
     let (contract_hash, _version) = storage::new_contract(
         entry_points,
         None,
-        Some(CEP1155_TEST_PACKAGE_NAME.to_string()),
+        Some(CEP85_TEST_PACKAGE_NAME.to_string()),
         None,
     );
     let token_contract = get_named_arg::<Key>(TOKEN_CONTRACT);

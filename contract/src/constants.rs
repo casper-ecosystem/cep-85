@@ -1,10 +1,10 @@
-//! Constants used by the CEP1155 contract.
+//! Constants used by the CEP85 contract.
 
-pub const PREFIX_ACCESS_KEY_NAME: &str = "cep1155_contract_package_access";
-pub const PREFIX_CEP1155: &str = "cep1155";
-pub const PREFIX_CONTRACT_NAME: &str = "cep1155_contract_hash";
-pub const PREFIX_CONTRACT_VERSION: &str = "cep1155_contract_version";
-pub const PREFIX_CONTRACT_PACKAGE_NAME: &str = "cep1155_contract_package_hash";
+pub const PREFIX_ACCESS_KEY_NAME: &str = "cep85_contract_package_access";
+pub const PREFIX_CEP85: &str = "cep85";
+pub const PREFIX_CONTRACT_NAME: &str = "cep85_contract_hash";
+pub const PREFIX_CONTRACT_VERSION: &str = "cep85_contract_version";
+pub const PREFIX_CONTRACT_PACKAGE_NAME: &str = "cep85_contract_package_hash";
 
 pub const ENTRY_POINT_BALANCE_OF: &str = "balance_of";
 pub const ENTRY_POINT_BALANCE_OF_BATCH: &str = "balance_of_batch";

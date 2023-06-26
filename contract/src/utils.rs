@@ -1,6 +1,6 @@
 use crate::{
     constants::{TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD},
-    error::Cep1155Error,
+    error::Cep85Error,
 };
 use alloc::{
     borrow::ToOwned,
@@ -28,7 +28,7 @@ pub enum Caller {
 }
 
 pub fn get_verified_caller() -> (Key, Option<Key>) {
-    let get_verified_caller: Result<Caller, Cep1155Error> = match *runtime::get_call_stack()
+    let get_verified_caller: Result<Caller, Cep85Error> = match *runtime::get_call_stack()
         .iter()
         .nth_back(1)
         .to_owned()
@@ -67,9 +67,9 @@ where
 
 pub fn get_named_arg_with_user_errors<T: FromBytes>(
     name: &str,
-    missing: Cep1155Error,
-    invalid: Cep1155Error,
-) -> Result<T, Cep1155Error> {
+    missing: Cep85Error,
+    invalid: Cep85Error,
+) -> Result<T, Cep85Error> {
     let arg_size = get_named_arg_size(name).ok_or(missing)?;
     let arg_bytes = if arg_size > 0 {
         let res = {
@@ -87,7 +87,7 @@ pub fn get_named_arg_with_user_errors<T: FromBytes>(
             api_error::result_from(ret).map(|_| data)
         };
         // Assumed to be safe as `get_named_arg_size` checks the argument already
-        res.unwrap_or_revert_with(Cep1155Error::FailedToGetArgBytes)
+        res.unwrap_or_revert_with(Cep85Error::FailedToGetArgBytes)
     } else {
         // Avoids allocation with 0 bytes and a call to get_named_arg
         Vec::new()
@@ -98,9 +98,9 @@ pub fn get_named_arg_with_user_errors<T: FromBytes>(
 
 pub fn get_optional_named_arg_with_user_errors<T: FromBytes>(
     name: &str,
-    invalid: Cep1155Error,
+    invalid: Cep85Error,
 ) -> Option<T> {
-    match get_named_arg_with_user_errors::<T>(name, Cep1155Error::Phantom, invalid) {
+    match get_named_arg_with_user_errors::<T>(name, Cep85Error::Phantom, invalid) {
         Ok(val) => Some(val),
         Err(_) => None,
     }
@@ -108,8 +108,8 @@ pub fn get_optional_named_arg_with_user_errors<T: FromBytes>(
 
 pub fn get_stored_value_with_user_errors<T: CLTyped + FromBytes>(
     name: &str,
-    missing: Cep1155Error,
-    invalid: Cep1155Error,
+    missing: Cep85Error,
+    invalid: Cep85Error,
 ) -> T {
     let uref = get_uref_with_user_errors(name, missing, invalid);
     read_with_user_errors(uref, missing, invalid)
@@ -119,7 +119,7 @@ pub fn stringify_key<T: CLTyped>(key: Key) -> String {
     match key {
         Key::Account(account_hash) => account_hash.to_string(),
         Key::Hash(hash_addr) => ContractHash::new(hash_addr).to_string(),
-        _ => runtime::revert(Cep1155Error::InvalidKey),
+        _ => runtime::revert(Cep85Error::InvalidKey),
     }
 }
 
@@ -143,8 +143,8 @@ pub fn get_dictionary_value_from_key<T: CLTyped + FromBytes>(
 ) -> Option<T> {
     let seed_uref = get_uref_with_user_errors(
         dictionary_name,
-        Cep1155Error::MissingStorageUref,
-        Cep1155Error::InvalidStorageUref,
+        Cep85Error::MissingStorageUref,
+        Cep85Error::InvalidStorageUref,
     );
 
     match storage::dictionary_get::<T>(seed_uref, key) {
@@ -160,8 +160,8 @@ pub fn set_dictionary_value_for_key<T: CLTyped + ToBytes + Copy>(
 ) {
     let seed_uref = get_uref_with_user_errors(
         dictionary_name,
-        Cep1155Error::MissingStorageUref,
-        Cep1155Error::InvalidStorageUref,
+        Cep85Error::MissingStorageUref,
+        Cep85Error::InvalidStorageUref,
     );
     storage::dictionary_put::<T>(seed_uref, key, *value)
 }
@@ -169,16 +169,16 @@ pub fn set_dictionary_value_for_key<T: CLTyped + ToBytes + Copy>(
 pub fn get_transfer_filter_contract() -> Option<ContractHash> {
     get_stored_value_with_user_errors(
         TRANSFER_FILTER_CONTRACT,
-        Cep1155Error::MissingTransferFilterContract,
-        Cep1155Error::InvalidTransferFilterContract,
+        Cep85Error::MissingTransferFilterContract,
+        Cep85Error::InvalidTransferFilterContract,
     )
 }
 
 pub fn get_transfer_filter_method() -> Option<String> {
     get_stored_value_with_user_errors(
         TRANSFER_FILTER_METHOD,
-        Cep1155Error::MissingTransferFilterMethod,
-        Cep1155Error::InvalidTransferFilterMethod,
+        Cep85Error::MissingTransferFilterMethod,
+        Cep85Error::InvalidTransferFilterMethod,
     )
 }
 
@@ -189,13 +189,13 @@ fn get_uref(name: &str) -> URef {
     key.try_into().unwrap_or_revert()
 }
 
-fn get_uref_with_user_errors(name: &str, missing: Cep1155Error, invalid: Cep1155Error) -> URef {
+fn get_uref_with_user_errors(name: &str, missing: Cep85Error, invalid: Cep85Error) -> URef {
     let key = get_key_with_user_errors(name, missing, invalid);
     key.into_uref()
-        .unwrap_or_revert_with(Cep1155Error::UnexpectedKeyVariant)
+        .unwrap_or_revert_with(Cep85Error::UnexpectedKeyVariant)
 }
 
-fn get_key_with_user_errors(name: &str, missing: Cep1155Error, invalid: Cep1155Error) -> Key {
+fn get_key_with_user_errors(name: &str, missing: Cep85Error, invalid: Cep85Error) -> Key {
     let (name_ptr, name_size, _bytes) = to_ptr(name);
     let mut key_bytes = vec![0u8; Key::max_serialized_length()];
     let mut total_bytes: usize = 0;
@@ -220,8 +220,8 @@ fn get_key_with_user_errors(name: &str, missing: Cep1155Error, invalid: Cep1155E
 
 fn read_with_user_errors<T: CLTyped + FromBytes>(
     uref: URef,
-    missing: Cep1155Error,
-    invalid: Cep1155Error,
+    missing: Cep85Error,
+    invalid: Cep85Error,
 ) -> T {
     let key: Key = uref.into();
     let (key_ptr, key_size, _bytes) = to_ptr(key);

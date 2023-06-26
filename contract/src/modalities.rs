@@ -1,4 +1,4 @@
-use crate::error::Cep1155Error;
+use crate::error::Cep85Error;
 use core::convert::TryFrom;
 
 #[repr(u8)]
@@ -10,13 +10,13 @@ pub enum EventsMode {
 }
 
 impl TryFrom<u8> for EventsMode {
-    type Error = Cep1155Error;
+    type Error = Cep85Error;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
             0 => Ok(EventsMode::NoEvents),
             1 => Ok(EventsMode::CES),
-            _ => Err(Cep1155Error::InvalidEventsMode),
+            _ => Err(Cep85Error::InvalidEventsMode),
         }
     }
 }

@@ -188,7 +188,7 @@ pub fn total_fungible_supply() -> EntryPoint {
     )
 }
 
-/// Returns the default set of CEP1155 token entry points.
+/// Returns the default set of CEP85 token entry points.
 pub fn generate_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(init());

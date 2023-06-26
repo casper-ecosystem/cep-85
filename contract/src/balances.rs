@@ -9,7 +9,7 @@ use casper_types::{Key, U256};
 
 use crate::{
     constants::{BALANCES, CONTRACT_HASH},
-    error::Cep1155Error,
+    error::Cep85Error,
     utils::{
         get_dictionary_value_from_key, make_dictionary_item_key, set_dictionary_value_for_key,
     },
@@ -37,43 +37,43 @@ pub fn transfer_balance(
     recipient: &Key,
     id: &U256,
     amount: &U256,
-) -> Result<(), Cep1155Error> {
+) -> Result<(), Cep85Error> {
     if amount.is_zero() {
-        runtime::revert(Cep1155Error::InvalidAmount);
+        runtime::revert(Cep85Error::InvalidAmount);
     }
 
     if sender == recipient {
-        runtime::revert(Cep1155Error::SelfTransfer);
+        runtime::revert(Cep85Error::SelfTransfer);
     }
 
     // Check if the recipient is a valid address
     if !runtime::is_valid_uref(
         *recipient
             .as_uref()
-            .unwrap_or_revert_with(Cep1155Error::InvalidRecipient),
+            .unwrap_or_revert_with(Cep85Error::InvalidRecipient),
     ) {
-        runtime::revert(Cep1155Error::InvalidRecipient);
+        runtime::revert(Cep85Error::InvalidRecipient);
     }
 
     // Check if the recipient is the contract address
     let contract_key =
-        get_key(CONTRACT_HASH).unwrap_or_revert_with(Cep1155Error::MissingContractHash);
+        get_key(CONTRACT_HASH).unwrap_or_revert_with(Cep85Error::MissingContractHash);
     if &contract_key == recipient {
-        runtime::revert(Cep1155Error::InvalidRecipient);
+        runtime::revert(Cep85Error::InvalidRecipient);
     }
 
     let new_sender_balance = {
         let sender_balance = read_balance_from(sender, id);
         sender_balance
             .checked_sub(*amount)
-            .unwrap_or_revert_with(Cep1155Error::InsufficientBalance)
+            .unwrap_or_revert_with(Cep85Error::InsufficientBalance)
     };
 
     let new_recipient_balance = {
         let recipient_balance = read_balance_from(recipient, id);
         recipient_balance
             .checked_add(*amount)
-            .unwrap_or_revert_with(Cep1155Error::Overflow)
+            .unwrap_or_revert_with(Cep85Error::Overflow)
     };
 
     write_balance_to(sender, id, &new_sender_balance);
@@ -90,13 +90,13 @@ pub fn batch_transfer_balance(
     recipient: &Key,
     ids: &Vec<U256>,
     amounts: &Vec<U256>,
-) -> Result<(), Cep1155Error> {
+) -> Result<(), Cep85Error> {
     if sender == recipient {
-        runtime::revert(Cep1155Error::SelfTransfer);
+        runtime::revert(Cep85Error::SelfTransfer);
     }
 
     if ids.len() != amounts.len() {
-        runtime::revert(Cep1155Error::MismatchParamsLength);
+        runtime::revert(Cep85Error::MismatchParamsLength);
     }
 
     for (i, &id) in ids.iter().enumerate() {
@@ -106,9 +106,9 @@ pub fn batch_transfer_balance(
             }
 
             transfer_balance(sender, recipient, &id, &amount)
-                .unwrap_or_revert_with(Cep1155Error::FailToTransferBalance);
+                .unwrap_or_revert_with(Cep85Error::FailToTransferBalance);
         } else {
-            runtime::revert(Cep1155Error::MismatchParamsLength);
+            runtime::revert(Cep85Error::MismatchParamsLength);
         }
     }
 
