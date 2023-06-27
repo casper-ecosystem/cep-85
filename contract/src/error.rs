@@ -90,6 +90,12 @@ pub enum Cep85Error {
     InvalidTotalSupply = 60067,
     ExceededMaxTotalSupply = 60068,
     FailedToCreateArg = 60069,
+    InsufficientRights = 60070,
+    InvalidAdminList = 60071,
+    InvalidMinterList = 60072,
+    InvalidBurnerList = 60073,
+    InvalidMetaList = 60074,
+    InvalidNoneList = 60075,
 }
 
 impl From<Cep85Error> for ApiError {

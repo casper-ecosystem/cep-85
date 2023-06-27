@@ -44,6 +44,13 @@ pub const CONTRACT_HASH: &str = "contract_hash";
 pub const ENABLE_MINT_BURN: &str = "enable_mint_burn";
 pub const EVENTS_MODE: &str = "events_mode";
 
+pub const SECURITY_BADGES: &str = "security_badges";
+pub const ADMIN_LIST: &str = "adin_list";
+pub const MINTER_LIST: &str = "minter_list";
+pub const BURNER_LIST: &str = "burner_list";
+pub const META_LIST: &str = "meta_list";
+pub const NONE_LIST: &str = "none_list";
+
 pub const NAME: &str = "name";
 pub const OPERATORS: &str = "operators";
 pub const PACKAGE_HASH: &str = "package_hash";
