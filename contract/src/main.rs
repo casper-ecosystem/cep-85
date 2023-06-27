@@ -13,7 +13,7 @@ use alloc::{
     format,
     string::{String, ToString},
     vec,
-    vec::Vec,
+    vec::Vec, collections::BTreeMap,
 };
 use casper_contract::{
     contract_api::{
@@ -34,13 +34,13 @@ use cep85::{
         BALANCES, CONTRACT_HASH, ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS,
         PACKAGE_HASH, PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
         PREFIX_CONTRACT_VERSION, SUPPLY, TOKEN_URI, TOTAL_SUPPLY, TRANSFER_FILTER_CONTRACT,
-        TRANSFER_FILTER_METHOD, URI,
+        TRANSFER_FILTER_METHOD, URI, ADMIN_LIST, MINTER_LIST, BURNER_LIST, META_LIST, NONE_LIST, SECURITY_BADGES,
     },
     entry_points::generate_entry_points,
     error::Cep85Error,
     events::{
         self, init_events, ApprovalForAll, Burn, Event, Mint, SetTotalSupply, TransferBatch,
-        TransferSingle, Uri,
+        TransferSingle, Uri, ChangeSecurity,
     },
     modalities::TransferFilterContractResult,
     operators::{read_operator, write_operator},
@@ -50,14 +50,13 @@ use cep85::{
         get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
         get_stored_value_with_user_errors, get_transfer_filter_contract,
         get_transfer_filter_method, get_verified_caller,
-    },
+    }, security::{sec_check, SecurityBadge, change_sec_badge},
 };
 
 /// Initiates the contracts states. Only used by the installer call,
 /// later calls will cause it to revert.
 #[no_mangle]
 pub extern "C" fn init() {
-    // TODO Change to admin check
     if get_key(PACKAGE_HASH).is_some() {
         revert(Cep85Error::ContractAlreadyInitialized);
     }
@@ -119,6 +118,53 @@ pub extern "C" fn init() {
     storage::new_dictionary(TOKEN_URI).unwrap_or_revert_with(Cep85Error::FailedToCreateDictionary);
 
     init_events();
+
+    storage::new_dictionary(SECURITY_BADGES).unwrap_or_revert();
+
+    let mut badge_map: BTreeMap<Key, SecurityBadge> = BTreeMap::new();
+
+    let admin_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(ADMIN_LIST, Cep85Error::InvalidAdminList);
+    let minter_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(MINTER_LIST, Cep85Error::InvalidMinterList);
+    let burner_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(BURNER_LIST, Cep85Error::InvalidBurnerList);
+    let meta_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(META_LIST, Cep85Error::InvalidMetaList);
+    let none_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(NONE_LIST, Cep85Error::InvalidNoneList);
+
+    if let Some(minter_list) = minter_list {
+        for account_key in minter_list {
+            badge_map.insert(account_key, SecurityBadge::Minter);
+        }
+    }
+    if let Some(burner_list) = burner_list {
+        for account_key in burner_list {
+            badge_map.insert(account_key, SecurityBadge::Burner);
+        }
+    }
+    if let Some(meta_list) = meta_list {
+        for account_key in meta_list {
+            badge_map.insert(account_key, SecurityBadge::Meta);
+        }
+    }
+    if let Some(admin_list) = admin_list {
+        for account_key in admin_list {
+            badge_map.insert(account_key, SecurityBadge::Admin);
+        }
+    }
+    if let Some(none_list) = none_list {
+        for account_key in none_list {
+            badge_map.insert(account_key, SecurityBadge::None);
+        }
+    }
+
+    if badge_map.is_empty(){
+        badge_map.insert(get_verified_caller().0, SecurityBadge::Admin);
+    }
+
+    change_sec_badge(&badge_map);
 }
 
 #[no_mangle]
@@ -330,7 +376,7 @@ pub extern "C" fn mint() {
     };
 
     // TODO ADMIN
-    // sec_check(vec![SecurityBadge::Admin, SecurityBadge::Minter]);
+    sec_check(vec![SecurityBadge::Admin, SecurityBadge::Minter]);
 
     let recipient: Key = get_named_arg_with_user_errors(
         ARG_RECIPIENT,
@@ -396,7 +442,7 @@ pub extern "C" fn batch_mint() {
     };
 
     // TODO ADMIN
-    // sec_check(vec![SecurityBadge::Admin, SecurityBadge::Minter]);
+    sec_check(vec![SecurityBadge::Admin, SecurityBadge::Minter]);
 
     let recipient: Key = get_named_arg_with_user_errors(
         ARG_RECIPIENT,
@@ -514,7 +560,7 @@ pub extern "C" fn batch_burn() {
     };
 
     // TODO ADMIN
-    // sec_check(vec![SecurityBadge::Admin, SecurityBadge::Burner]);
+    sec_check(vec![SecurityBadge::Admin, SecurityBadge::Burner]);
 
     let owner: Key = get_named_arg_with_user_errors(
         ARG_OWNER,
@@ -579,7 +625,7 @@ pub extern "C" fn total_supply_of() {
 #[no_mangle]
 pub extern "C" fn set_total_supply_of() {
     // TODO ADMIN
-    // sec_check(vec![SecurityBadge::Admin]);
+    sec_check(vec![SecurityBadge::Admin]);
 
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
@@ -616,7 +662,7 @@ pub extern "C" fn uri() {
 #[no_mangle]
 pub extern "C" fn set_uri() {
     // TODO ADMIN
-    // sec_check(vec![SecurityBadge::Admin, SecurityBadge::Meta]);
+    sec_check(vec![SecurityBadge::Admin, SecurityBadge::Meta]);
 
     let id: Option<U256> =
         get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId).unwrap_or_revert();
@@ -664,6 +710,73 @@ pub extern "C" fn total_fungible_supply() {
     };
     runtime::ret(CLValue::from_t(total_fungible_supply).unwrap_or_revert());
 }
+
+/// Admin EntryPoint to manipulate the security access granted to users.
+/// One user can only possess one access group badge.
+/// Change strength: None > Admin > Minter
+/// Change strength meaning by example: If user is added to both Minter and Admin they will be an
+/// Admin, also if a user is added to Admin and None then they will be removed from having rights.
+/// Beware: do not remove the last Admin because that will lock out all admin functionality.
+#[no_mangle]
+pub extern "C" fn change_security() {
+    if 0_u8
+        == get_stored_value_with_user_errors::<u8>(
+            ENABLE_MINT_BURN,
+            Cep85Error::MissingEnableMBFlag,
+            Cep85Error::InvalidEnableMBFlag,
+        )
+    {
+        revert(Cep85Error::MintBurnDisabled);
+    };
+    sec_check(vec![SecurityBadge::Admin]);
+    let admin_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(ADMIN_LIST, Cep85Error::InvalidAdminList);
+    let minter_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(MINTER_LIST, Cep85Error::InvalidMinterList);
+    let burner_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(BURNER_LIST, Cep85Error::InvalidBurnerList);
+    let meta_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(META_LIST, Cep85Error::InvalidMetaList);
+    let none_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(NONE_LIST, Cep85Error::InvalidNoneList);
+
+    let mut badge_map: BTreeMap<Key, SecurityBadge> = BTreeMap::new();
+    if let Some(minter_list) = minter_list {
+        for account_key in minter_list {
+            badge_map.insert(account_key, SecurityBadge::Minter);
+        }
+    }
+    if let Some(burner_list) = burner_list {
+        for account_key in burner_list {
+            badge_map.insert(account_key, SecurityBadge::Burner);
+        }
+    }
+    if let Some(meta_list) = meta_list {
+        for account_key in meta_list {
+            badge_map.insert(account_key, SecurityBadge::Meta);
+        }
+    }
+    if let Some(admin_list) = admin_list {
+        for account_key in admin_list {
+            badge_map.insert(account_key, SecurityBadge::Admin);
+        }
+    }
+    if let Some(none_list) = none_list {
+        for account_key in none_list {
+            badge_map.insert(account_key, SecurityBadge::None);
+        }
+    }
+
+    let caller = get_verified_caller().0;
+    badge_map.remove(&caller);
+
+    change_sec_badge(&badge_map);
+    events::record_event_dictionary(Event::ChangeSecurity(ChangeSecurity {
+        admin: caller,
+        sec_change_map: badge_map,
+    }));
+}
+
 
 fn install_contract() {
     let name: String = get_named_arg_with_user_errors(
@@ -732,12 +845,41 @@ fn install_contract() {
     let package_hash_key = runtime::get_key(&package_key_name).unwrap_or_revert();
 
     // Call contract to initialize it
-    let init_args = runtime_args! {
+    let mut init_args = runtime_args! {
         CONTRACT_HASH => contract_hash_key,
         PACKAGE_HASH => package_hash_key,
         TRANSFER_FILTER_CONTRACT => transfer_filter_contract_key,
         TRANSFER_FILTER_METHOD => transfer_filter_method
     };
+
+    let admin_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(ADMIN_LIST, Cep85Error::InvalidAdminList);
+    let minter_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(MINTER_LIST, Cep85Error::InvalidMinterList);
+    let burner_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(BURNER_LIST, Cep85Error::InvalidBurnerList);
+    let meta_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(META_LIST, Cep85Error::InvalidMetaList);
+    let none_list: Option<Vec<Key>> =
+        get_optional_named_arg_with_user_errors(NONE_LIST, Cep85Error::InvalidNoneList);
+
+    if let Some(admin_list) = admin_list {
+        init_args.insert(ADMIN_LIST, admin_list).unwrap_or_revert();
+    }
+    if let Some(minter_list) = minter_list {
+        init_args
+            .insert(MINTER_LIST, minter_list)
+            .unwrap_or_revert();
+    }
+    if let Some(burner_list) = burner_list {
+        init_args.insert(BURNER_LIST, burner_list).unwrap_or_revert();
+    }
+    if let Some(meta_list) = meta_list {
+        init_args.insert(META_LIST, meta_list).unwrap_or_revert();
+    }
+    if let Some(none_list) = none_list {
+        init_args.insert(NONE_LIST, none_list).unwrap_or_revert();
+    }
 
     runtime::call_contract::<()>(contract_hash, ENTRY_POINT_INIT, init_args);
 }

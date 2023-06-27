@@ -1,10 +1,10 @@
-use alloc::{string::String, vec::Vec};
+use alloc::{string::String, vec::Vec, collections::BTreeMap};
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_event_standard::{emit, Event, Schemas};
 use casper_types::{Key, U256};
 use core::convert::TryFrom;
 
-use crate::{constants::EVENTS_MODE, modalities::EventsMode, utils::get_stored_value};
+use crate::{constants::EVENTS_MODE, modalities::EventsMode, utils::get_stored_value, security::SecurityBadge};
 
 pub enum Event {
     Mint(Mint),
@@ -14,6 +14,7 @@ pub enum Event {
     TransferBatch(TransferBatch),
     Uri(Uri),
     SetTotalSupply(SetTotalSupply),
+    ChangeSecurity(ChangeSecurity),
 }
 
 pub fn record_event_dictionary(event: Event) {
@@ -139,6 +140,18 @@ impl SetTotalSupply {
     }
 }
 
+#[derive(Event, Debug, PartialEq, Eq)]
+pub struct ChangeSecurity {
+    pub admin: Key,
+    pub sec_change_map: BTreeMap<Key, SecurityBadge>,
+}
+
+impl ChangeSecurity {
+    pub fn new(admin: Key, sec_change_map: BTreeMap<Key, SecurityBadge>) -> Self {
+        Self { admin, sec_change_map }
+    }
+}
+
 fn ces(event: Event) {
     match event {
         Event::Mint(ev) => emit(ev),
@@ -148,6 +161,7 @@ fn ces(event: Event) {
         Event::TransferBatch(ev) => emit(ev),
         Event::Uri(ev) => emit(ev),
         Event::SetTotalSupply(ev) => emit(ev),
+        Event::ChangeSecurity(ev) => emit(ev),
     }
 }
 
