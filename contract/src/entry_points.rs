@@ -250,6 +250,7 @@ pub fn generate_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(init());
     entry_points.add_entry_point(balance_of());
+    entry_points.add_entry_point(balance_of_batch());
     entry_points.add_entry_point(mint());
     entry_points.add_entry_point(batch_mint());
     entry_points.add_entry_point(burn());
