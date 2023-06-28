@@ -5,15 +5,16 @@ use casper_types::{CLType, EntryPoint, EntryPointAccess, EntryPointType, EntryPo
 
 use crate::constants::{
     ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED, ARG_FROM, ARG_ID, ARG_IDS,
-    ARG_OPERATOR, ARG_TO, ARG_TOTAL_SUPPLY, CONTRACT_HASH, ENTRY_POINT_BALANCE_OF,
-    ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL,
-    ENTRY_POINT_IS_NON_FUNGIBLE, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER,
-    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_URI,
-    ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_TOTAL_SUPPLY_OF,
-    ENTRY_POINT_URI, PACKAGE_HASH, TRANSFER_FILTER_CONTRACT, URI,
+    ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TO, ARG_TOTAL_SUPPLY, CONTRACT_HASH,
+    ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_BATCH_BURN,
+    ENTRY_POINT_BATCH_MINT, ENTRY_POINT_BURN, ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL,
+    ENTRY_POINT_IS_NON_FUNGIBLE, ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
+    ENTRY_POINT_SAFE_TRANSFER, ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_SET_URI, ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
+    ENTRY_POINT_TOTAL_SUPPLY_OF, ENTRY_POINT_URI, PACKAGE_HASH, TRANSFER_FILTER_CONTRACT, URI,
 };
 
-pub(crate) fn init() -> EntryPoint {
+pub fn init() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_INIT,
         vec![
@@ -23,6 +24,62 @@ pub(crate) fn init() -> EntryPoint {
                 TRANSFER_FILTER_CONTRACT,
                 CLType::Option(Box::new(CLType::Key)),
             ),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    )
+}
+
+pub fn mint() -> EntryPoint {
+    EntryPoint::new(
+        ENTRY_POINT_MINT,
+        vec![
+            Parameter::new(ARG_RECIPIENT, CLType::Key),
+            Parameter::new(ARG_ID, CLType::U256),
+            Parameter::new(ARG_AMOUNT, CLType::U256),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    )
+}
+
+pub fn batch_mint() -> EntryPoint {
+    EntryPoint::new(
+        ENTRY_POINT_BATCH_MINT,
+        vec![
+            Parameter::new(ARG_RECIPIENT, CLType::Key),
+            Parameter::new(ARG_IDS, CLType::List(Box::new(CLType::U256))),
+            Parameter::new(ARG_AMOUNTS, CLType::List(Box::new(CLType::U256))),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    )
+}
+
+pub fn burn() -> EntryPoint {
+    EntryPoint::new(
+        ENTRY_POINT_BURN,
+        vec![
+            Parameter::new(ARG_OWNER, CLType::Key),
+            Parameter::new(ARG_ID, CLType::U256),
+            Parameter::new(ARG_AMOUNT, CLType::U256),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    )
+}
+
+pub fn batch_burn() -> EntryPoint {
+    EntryPoint::new(
+        ENTRY_POINT_BATCH_BURN,
+        vec![
+            Parameter::new(ARG_OWNER, CLType::Key),
+            Parameter::new(ARG_IDS, CLType::List(Box::new(CLType::U256))),
+            Parameter::new(ARG_AMOUNTS, CLType::List(Box::new(CLType::U256))),
         ],
         CLType::Unit,
         EntryPointAccess::Public,
@@ -193,7 +250,10 @@ pub fn generate_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(init());
     entry_points.add_entry_point(balance_of());
-    entry_points.add_entry_point(balance_of_batch());
+    entry_points.add_entry_point(mint());
+    entry_points.add_entry_point(batch_mint());
+    entry_points.add_entry_point(burn());
+    entry_points.add_entry_point(batch_burn());
     entry_points.add_entry_point(set_approval_for_all());
     entry_points.add_entry_point(is_approved_for_all());
     entry_points.add_entry_point(safe_transfer_from());
