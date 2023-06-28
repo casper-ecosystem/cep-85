@@ -1,11 +1,12 @@
+use crate::{
+    constants::EVENTS_MODE, modalities::EventsMode, security::SecurityBadge,
+    utils::get_stored_value,
+};
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_event_standard::{emit, Event, Schemas};
 use casper_types::{Key, U256};
 use core::convert::TryFrom;
-
-use super::security::SecurityBadge;
-use crate::{constants::EVENTS_MODE, modalities::EventsMode, utils::get_stored_value};
 
 #[derive(Debug)]
 pub enum Event {
