@@ -24,6 +24,7 @@ pub const ENTRY_POINT_URI: &str = "uri";
 pub const ENTRY_POINT_SET_URI: &str = "set_uri";
 pub const ENTRY_POINT_IS_NON_FUNGIBLE: &str = "is_non_fungible";
 pub const ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY: &str = "total_fungible_supply";
+pub const ENTRY_POINT_CHANGE_SECURITY: &str = "change_security";
 
 pub const ARG_ACCOUNT: &str = "account";
 pub const ARG_ACCOUNTS: &str = "accounts";

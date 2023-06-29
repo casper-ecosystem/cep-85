@@ -46,7 +46,7 @@ use cep85::{
     modalities::TransferFilterContractResult,
     operators::{read_operator, write_operator},
     security::{change_sec_badge, sec_check, SecurityBadge},
-    supply::{read_supply_of, read_total_supply_of, write_supply_of},
+    supply::{read_supply_of, read_total_supply_of, write_supply_of, write_total_supply_of},
     uri::{read_uri_of, write_uri_of},
     utils::{
         get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
@@ -151,7 +151,10 @@ pub extern "C" fn init() {
             badge_map.insert(account_key, SecurityBadge::Meta);
         }
     }
-    if let Some(admin_list) = admin_list {
+
+    if admin_list.is_none() || admin_list.as_ref().unwrap().is_empty() {
+        badge_map.insert(get_verified_caller().0, SecurityBadge::Admin);
+    } else if let Some(admin_list) = admin_list {
         for account_key in admin_list {
             badge_map.insert(account_key, SecurityBadge::Admin);
         }
@@ -160,10 +163,6 @@ pub extern "C" fn init() {
         for account_key in none_list {
             badge_map.insert(account_key, SecurityBadge::None);
         }
-    }
-
-    if badge_map.is_empty() {
-        badge_map.insert(get_verified_caller().0, SecurityBadge::Admin);
     }
 
     change_sec_badge(&badge_map);
@@ -365,6 +364,7 @@ pub extern "C" fn safe_batch_transfer_from() {
         values: amounts,
     }));
 }
+
 #[no_mangle]
 pub extern "C" fn mint() {
     if 0_u8
@@ -399,20 +399,19 @@ pub extern "C" fn mint() {
 
     let recipient_balance = read_balance_from(&recipient, &id);
     let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_default();
-    let new_total_supply = {
-        let total_supply = read_supply_of(&id);
-        let max_supply = read_total_supply_of(&id);
-
-        if total_supply.checked_add(amount).unwrap_or_default() > max_supply {
+    let new_supply = {
+        let supply = read_supply_of(&id);
+        let total_max_supply = read_total_supply_of(&id);
+        if supply.checked_add(amount).unwrap_or_default() > total_max_supply {
             revert(Cep85Error::ExceededMaxTotalSupply);
         }
 
-        total_supply
+        supply
             .checked_add(amount)
             .unwrap_or_revert_with(Cep85Error::Overflow)
     };
 
-    write_supply_of(&id, &new_total_supply);
+    write_supply_of(&id, &new_supply);
     write_balance_to(&recipient, &id, &new_recipient_balance);
 
     let uri: String =
@@ -512,6 +511,8 @@ pub extern "C" fn burn() {
     {
         revert(Cep85Error::MintBurnDisabled);
     };
+
+    sec_check(vec![SecurityBadge::Admin, SecurityBadge::Burner]);
 
     let owner: Key = get_named_arg_with_user_errors(
         ARG_OWNER,
@@ -637,8 +638,7 @@ pub extern "C" fn set_total_supply_of() {
         Cep85Error::InvalidTotalSupply,
     )
     .unwrap_or_revert();
-
-    write_supply_of(&id, &total_supply);
+    write_total_supply_of(&id, &total_supply);
     record_event_dictionary(Event::SetTotalSupply(SetTotalSupply { id, total_supply }));
 }
 
