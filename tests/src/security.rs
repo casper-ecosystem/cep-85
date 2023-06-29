@@ -215,6 +215,7 @@ fn test_security_burner_rights() {
         id,
         total_supply,
     );
+
     set_total_supply_of_call.expect_success().commit();
 
     let mint_call = cep85_mint(
@@ -385,7 +386,7 @@ fn test_change_security() {
         mint_amount,
     );
 
-    // minting account is in none list now, so same request shoudl fail
+    // minting account is in none list now, so the same mint request should fail
     failing_mint_call.expect_failure();
 
     let error = builder.get_error().expect("must have error");
