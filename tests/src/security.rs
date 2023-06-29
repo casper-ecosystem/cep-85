@@ -14,14 +14,19 @@ use cep85::{
 use crate::utility::{
     constants::{ACCOUNT_USER_1, ACCOUNT_USER_2, TOKEN_NAME},
     installer_request_builders::{cep85_mint, setup_with_args, TestContext},
-    support::{
-        assert_expected_error, create_dummy_key_pair, create_funded_dummy_account, fund_account,
-    },
+    support::{assert_expected_error, create_dummy_key_pair, fund_account},
 };
 
 #[test]
 fn test_security_no_rights() {
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            test_accounts,
+            ..
+        },
+    ) = setup_with_args(
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
@@ -31,7 +36,7 @@ fn test_security_no_rights() {
         None,
     );
 
-    let account_user_1 = create_funded_dummy_account(&mut builder, Some(ACCOUNT_USER_1));
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
     let recipient: Key = account_user_1.into();
 
     let mint_amount = U256::one();
