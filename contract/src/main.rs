@@ -10,10 +10,11 @@ extern crate alloc;
 
 use alloc::{
     borrow::ToOwned,
+    collections::BTreeMap,
     format,
     string::{String, ToString},
     vec,
-    vec::Vec, collections::BTreeMap,
+    vec::Vec,
 };
 use casper_contract::{
     contract_api::{
@@ -26,31 +27,32 @@ use casper_types::{
     contracts::NamedKeys, runtime_args, CLValue, ContractHash, Key, RuntimeArgs, U256,
 };
 use cep85::{
-    self,
     balances::{batch_transfer_balance, read_balance_from, transfer_balance, write_balance_to},
     constants::{
-        ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA, ARG_FROM,
-        ARG_ID, ARG_IDS, ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TO, ARG_TOTAL_SUPPLY,
-        BALANCES, CONTRACT_HASH, ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME, OPERATORS,
-        PACKAGE_HASH, PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
-        PREFIX_CONTRACT_VERSION, SUPPLY, TOKEN_URI, TOTAL_SUPPLY, TRANSFER_FILTER_CONTRACT,
-        TRANSFER_FILTER_METHOD, URI, ADMIN_LIST, MINTER_LIST, BURNER_LIST, META_LIST, NONE_LIST, SECURITY_BADGES,
+        ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA,
+        ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TO,
+        ARG_TOTAL_SUPPLY, BALANCES, BURNER_LIST, CONTRACT_HASH, ENABLE_MINT_BURN, ENTRY_POINT_INIT,
+        EVENTS_MODE, META_LIST, MINTER_LIST, NAME, NONE_LIST, OPERATORS, PACKAGE_HASH,
+        PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
+        PREFIX_CONTRACT_VERSION, SECURITY_BADGES, SUPPLY, TOKEN_URI, TOTAL_SUPPLY,
+        TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD, URI,
     },
     entry_points::generate_entry_points,
     error::Cep85Error,
     events::{
-        self, init_events, ApprovalForAll, Burn, Event, Mint, SetTotalSupply, TransferBatch,
-        TransferSingle, Uri, ChangeSecurity,
+        init_events, record_event_dictionary, ApprovalForAll, Burn, ChangeSecurity, Event, Mint,
+        SetTotalSupply, TransferBatch, TransferSingle, Uri,
     },
     modalities::TransferFilterContractResult,
     operators::{read_operator, write_operator},
+    security::{change_sec_badge, sec_check, SecurityBadge},
     supply::{read_supply_of, read_total_supply_of, write_supply_of},
     uri::{read_uri_of, write_uri_of},
     utils::{
         get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
         get_stored_value_with_user_errors, get_transfer_filter_contract,
         get_transfer_filter_method, get_verified_caller,
-    }, security::{sec_check, SecurityBadge, change_sec_badge},
+    },
 };
 
 /// Initiates the contracts states. Only used by the installer call,
@@ -160,7 +162,7 @@ pub extern "C" fn init() {
         }
     }
 
-    if badge_map.is_empty(){
+    if badge_map.is_empty() {
         badge_map.insert(get_verified_caller().0, SecurityBadge::Admin);
     }
 
@@ -254,7 +256,7 @@ pub extern "C" fn set_approval_for_all() {
     .unwrap_or_revert();
 
     write_operator(&caller, &operator, approved);
-    events::record_event_dictionary(Event::ApprovalForAll(ApprovalForAll {
+    record_event_dictionary(Event::ApprovalForAll(ApprovalForAll {
         owner: caller,
         operator,
         approved,
@@ -297,11 +299,11 @@ pub extern "C" fn safe_transfer_from() {
         get_named_arg_with_user_errors(ARG_DATA, Cep85Error::MissingData, Cep85Error::InvalidData)
             .unwrap_or_revert();
 
-    before_token_transfer(&caller, &from, &to, &vec![id], &vec![amount], &data);
+    before_token_transfer(&caller, &from, &to, &[id], &[amount], &data);
 
     transfer_balance(&from, &to, &id, &amount)
         .unwrap_or_revert_with(Cep85Error::FailToTransferBalance);
-    events::record_event_dictionary(Event::TransferSingle(TransferSingle {
+    record_event_dictionary(Event::TransferSingle(TransferSingle {
         operator: caller,
         from,
         to,
@@ -355,7 +357,7 @@ pub extern "C" fn safe_batch_transfer_from() {
     batch_transfer_balance(&from, &to, &ids, &amounts)
         .unwrap_or_revert_with(Cep85Error::FailToBatchTransferBalance);
 
-    events::record_event_dictionary(Event::TransferBatch(TransferBatch {
+    record_event_dictionary(Event::TransferBatch(TransferBatch {
         operator: caller,
         from,
         to,
@@ -375,7 +377,6 @@ pub extern "C" fn mint() {
         revert(Cep85Error::MintBurnDisabled);
     };
 
-    // TODO ADMIN
     sec_check(vec![SecurityBadge::Admin, SecurityBadge::Minter]);
 
     let recipient: Key = get_named_arg_with_user_errors(
@@ -418,14 +419,15 @@ pub extern "C" fn mint() {
         get_stored_value_with_user_errors(URI, Cep85Error::MissingUri, Cep85Error::InvalidUri);
     write_uri_of(&id, &uri);
 
-    events::record_event_dictionary(Event::Uri(Uri {
-        id: Some(id),
-        value: uri,
-    }));
-    events::record_event_dictionary(Event::Mint(Mint {
+    record_event_dictionary(Event::Mint(Mint {
         id,
         recipient,
         amount,
+    }));
+
+    record_event_dictionary(Event::Uri(Uri {
+        value: uri,
+        id: Some(id),
     }))
 }
 
@@ -441,7 +443,6 @@ pub extern "C" fn batch_mint() {
         revert(Cep85Error::MintBurnDisabled);
     };
 
-    // TODO ADMIN
     sec_check(vec![SecurityBadge::Admin, SecurityBadge::Minter]);
 
     let recipient: Key = get_named_arg_with_user_errors(
@@ -487,14 +488,15 @@ pub extern "C" fn batch_mint() {
             get_stored_value_with_user_errors(URI, Cep85Error::MissingUri, Cep85Error::InvalidUri);
         write_uri_of(&id, &uri);
 
-        events::record_event_dictionary(Event::Uri(Uri {
-            id: Some(id),
-            value: uri,
-        }));
-        events::record_event_dictionary(Event::Mint(Mint {
+        record_event_dictionary(Event::Mint(Mint {
             id,
             recipient,
             amount,
+        }));
+
+        record_event_dictionary(Event::Uri(Uri {
+            id: Some(id),
+            value: uri,
         }));
     }
 }
@@ -544,7 +546,7 @@ pub extern "C" fn burn() {
 
     write_supply_of(&id, &new_total_supply);
     write_balance_to(&owner, &id, &new_owner_balance);
-    events::record_event_dictionary(Event::Burn(Burn { id, owner, amount }));
+    record_event_dictionary(Event::Burn(Burn { id, owner, amount }));
 }
 
 #[no_mangle]
@@ -559,7 +561,6 @@ pub extern "C" fn batch_burn() {
         revert(Cep85Error::MintBurnDisabled);
     };
 
-    // TODO ADMIN
     sec_check(vec![SecurityBadge::Admin, SecurityBadge::Burner]);
 
     let owner: Key = get_named_arg_with_user_errors(
@@ -598,7 +599,7 @@ pub extern "C" fn batch_burn() {
 
         write_supply_of(&id, &new_total_supply);
         write_balance_to(&owner, &id, &new_owner_balance);
-        events::record_event_dictionary(Event::Burn(Burn { id, owner, amount }));
+        record_event_dictionary(Event::Burn(Burn { id, owner, amount }));
     }
 }
 
@@ -624,7 +625,6 @@ pub extern "C" fn total_supply_of() {
 
 #[no_mangle]
 pub extern "C" fn set_total_supply_of() {
-    // TODO ADMIN
     sec_check(vec![SecurityBadge::Admin]);
 
     let id: U256 =
@@ -639,7 +639,7 @@ pub extern "C" fn set_total_supply_of() {
     .unwrap_or_revert();
 
     write_supply_of(&id, &total_supply);
-    events::record_event_dictionary(Event::SetTotalSupply(SetTotalSupply { id, total_supply }));
+    record_event_dictionary(Event::SetTotalSupply(SetTotalSupply { id, total_supply }));
 }
 
 #[no_mangle]
@@ -653,7 +653,7 @@ pub extern "C" fn uri() {
             get_stored_value_with_user_errors(URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
         }
     };
-    if 0_usize == uri.len() {
+    if uri.is_empty() {
         revert(Cep85Error::MissingUri);
     }
     runtime::ret(CLValue::from_t(uri).unwrap_or_revert());
@@ -661,7 +661,6 @@ pub extern "C" fn uri() {
 
 #[no_mangle]
 pub extern "C" fn set_uri() {
-    // TODO ADMIN
     sec_check(vec![SecurityBadge::Admin, SecurityBadge::Meta]);
 
     let id: Option<U256> =
@@ -674,7 +673,7 @@ pub extern "C" fn set_uri() {
         Some(id) => write_uri_of(&id, &uri),
         None => put_key(URI, storage::new_uref(uri.to_owned()).into()),
     }
-    events::record_event_dictionary(Event::Uri(Uri {
+    record_event_dictionary(Event::Uri(Uri {
         id: None,
         value: uri,
     }));
@@ -704,9 +703,9 @@ pub extern "C" fn total_fungible_supply() {
     let total_fungible_supply = if total_supply >= current_supply {
         total_supply
             .checked_sub(current_supply)
-            .unwrap_or(U256::zero());
+            .unwrap_or(U256::zero())
     } else {
-        U256::zero();
+        U256::zero()
     };
     runtime::ret(CLValue::from_t(total_fungible_supply).unwrap_or_revert());
 }
@@ -771,12 +770,11 @@ pub extern "C" fn change_security() {
     badge_map.remove(&caller);
 
     change_sec_badge(&badge_map);
-    events::record_event_dictionary(Event::ChangeSecurity(ChangeSecurity {
+    record_event_dictionary(Event::ChangeSecurity(ChangeSecurity {
         admin: caller,
         sec_change_map: badge_map,
     }));
 }
-
 
 fn install_contract() {
     let name: String = get_named_arg_with_user_errors(
@@ -813,7 +811,7 @@ fn install_contract() {
 
     let mut named_keys = NamedKeys::new();
     named_keys.insert(NAME.to_string(), storage::new_uref(name.clone()).into());
-    named_keys.insert(URI.to_string(), storage::new_uref(uri.clone()).into());
+    named_keys.insert(URI.to_string(), storage::new_uref(uri).into());
     named_keys.insert(
         EVENTS_MODE.to_string(),
         storage::new_uref(events_mode).into(),
@@ -872,7 +870,9 @@ fn install_contract() {
             .unwrap_or_revert();
     }
     if let Some(burner_list) = burner_list {
-        init_args.insert(BURNER_LIST, burner_list).unwrap_or_revert();
+        init_args
+            .insert(BURNER_LIST, burner_list)
+            .unwrap_or_revert();
     }
     if let Some(meta_list) = meta_list {
         init_args.insert(META_LIST, meta_list).unwrap_or_revert();

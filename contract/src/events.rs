@@ -1,11 +1,14 @@
-use alloc::{string::String, vec::Vec, collections::BTreeMap};
+use crate::{
+    constants::EVENTS_MODE, modalities::EventsMode, security::SecurityBadge,
+    utils::get_stored_value,
+};
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_event_standard::{emit, Event, Schemas};
 use casper_types::{Key, U256};
 use core::convert::TryFrom;
 
-use crate::{constants::EVENTS_MODE, modalities::EventsMode, utils::get_stored_value, security::SecurityBadge};
-
+#[derive(Debug)]
 pub enum Event {
     Mint(Mint),
     Burn(Burn),
@@ -148,7 +151,10 @@ pub struct ChangeSecurity {
 
 impl ChangeSecurity {
     pub fn new(admin: Key, sec_change_map: BTreeMap<Key, SecurityBadge>) -> Self {
-        Self { admin, sec_change_map }
+        Self {
+            admin,
+            sec_change_map,
+        }
     }
 }
 
@@ -176,7 +182,8 @@ pub fn init_events() {
             .with::<TransferSingle>()
             .with::<TransferBatch>()
             .with::<Uri>()
-            .with::<SetTotalSupply>();
+            .with::<SetTotalSupply>()
+            .with::<ChangeSecurity>();
         casper_event_standard::init(schemas);
     }
 }

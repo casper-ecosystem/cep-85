@@ -7,7 +7,7 @@ use casper_contract::{
 };
 use casper_types::{bytesrepr::ToBytes, CLTyped, ContractHash, Key};
 
-use crate::{RESULT_KEY, TOKEN_CONTRACT};
+use crate::{constants::RESULT_KEY, TOKEN_CONTRACT};
 
 pub fn store_result<T: CLTyped + ToBytes>(result: T) {
     match runtime::get_key(RESULT_KEY) {

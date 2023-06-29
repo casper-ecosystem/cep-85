@@ -3,6 +3,9 @@
 
 extern crate alloc;
 
+mod constants;
+mod utils;
+
 use alloc::{
     boxed::Box,
     string::{String, ToString},
@@ -28,24 +31,15 @@ use cep85::constants::{
     ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_URI, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
     ENTRY_POINT_URI, TOKEN_CONTRACT,
 };
+use constants::{
+    CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_BALANCE_OF_BATCH,
+    ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL, ENTRY_POINT_CHECK_IS_NON_FUNGIBLE,
+    ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
+    ENTRY_POINT_CHECK_SET_APPROVAL_FOR_ALL, ENTRY_POINT_CHECK_SET_URI, ENTRY_POINT_CHECK_SUPPLY_OF,
+    ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_CHECK_URI,
+};
 use utils::{get_token_contract, store_result};
-mod utils;
-
-const CEP85_TEST_PACKAGE_NAME: &str = "cep85_test_contract_package_hash";
-const RESULT_KEY: &str = "result";
-
-const ENTRY_POINT_CHECK_BALANCE: &str = "check_balance_of";
-const ENTRY_POINT_CHECK_BALANCE_OF_BATCH: &str = "check_balance_of_batch";
-const ENTRY_POINT_CHECK_SET_APPROVAL_FOR_ALL: &str = "check_set_approval_for_all";
-const ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL: &str = "check_is_approved_for_all";
-const ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM: &str = "check_safe_transfer_from";
-const ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM: &str = "check_safe_batch_transfer_from";
-const ENTRY_POINT_CHECK_SUPPLY_OF: &str = "check_supply_of";
-const ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF: &str = "check_total_supply_of";
-const ENTRY_POINT_CHECK_URI: &str = "check_uri";
-const ENTRY_POINT_CHECK_SET_URI: &str = "check_set_uri";
-const ENTRY_POINT_CHECK_IS_NON_FUNGIBLE: &str = "check_is_non_fungible";
-const ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY: &str = "check_total_fungible_supply";
 
 #[no_mangle]
 pub extern "C" fn init() {
@@ -54,7 +48,7 @@ pub extern "C" fn init() {
 }
 
 #[no_mangle]
-extern "C" fn check_balance_of() {
+pub extern "C" fn check_balance_of() {
     let token_contract: ContractHash = get_token_contract();
     let account: Key = get_named_arg(ARG_ACCOUNT);
     let id: U256 = get_named_arg(ARG_ID);
@@ -67,7 +61,7 @@ extern "C" fn check_balance_of() {
 }
 
 #[no_mangle]
-extern "C" fn check_balance_of_batch() {
+pub extern "C" fn check_balance_of_batch() {
     let token_contract: ContractHash = get_token_contract();
     let accounts: Vec<Key> = get_named_arg(ARG_ACCOUNTS);
     let ids: Vec<U256> = get_named_arg(ARG_IDS);
@@ -84,7 +78,7 @@ extern "C" fn check_balance_of_batch() {
 }
 
 #[no_mangle]
-extern "C" fn check_set_approval_for_all() {
+pub extern "C" fn check_set_approval_for_all() {
     let token_contract: ContractHash = get_token_contract();
     let operator: Key = get_named_arg(ARG_OPERATOR);
     let approved: bool = get_named_arg(ARG_APPROVED);
@@ -100,7 +94,7 @@ extern "C" fn check_set_approval_for_all() {
 }
 
 #[no_mangle]
-extern "C" fn check_is_approved_for_all() {
+pub extern "C" fn check_is_approved_for_all() {
     let token_contract: ContractHash = get_token_contract();
     let account: Key = get_named_arg(ARG_ACCOUNT);
     let operator: Key = get_named_arg(ARG_OPERATOR);
@@ -117,7 +111,7 @@ extern "C" fn check_is_approved_for_all() {
 }
 
 #[no_mangle]
-extern "C" fn check_safe_transfer_from() {
+pub extern "C" fn check_safe_transfer_from() {
     let token_contract: ContractHash = get_token_contract();
     let from: Key = get_named_arg(ARG_FROM);
     let to: Key = get_named_arg(ARG_TO);
@@ -137,7 +131,7 @@ extern "C" fn check_safe_transfer_from() {
 }
 
 #[no_mangle]
-extern "C" fn check_safe_batch_transfer_from() {
+pub extern "C" fn check_safe_batch_transfer_from() {
     let token_contract: ContractHash = get_token_contract();
     let from: Key = get_named_arg(ARG_FROM);
     let to: Key = get_named_arg(ARG_TO);
@@ -157,7 +151,7 @@ extern "C" fn check_safe_batch_transfer_from() {
 }
 
 #[no_mangle]
-extern "C" fn check_supply_of() {
+pub extern "C" fn check_supply_of() {
     let token_contract: ContractHash = get_token_contract();
     let id: U256 = get_named_arg(ARG_ID);
     let check_supply_of_args = runtime_args! {
@@ -172,7 +166,7 @@ extern "C" fn check_supply_of() {
 }
 
 #[no_mangle]
-extern "C" fn check_total_supply_of() {
+pub extern "C" fn check_total_supply_of() {
     let token_contract: ContractHash = get_token_contract();
     let id: U256 = get_named_arg(ARG_ID);
     let check_total_supply_of_args = runtime_args! {
@@ -187,7 +181,7 @@ extern "C" fn check_total_supply_of() {
 }
 
 #[no_mangle]
-extern "C" fn check_uri() {
+pub extern "C" fn check_uri() {
     let token_contract: ContractHash = get_token_contract();
     let id: U256 = get_named_arg(ARG_ID);
     let check_uri_args = runtime_args! {
@@ -198,7 +192,7 @@ extern "C" fn check_uri() {
 }
 
 #[no_mangle]
-extern "C" fn check_set_uri() {
+pub extern "C" fn check_set_uri() {
     let token_contract: ContractHash = get_token_contract();
     let id: U256 = get_named_arg(ARG_ID);
     let uri: String = get_named_arg(ARG_URI);
@@ -210,7 +204,7 @@ extern "C" fn check_set_uri() {
 }
 
 #[no_mangle]
-extern "C" fn check_is_non_fungible() {
+pub extern "C" fn check_is_non_fungible() {
     let token_contract: ContractHash = get_token_contract();
     let id: U256 = get_named_arg(ARG_ID);
 
@@ -227,7 +221,7 @@ extern "C" fn check_is_non_fungible() {
 }
 
 #[no_mangle]
-extern "C" fn check_total_fungible_supply() {
+pub extern "C" fn check_total_fungible_supply() {
     let token_contract: ContractHash = get_token_contract();
     let id: U256 = get_named_arg(ARG_ID);
 
@@ -254,7 +248,7 @@ pub extern "C" fn call() {
         EntryPointType::Contract,
     );
     let check_balance_of_entrypoint = EntryPoint::new(
-        ENTRY_POINT_CHECK_BALANCE,
+        ENTRY_POINT_CHECK_BALANCE_OF,
         vec![
             Parameter::new(ARG_ACCOUNT, CLType::Key),
             Parameter::new(ARG_ID, CLType::U256),

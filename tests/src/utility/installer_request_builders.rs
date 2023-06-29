@@ -1,30 +1,59 @@
+use std::collections::HashMap;
+
+use super::{
+    constants::{
+        ACCOUNT_USER_1, ACCOUNT_USER_2, CEP85_CONTRACT_WASM, CEP85_TEST_CONTRACT_WASM,
+        CEP85_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME, TOKEN_URI,
+    },
+    support::create_funded_dummy_account,
+};
 use casper_engine_test_support::{
-    ExecuteRequestBuilder, InMemoryWasmTestBuilder, DEFAULT_ACCOUNT_ADDR,
+    ExecuteRequestBuilder, InMemoryWasmTestBuilder, ARG_AMOUNT, DEFAULT_ACCOUNT_ADDR,
     PRODUCTION_RUN_GENESIS_REQUEST,
 };
-use casper_types::{runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs};
-use cep85::constants::{ARG_NAME, ARG_URI, TOKEN_CONTRACT};
-
-use super::constants::{
-    CEP85_CONTRACT_WASM, CEP85_TEST_CONTRACT_WASM, CEP85_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME,
-    TOKEN_URI,
+use casper_types::{
+    account::AccountHash, bytesrepr::FromBytes, runtime_args, system::mint::ARG_ID, CLTyped,
+    ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
+};
+use cep85::constants::{
+    ARG_ACCOUNT, ARG_NAME, ARG_RECIPIENT, ARG_URI, ENTRY_POINT_MINT, TOKEN_CONTRACT,
+};
+use cep85_test_contract::constants::{
+    CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, RESULT_KEY,
 };
 
-#[derive(Copy, Clone)]
-pub(crate) struct TestContext {
-    pub(crate) cep85_token: ContractHash,
-    pub(crate) cep85_test_contract_package: ContractPackageHash,
+#[derive(Clone)]
+pub struct TestContext {
+    pub cep85_token: ContractHash,
+    pub cep85_test_contract_package: ContractPackageHash,
+    pub test_accounts: HashMap<[u8; 32], AccountHash>,
 }
 
-pub(crate) fn setup() -> (InMemoryWasmTestBuilder, TestContext) {
-    setup_with_args(runtime_args! {
-        ARG_NAME => TOKEN_NAME,
-        ARG_URI => TOKEN_URI,
-    })
+pub fn setup() -> (InMemoryWasmTestBuilder, TestContext) {
+    setup_with_args(
+        runtime_args! {
+            ARG_NAME => TOKEN_NAME,
+            ARG_URI => TOKEN_URI,
+        },
+        None,
+    )
 }
-pub(crate) fn setup_with_args(install_args: RuntimeArgs) -> (InMemoryWasmTestBuilder, TestContext) {
+
+pub fn setup_with_args(
+    install_args: RuntimeArgs,
+    test_accounts: Option<HashMap<[u8; 32], AccountHash>>,
+) -> (InMemoryWasmTestBuilder, TestContext) {
     let mut builder = InMemoryWasmTestBuilder::default();
     builder.run_genesis(&PRODUCTION_RUN_GENESIS_REQUEST);
+
+    let mut test_accounts = test_accounts.unwrap_or_default();
+
+    test_accounts
+        .entry(ACCOUNT_USER_1)
+        .or_insert_with(|| create_funded_dummy_account(&mut builder, Some(ACCOUNT_USER_1)));
+    test_accounts
+        .entry(ACCOUNT_USER_2)
+        .or_insert_with(|| create_funded_dummy_account(&mut builder, Some(ACCOUNT_USER_2)));
 
     let install_request_contract =
         ExecuteRequestBuilder::standard(*DEFAULT_ACCOUNT_ADDR, CEP85_CONTRACT_WASM, install_args)
@@ -60,9 +89,13 @@ pub(crate) fn setup_with_args(install_args: RuntimeArgs) -> (InMemoryWasmTestBui
         .expect_success()
         .commit();
 
+    let account = builder
+        .get_account(*DEFAULT_ACCOUNT_ADDR)
+        .expect("should have account");
+
     let cep85_test_contract_package = account
         .named_keys()
-        .get(CEP85_TEST_TOKEN_CONTRACT_NAME)
+        .get(CEP85_TEST_PACKAGE_NAME)
         .and_then(|key| key.into_hash())
         .map(ContractPackageHash::new)
         .expect("should have contract package hash");
@@ -70,7 +103,71 @@ pub(crate) fn setup_with_args(install_args: RuntimeArgs) -> (InMemoryWasmTestBui
     let test_context = TestContext {
         cep85_token,
         cep85_test_contract_package,
+        test_accounts,
     };
 
     (builder, test_context)
+}
+
+pub fn get_test_result<T: FromBytes + CLTyped>(
+    builder: &mut InMemoryWasmTestBuilder,
+    cep85_test_contract_package: ContractPackageHash,
+) -> T {
+    let contract_package = builder
+        .get_contract_package(cep85_test_contract_package)
+        .expect("should have contract package");
+    let enabled_versions = contract_package.enabled_versions();
+    let (_version, contract_hash) = enabled_versions
+        .iter()
+        .rev()
+        .next()
+        .expect("should have latest version");
+
+    builder.get_value(*contract_hash, RESULT_KEY)
+}
+
+pub fn cep85_mint<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    cep85_token: &'a ContractHash,
+    minting_account: AccountHash,
+    recipient: Key,
+    id: U256,
+    amount: U256,
+) -> &'a mut casper_engine_test_support::WasmTestBuilder<
+    casper_execution_engine::storage::global_state::in_memory::InMemoryGlobalState,
+> {
+    let mint_request = ExecuteRequestBuilder::contract_call_by_hash(
+        minting_account,
+        *cep85_token,
+        ENTRY_POINT_MINT,
+        runtime_args! {
+            ARG_RECIPIENT => recipient,
+            ARG_ID => id,
+            ARG_AMOUNT => amount,
+        },
+    )
+    .build();
+    builder.exec(mint_request)
+}
+
+pub fn cep85_check_balance_of(
+    builder: &mut InMemoryWasmTestBuilder,
+    contract_package_hash: &ContractPackageHash,
+    account: Key,
+    id: U256,
+) -> U256 {
+    let check_balance_args = runtime_args! {
+        ARG_ACCOUNT => account,
+        ARG_ID => id,
+    };
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        *contract_package_hash,
+        None,
+        ENTRY_POINT_CHECK_BALANCE_OF,
+        check_balance_args,
+    )
+    .build();
+    builder.exec(exec_request).expect_success().commit();
+    get_test_result(builder, *contract_package_hash)
 }

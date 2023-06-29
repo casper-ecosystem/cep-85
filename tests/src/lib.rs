@@ -6,3 +6,6 @@ mod utility;
 
 #[cfg(test)]
 mod events;
+
+#[cfg(test)]
+mod security;

@@ -1,8 +1,15 @@
-use alloc::{vec, vec::Vec, collections::BTreeMap};
-use casper_contract::{unwrap_or_revert::UnwrapOrRevert, contract_api::runtime::revert};
-use casper_types::{CLTyped, bytesrepr::{ToBytes, self, FromBytes}, Key};
+use alloc::{collections::BTreeMap, vec, vec::Vec};
+use casper_contract::{contract_api::runtime::revert, unwrap_or_revert::UnwrapOrRevert};
+use casper_types::{
+    bytesrepr::{self, FromBytes, ToBytes},
+    CLTyped, Key,
+};
 
-use crate::{utils::{get_verified_caller, get_dictionary_value_from_key, set_dictionary_value_for_key}, constants::SECURITY_BADGES, error::Cep85Error};
+use crate::{
+    constants::SECURITY_BADGES,
+    error::Cep85Error,
+    utils::{get_dictionary_value_from_key, get_verified_caller, set_dictionary_value_for_key},
+};
 
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -48,17 +55,24 @@ impl FromBytes for SecurityBadge {
 
 pub fn sec_check(allowed_badge_list: Vec<SecurityBadge>) {
     let caller = get_verified_caller().0;
-    let user_badge: Option<SecurityBadge> = get_dictionary_value_from_key(SECURITY_BADGES, &hex::encode(caller.to_bytes().unwrap_or_revert()));
+    let user_badge: Option<SecurityBadge> = get_dictionary_value_from_key(
+        SECURITY_BADGES,
+        &hex::encode(caller.to_bytes().unwrap_or_revert()),
+    );
 
-    if !allowed_badge_list.contains(
-        &user_badge.unwrap_or_revert_with(Cep85Error::InsufficientRights),
-    ) {
+    if !allowed_badge_list
+        .contains(&user_badge.unwrap_or_revert_with(Cep85Error::InsufficientRights))
+    {
         revert(Cep85Error::InsufficientRights)
     }
 }
 
 pub fn change_sec_badge(badge_map: &BTreeMap<Key, SecurityBadge>) {
     for (&user, &badge) in badge_map {
-        set_dictionary_value_for_key(SECURITY_BADGES, &hex::encode(user.to_bytes().unwrap_or_revert()), &badge);
+        set_dictionary_value_for_key(
+            SECURITY_BADGES,
+            &hex::encode(user.to_bytes().unwrap_or_revert()),
+            &badge,
+        );
     }
 }
