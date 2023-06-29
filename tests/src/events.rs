@@ -18,11 +18,14 @@ use cep85::{
 
 #[test]
 fn should_have_events_schema_in_events_mode() {
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(runtime_args! {
-        ARG_NAME => TOKEN_NAME,
-        ARG_URI => TOKEN_URI,
-        ARG_EVENTS_MODE => EventsMode::CES as u8
-    });
+    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
+        runtime_args! {
+            ARG_NAME => TOKEN_NAME,
+            ARG_URI => TOKEN_URI,
+            ARG_EVENTS_MODE => EventsMode::CES as u8
+        },
+        None,
+    );
     let expected_schemas = Schemas::new()
         .with::<Mint>()
         .with::<Burn>()
@@ -38,12 +41,15 @@ fn should_have_events_schema_in_events_mode() {
 
 #[test]
 fn should_not_have_events_dict_in_no_events_mode() {
-    let (builder, TestContext { cep85_token, .. }) = setup_with_args(runtime_args! {
-        ARG_NAME => TOKEN_NAME,
-        ARG_URI => TOKEN_URI,
-        ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
-        ARG_ENABLE_MINT_BURN => true
-    });
+    let (builder, TestContext { cep85_token, .. }) = setup_with_args(
+        runtime_args! {
+            ARG_NAME => TOKEN_NAME,
+            ARG_URI => TOKEN_URI,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
+            ARG_ENABLE_MINT_BURN => true
+        },
+        None,
+    );
 
     let contract = builder
         .get_contract(cep85_token)
@@ -55,12 +61,15 @@ fn should_not_have_events_dict_in_no_events_mode() {
 
 #[test]
 fn should_have_events_dict_with_events_mode_ces() {
-    let (builder, TestContext { cep85_token, .. }) = setup_with_args(runtime_args! {
-        ARG_NAME => TOKEN_NAME,
-        ARG_URI => TOKEN_URI,
-        ARG_EVENTS_MODE => EventsMode::CES as u8,
-        ARG_ENABLE_MINT_BURN => true
-    });
+    let (builder, TestContext { cep85_token, .. }) = setup_with_args(
+        runtime_args! {
+            ARG_NAME => TOKEN_NAME,
+            ARG_URI => TOKEN_URI,
+            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_ENABLE_MINT_BURN => true
+        },
+        None,
+    );
 
     let contract = builder
         .get_contract(cep85_token)
@@ -77,16 +86,20 @@ fn should_record_events_in_events_mode() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
+            test_accounts,
         },
-    ) = setup_with_args(runtime_args! {
-        ARG_NAME => TOKEN_NAME,
-        ARG_URI => TOKEN_URI,
-        ARG_EVENTS_MODE => EventsMode::CES as u8,
-        ARG_ENABLE_MINT_BURN => true
-    });
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_NAME => TOKEN_NAME,
+            ARG_URI => TOKEN_URI,
+            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_ENABLE_MINT_BURN => true
+        },
+        None,
+    );
 
+    let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let mint_amount = U256::one();
-    let recipient = Key::from(*ACCOUNT_USER_1);
     let id = U256::one();
 
     cep85_mint(&mut builder, &cep85_token, recipient, id, mint_amount);
@@ -116,16 +129,20 @@ fn should_not_record_events_in_no_events_mode() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
+            test_accounts,
         },
-    ) = setup_with_args(runtime_args! {
-        ARG_NAME => TOKEN_NAME,
-        ARG_URI => TOKEN_URI,
-        ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
-        ARG_ENABLE_MINT_BURN => true
-    });
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_NAME => TOKEN_NAME,
+            ARG_URI => TOKEN_URI,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
+            ARG_ENABLE_MINT_BURN => true
+        },
+        None,
+    );
 
+    let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let mint_amount = U256::one();
-    let recipient = Key::from(*ACCOUNT_USER_1);
     let id = U256::one();
 
     cep85_mint(&mut builder, &cep85_token, recipient, id, mint_amount);

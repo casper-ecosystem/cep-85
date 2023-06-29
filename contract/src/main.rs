@@ -377,7 +377,7 @@ pub extern "C" fn mint() {
         revert(Cep85Error::MintBurnDisabled);
     };
 
-    // sec_check(vec![SecurityBadge::Admin, SecurityBadge::Minter]);
+    sec_check(vec![SecurityBadge::Admin, SecurityBadge::Minter]);
 
     let recipient: Key = get_named_arg_with_user_errors(
         ARG_RECIPIENT,

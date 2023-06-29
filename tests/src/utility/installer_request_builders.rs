@@ -1,14 +1,19 @@
-use super::constants::{
-    CEP85_CONTRACT_WASM, CEP85_TEST_CONTRACT_WASM, CEP85_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME,
-    TOKEN_URI,
+use std::collections::HashMap;
+
+use super::{
+    constants::{
+        ACCOUNT_USER_1, ACCOUNT_USER_2, CEP85_CONTRACT_WASM, CEP85_TEST_CONTRACT_WASM,
+        CEP85_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME, TOKEN_URI,
+    },
+    support::create_funded_dummy_account,
 };
 use casper_engine_test_support::{
     ExecuteRequestBuilder, InMemoryWasmTestBuilder, ARG_AMOUNT, DEFAULT_ACCOUNT_ADDR,
     PRODUCTION_RUN_GENESIS_REQUEST,
 };
 use casper_types::{
-    bytesrepr::FromBytes, runtime_args, system::mint::ARG_ID, CLTyped, ContractHash,
-    ContractPackageHash, Key, RuntimeArgs, U256,
+    account::AccountHash, bytesrepr::FromBytes, runtime_args, system::mint::ARG_ID, CLTyped,
+    ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
 };
 use cep85::constants::{
     ARG_ACCOUNT, ARG_NAME, ARG_RECIPIENT, ARG_URI, ENTRY_POINT_MINT, TOKEN_CONTRACT,
@@ -17,21 +22,38 @@ use cep85_test_contract::constants::{
     CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, RESULT_KEY,
 };
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct TestContext {
     pub cep85_token: ContractHash,
     pub cep85_test_contract_package: ContractPackageHash,
+    pub test_accounts: HashMap<[u8; 32], AccountHash>,
 }
 
 pub fn setup() -> (InMemoryWasmTestBuilder, TestContext) {
-    setup_with_args(runtime_args! {
-        ARG_NAME => TOKEN_NAME,
-        ARG_URI => TOKEN_URI,
-    })
+    setup_with_args(
+        runtime_args! {
+            ARG_NAME => TOKEN_NAME,
+            ARG_URI => TOKEN_URI,
+        },
+        None,
+    )
 }
-pub fn setup_with_args(install_args: RuntimeArgs) -> (InMemoryWasmTestBuilder, TestContext) {
+
+pub fn setup_with_args(
+    install_args: RuntimeArgs,
+    test_accounts: Option<HashMap<[u8; 32], AccountHash>>,
+) -> (InMemoryWasmTestBuilder, TestContext) {
     let mut builder = InMemoryWasmTestBuilder::default();
     builder.run_genesis(&PRODUCTION_RUN_GENESIS_REQUEST);
+
+    let mut test_accounts = test_accounts.unwrap_or_default();
+
+    test_accounts
+        .entry(ACCOUNT_USER_1)
+        .or_insert_with(|| create_funded_dummy_account(&mut builder, Some(ACCOUNT_USER_1)));
+    test_accounts
+        .entry(ACCOUNT_USER_2)
+        .or_insert_with(|| create_funded_dummy_account(&mut builder, Some(ACCOUNT_USER_2)));
 
     let install_request_contract =
         ExecuteRequestBuilder::standard(*DEFAULT_ACCOUNT_ADDR, CEP85_CONTRACT_WASM, install_args)
@@ -81,6 +103,7 @@ pub fn setup_with_args(install_args: RuntimeArgs) -> (InMemoryWasmTestBuilder, T
     let test_context = TestContext {
         cep85_token,
         cep85_test_contract_package,
+        test_accounts,
     };
 
     (builder, test_context)
