@@ -31,11 +31,11 @@ use cep85::{
     constants::{
         ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA,
         ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TO,
-        ARG_TOTAL_SUPPLY, BALANCES, BURNER_LIST, CONTRACT_HASH, ENABLE_MINT_BURN, ENTRY_POINT_INIT,
-        EVENTS_MODE, META_LIST, MINTER_LIST, NAME, NONE_LIST, OPERATORS, PACKAGE_HASH,
-        PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
-        PREFIX_CONTRACT_VERSION, SECURITY_BADGES, SUPPLY, TOKEN_URI, TOTAL_SUPPLY,
-        TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD, URI,
+        ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, BALANCES, BURNER_LIST, CONTRACT_HASH,
+        ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, META_LIST, MINTER_LIST, NAME, NONE_LIST,
+        OPERATORS, PACKAGE_HASH, PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME,
+        PREFIX_CONTRACT_PACKAGE_NAME, PREFIX_CONTRACT_VERSION, SECURITY_BADGES, SUPPLY, TOKEN_URI,
+        TOTAL_SUPPLY, TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD, URI,
     },
     entry_points::generate_entry_points,
     error::Cep85Error,
@@ -643,6 +643,63 @@ pub extern "C" fn set_total_supply_of() {
 }
 
 #[no_mangle]
+pub extern "C" fn supply_of_batch() {
+    let ids: Vec<U256> =
+        get_named_arg_with_user_errors(ARG_IDS, Cep85Error::MissingIds, Cep85Error::InvalidIds)
+            .unwrap_or_revert();
+
+    let mut batch_supplies = Vec::new();
+
+    for id in ids {
+        let supply: U256 = read_supply_of(&id);
+        batch_supplies.push(supply);
+    }
+
+    runtime::ret(CLValue::from_t(batch_supplies).unwrap_or_revert());
+}
+
+#[no_mangle]
+pub extern "C" fn total_supply_of_batch() {
+    let ids: Vec<U256> =
+        get_named_arg_with_user_errors(ARG_IDS, Cep85Error::MissingIds, Cep85Error::InvalidIds)
+            .unwrap_or_revert();
+
+    let mut batch_total_supplies = Vec::new();
+
+    for id in ids {
+        let total_supply: U256 = read_total_supply_of(&id);
+        batch_total_supplies.push(total_supply);
+    }
+
+    runtime::ret(CLValue::from_t(batch_total_supplies).unwrap_or_revert());
+}
+
+#[no_mangle]
+pub extern "C" fn set_total_supply_of_batch() {
+    sec_check(vec![SecurityBadge::Admin]);
+
+    let ids: Vec<U256> =
+        get_named_arg_with_user_errors(ARG_IDS, Cep85Error::MissingIds, Cep85Error::InvalidIds)
+            .unwrap_or_revert();
+
+    let total_supplies: Vec<U256> = get_named_arg_with_user_errors(
+        ARG_TOTAL_SUPPLIES,
+        Cep85Error::MissingTotalSupplies,
+        Cep85Error::InvalidTotalSupplies,
+    )
+    .unwrap_or_revert();
+
+    if ids.len() != total_supplies.len() {
+        runtime::revert(Cep85Error::MismatchParamsLength);
+    }
+
+    for (id, total_supply) in ids.into_iter().zip(total_supplies.into_iter()) {
+        write_total_supply_of(&id, &total_supply);
+        record_event_dictionary(Event::SetTotalSupply(SetTotalSupply { id, total_supply }));
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn uri() {
     let id: Option<U256> =
         get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId).unwrap_or_revert();
@@ -727,6 +784,7 @@ pub extern "C" fn change_security() {
     {
         revert(Cep85Error::MintBurnDisabled);
     };
+
     sec_check(vec![SecurityBadge::Admin]);
     let admin_list: Option<Vec<Key>> =
         get_optional_named_arg_with_user_errors(ADMIN_LIST, Cep85Error::InvalidAdminList);

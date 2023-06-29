@@ -218,26 +218,38 @@ pub fn cep85_set_total_supply_of<'a>(
     builder.exec(set_total_supply_request)
 }
 
+pub struct SecurityLists {
+    pub minter_list: Option<Vec<Key>>,
+    pub burner_list: Option<Vec<Key>>,
+    pub meta_list: Option<Vec<Key>>,
+    pub admin_list: Option<Vec<Key>>,
+    pub none_list: Option<Vec<Key>>,
+}
+
 pub fn cep85_change_security<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
     admin_account: AccountHash,
-    minter_list: Option<Vec<Key>>,
-    burner_list: Option<Vec<Key>>,
-    meta_list: Option<Vec<Key>>,
-    admin_list: Option<Vec<Key>>,
-    none_list: Option<Vec<Key>>,
+    security_lists: SecurityLists,
 ) -> &'a mut InMemoryWasmTestBuilder {
+    let SecurityLists {
+        minter_list,
+        burner_list,
+        meta_list,
+        admin_list,
+        none_list,
+    } = security_lists;
+
     let change_security_request = ExecuteRequestBuilder::contract_call_by_hash(
         admin_account,
         *cep85_token,
         ENTRY_POINT_CHANGE_SECURITY,
         runtime_args! {
-            MINTER_LIST => minter_list,
-            BURNER_LIST => burner_list,
-            META_LIST => meta_list,
-            ADMIN_LIST => admin_list,
-            NONE_LIST => none_list,
+            MINTER_LIST => minter_list.unwrap_or_default(),
+            BURNER_LIST => burner_list.unwrap_or_default(),
+            META_LIST => meta_list.unwrap_or_default(),
+            ADMIN_LIST => admin_list.unwrap_or_default(),
+            NONE_LIST => none_list.unwrap_or_default(),
         },
     )
     .build();

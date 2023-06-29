@@ -96,6 +96,8 @@ pub enum Cep85Error {
     InvalidBurnerList = 60073,
     InvalidMetaList = 60074,
     InvalidNoneList = 60075,
+    MissingTotalSupplies = 60076,
+    InvalidTotalSupplies = 60077,
 }
 
 impl From<Cep85Error> for ApiError {
