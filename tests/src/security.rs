@@ -36,8 +36,8 @@ fn test_security_no_rights() {
         None,
     );
 
-    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
-    let recipient: Key = account_user_1.into();
+    let minting_account = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let recipient: Key = minting_account.into();
 
     let mint_amount = U256::one();
     let id = U256::one();
@@ -45,7 +45,7 @@ fn test_security_no_rights() {
     let failing_mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        account_user_1,
+        minting_account,
         recipient,
         id,
         mint_amount,
@@ -61,10 +61,12 @@ fn test_security_no_rights() {
         "should not allow to mint for non default admin account",
     );
 
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        *DEFAULT_ACCOUNT_ADDR,
+        minting_account,
         recipient,
         id,
         mint_amount,
@@ -73,10 +75,11 @@ fn test_security_no_rights() {
     mint_call.expect_success().commit();
 
     // New owner is now ACCOUNT_USER_1
-    let owner = recipient;
+    let bunrning_account = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let owner: Key = bunrning_account.into();
 
     let burn_request = ExecuteRequestBuilder::contract_call_by_hash(
-        account_user_1,
+        bunrning_account,
         cep85_token,
         ENTRY_POINT_BURN,
         runtime_args! {
@@ -118,6 +121,8 @@ fn test_security_minter_rights() {
     // account_user_1 was created before genesis and is not yet funded so fund it
     fund_account(&mut builder, account_user_1);
 
+    let minting_account = account_user_1;
+    let recipient: Key = minting_account.into();
     let mint_amount = U256::one();
     let id = U256::one();
 
@@ -125,8 +130,8 @@ fn test_security_minter_rights() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        account_user_1,
-        account_user_1.into(),
+        minting_account,
+        recipient,
         id,
         mint_amount,
     );
@@ -134,12 +139,14 @@ fn test_security_minter_rights() {
     mint_call.expect_success().commit();
 
     // account_user_2 is not in minter list, request should fail
-    let account_user_2 = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
+    let minting_account = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
+    let recipient: Key = minting_account.into();
+
     let failing_mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        account_user_2,
-        account_user_2.into(),
+        minting_account,
+        recipient,
         id,
         mint_amount,
     );

@@ -99,6 +99,7 @@ fn should_record_events_in_events_mode() {
         None,
     );
 
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let mint_amount = U256::one();
     let id = U256::one();
@@ -106,7 +107,7 @@ fn should_record_events_in_events_mode() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        *DEFAULT_ACCOUNT_ADDR,
+        minting_account,
         recipient,
         id,
         mint_amount,
@@ -151,6 +152,7 @@ fn should_not_record_events_in_no_events_mode() {
         None,
     );
 
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let mint_amount = U256::one();
     let id = U256::one();
@@ -158,7 +160,7 @@ fn should_not_record_events_in_no_events_mode() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        *DEFAULT_ACCOUNT_ADDR,
+        minting_account,
         recipient,
         id,
         mint_amount,
