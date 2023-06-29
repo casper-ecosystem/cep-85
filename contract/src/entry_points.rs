@@ -23,10 +23,7 @@ pub fn init() -> EntryPoint {
         vec![
             Parameter::new(PACKAGE_HASH, CLType::Key),
             Parameter::new(CONTRACT_HASH, CLType::U256),
-            Parameter::new(
-                TRANSFER_FILTER_CONTRACT,
-                CLType::Option(Box::new(CLType::Key)),
-            ),
+            Parameter::new(TRANSFER_FILTER_CONTRACT, CLType::Key),
         ],
         CLType::Unit,
         EntryPointAccess::Public,
@@ -189,7 +186,7 @@ pub fn supply_of_batch() -> EntryPoint {
             Parameter::new(ARG_ACCOUNT, CLType::Key),
             Parameter::new(ARG_IDS, CLType::List(Box::new(CLType::U256))),
         ],
-        CLType::Option(Box::new(CLType::List(Box::new(CLType::U256)))),
+        CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )
@@ -212,7 +209,7 @@ pub fn total_supply_of_batch() -> EntryPoint {
             ARG_IDS,
             CLType::List(Box::new(CLType::U256)),
         )],
-        CLType::Option(Box::new(CLType::List(Box::new(CLType::U256)))),
+        CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )
@@ -291,26 +288,11 @@ pub fn change_security() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_CHANGE_SECURITY,
         vec![
-            Parameter::new(
-                ADMIN_LIST,
-                CLType::Option(Box::new(CLType::List(Box::new(CLType::Key)))),
-            ),
-            Parameter::new(
-                MINTER_LIST,
-                CLType::Option(Box::new(CLType::List(Box::new(CLType::Key)))),
-            ),
-            Parameter::new(
-                BURNER_LIST,
-                CLType::Option(Box::new(CLType::List(Box::new(CLType::Key)))),
-            ),
-            Parameter::new(
-                META_LIST,
-                CLType::Option(Box::new(CLType::List(Box::new(CLType::Key)))),
-            ),
-            Parameter::new(
-                NONE_LIST,
-                CLType::Option(Box::new(CLType::List(Box::new(CLType::Key)))),
-            ),
+            Parameter::new(ADMIN_LIST, CLType::List(Box::new(CLType::Key))),
+            Parameter::new(MINTER_LIST, CLType::List(Box::new(CLType::Key))),
+            Parameter::new(BURNER_LIST, CLType::List(Box::new(CLType::Key))),
+            Parameter::new(META_LIST, CLType::List(Box::new(CLType::Key))),
+            Parameter::new(NONE_LIST, CLType::List(Box::new(CLType::Key))),
         ],
         CLType::Unit,
         EntryPointAccess::Public,

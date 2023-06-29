@@ -416,7 +416,7 @@ pub extern "C" fn call() {
             ARG_IDS,
             CLType::List(Box::new(CLType::U256)),
         )],
-        CLType::Option(Box::new(CLType::List(Box::new(CLType::U256)))),
+        CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     );
