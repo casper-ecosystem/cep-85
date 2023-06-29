@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use casper_engine_test_support::{ExecuteRequestBuilder, ARG_AMOUNT};
+use casper_engine_test_support::{ExecuteRequestBuilder, ARG_AMOUNT, DEFAULT_ACCOUNT_ADDR};
 use casper_types::{runtime_args, system::mint::ARG_ID, Key, RuntimeArgs, U256};
 use cep85::{
     constants::{
-        ARG_ENABLE_MINT_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_OWNER, ARG_RECIPIENT, ARG_URI,
-        ENTRY_POINT_BURN, ENTRY_POINT_MINT, MINTER_LIST, TOKEN_URI,
+        ARG_ENABLE_MINT_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_OWNER, ARG_URI, ENTRY_POINT_BURN,
+        MINTER_LIST, TOKEN_URI,
     },
     error::Cep85Error,
     modalities::EventsMode,
@@ -42,18 +42,16 @@ fn test_security_no_rights() {
     let mint_amount = U256::one();
     let id = U256::one();
 
-    let failing_mint_request = ExecuteRequestBuilder::contract_call_by_hash(
+    let failing_mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
         account_user_1,
-        cep85_token,
-        ENTRY_POINT_MINT,
-        runtime_args! {
-            ARG_RECIPIENT => recipient,
-            ARG_ID => id,
-            ARG_AMOUNT => mint_amount,
-        },
-    )
-    .build();
-    builder.exec(failing_mint_request).expect_failure();
+        recipient,
+        id,
+        mint_amount,
+    );
+
+    failing_mint_call.expect_failure();
 
     let error = builder.get_error().expect("must have error");
 
@@ -63,7 +61,16 @@ fn test_security_no_rights() {
         "should not allow to mint for non default admin account",
     );
 
-    cep85_mint(&mut builder, &cep85_token, recipient, id, mint_amount);
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        *DEFAULT_ACCOUNT_ADDR,
+        recipient,
+        id,
+        mint_amount,
+    );
+
+    mint_call.expect_success().commit();
 
     // New owner is now ACCOUNT_USER_1
     let owner = recipient;
@@ -114,33 +121,28 @@ fn test_security_minter_rights() {
     let mint_amount = U256::one();
     let id = U256::one();
 
-    let mint_request = ExecuteRequestBuilder::contract_call_by_hash(
+    // account_user_1 is in minter list, request should succeed
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
         account_user_1,
-        cep85_token,
-        ENTRY_POINT_MINT,
-        runtime_args! {
-            ARG_RECIPIENT => Key::from(account_user_1),
-            ARG_ID => id,
-            ARG_AMOUNT => mint_amount,
-        },
-    )
-    .build();
+        account_user_1.into(),
+        id,
+        mint_amount,
+    );
 
-    builder.exec(mint_request).commit().expect_success();
+    mint_call.expect_success().commit();
 
     // account_user_2 is not in minter list, request should fail
     let account_user_2 = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
-    let failing_mint_request = ExecuteRequestBuilder::contract_call_by_hash(
+    let failing_mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
         account_user_2,
-        cep85_token,
-        ENTRY_POINT_MINT,
-        runtime_args! {
-            ARG_RECIPIENT => Key::from(account_user_2),
-            ARG_ID => id,
-            ARG_AMOUNT => mint_amount,
-        },
-    )
-    .build();
+        account_user_2.into(),
+        id,
+        mint_amount,
+    );
 
-    builder.exec(failing_mint_request).commit().expect_failure();
+    failing_mint_call.expect_failure();
 }

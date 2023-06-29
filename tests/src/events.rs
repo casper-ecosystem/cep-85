@@ -5,6 +5,7 @@ use crate::utility::{
     },
     support::{get_dictionary_value_from_key, get_event},
 };
+use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
 use casper_event_standard::{Schemas, EVENTS_DICT, EVENTS_SCHEMA};
 use casper_types::{runtime_args, Key, RuntimeArgs, U256};
 use cep85::{
@@ -102,7 +103,16 @@ fn should_record_events_in_events_mode() {
     let mint_amount = U256::one();
     let id = U256::one();
 
-    cep85_mint(&mut builder, &cep85_token, recipient, id, mint_amount);
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        *DEFAULT_ACCOUNT_ADDR,
+        recipient,
+        id,
+        mint_amount,
+    );
+
+    mint_call.expect_success().commit();
 
     let actual_balance =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, recipient, id);
@@ -145,7 +155,16 @@ fn should_not_record_events_in_no_events_mode() {
     let mint_amount = U256::one();
     let id = U256::one();
 
-    cep85_mint(&mut builder, &cep85_token, recipient, id, mint_amount);
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        *DEFAULT_ACCOUNT_ADDR,
+        recipient,
+        id,
+        mint_amount,
+    );
+
+    mint_call.expect_success().commit();
 
     let actual_balance =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, recipient, id);
@@ -155,5 +174,5 @@ fn should_not_record_events_in_no_events_mode() {
 
     // Query for the Mint event here and expect failure
     // as no events are being written to global state.
-    get_dictionary_value_from_key::<()>(&builder, &Key::from(cep85_token), EVENTS_DICT, "1");
+    get_dictionary_value_from_key::<()>(&builder, &cep85_token.into(), EVENTS_DICT, "1");
 }

@@ -126,15 +126,18 @@ pub fn get_test_result<T: FromBytes + CLTyped>(
     builder.get_value(*contract_hash, RESULT_KEY)
 }
 
-pub fn cep85_mint(
-    builder: &mut InMemoryWasmTestBuilder,
-    cep85_token: &ContractHash,
+pub fn cep85_mint<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    cep85_token: &'a ContractHash,
+    minting_account: AccountHash,
     recipient: Key,
     id: U256,
     amount: U256,
-) {
+) -> &'a mut casper_engine_test_support::WasmTestBuilder<
+    casper_execution_engine::storage::global_state::in_memory::InMemoryGlobalState,
+> {
     let mint_request = ExecuteRequestBuilder::contract_call_by_hash(
-        *DEFAULT_ACCOUNT_ADDR,
+        minting_account,
         *cep85_token,
         ENTRY_POINT_MINT,
         runtime_args! {
@@ -144,7 +147,7 @@ pub fn cep85_mint(
         },
     )
     .build();
-    builder.exec(mint_request).expect_success().commit();
+    builder.exec(mint_request)
 }
 
 pub fn cep85_check_balance_of(
