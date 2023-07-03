@@ -37,10 +37,10 @@ use constants::{
     ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL, ENTRY_POINT_CHECK_IS_NON_FUNGIBLE,
     ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
     ENTRY_POINT_CHECK_SET_APPROVAL_FOR_ALL, ENTRY_POINT_CHECK_SET_TOTAL_SUPPLY_OF,
-    ENTRY_POINT_CHECK_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_SET_URI,
-    ENTRY_POINT_CHECK_SUPPLY_OF, ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
-    ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
-    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_URI,
+    ENTRY_POINT_CHECK_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_SUPPLY_OF,
+    ENTRY_POINT_CHECK_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY,
+    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
+    ENTRY_POINT_CHECK_URI,
 };
 use utils::{get_token_contract, store_result};
 
@@ -248,9 +248,13 @@ pub extern "C" fn check_set_total_supply_of_batch() {
 #[no_mangle]
 pub extern "C" fn check_uri() {
     let token_contract: ContractHash = get_token_contract();
-    let id: U256 = get_named_arg(ARG_ID);
-    let check_uri_args = runtime_args! {
-        ARG_ID => id,
+    let id: Option<U256> = get_named_arg(ARG_ID);
+    let check_uri_args = if let Some(id) = id {
+        runtime_args! {
+            ARG_ID => id,
+        }
+    } else {
+        runtime_args! {}
     };
     let result: String = runtime::call_contract(token_contract, ENTRY_POINT_URI, check_uri_args);
     store_result(result);
@@ -259,11 +263,17 @@ pub extern "C" fn check_uri() {
 #[no_mangle]
 pub extern "C" fn check_set_uri() {
     let token_contract: ContractHash = get_token_contract();
-    let id: U256 = get_named_arg(ARG_ID);
+    let id: Option<U256> = get_named_arg(ARG_ID);
     let uri: String = get_named_arg(ARG_URI);
-    let set_uri_args = runtime_args! {
-        ARG_ID => id,
-        ARG_URI => uri,
+    let set_uri_args = if let Some(id) = id {
+        runtime_args! {
+            ARG_ID => id,
+            ARG_URI => uri,
+        }
+    } else {
+        runtime_args! {
+            ARG_URI => uri,
+        }
     };
     runtime::call_contract::<()>(token_contract, ENTRY_POINT_SET_URI, set_uri_args);
 }
@@ -432,18 +442,11 @@ pub extern "C" fn call() {
     );
     let check_uri = EntryPoint::new(
         ENTRY_POINT_CHECK_URI,
-        vec![Parameter::new(ARG_ID, CLType::U256)],
+        vec![Parameter::new(
+            ARG_ID,
+            CLType::Option(Box::new(CLType::U256)),
+        )],
         CLType::String,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    );
-    let check_set_uri = EntryPoint::new(
-        ENTRY_POINT_CHECK_SET_URI,
-        vec![
-            Parameter::new(ARG_ID, CLType::U256),
-            Parameter::new(ARG_URI, CLType::String),
-        ],
-        CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     );
@@ -476,7 +479,6 @@ pub extern "C" fn call() {
     entry_points.add_entry_point(check_set_total_supply_of);
     entry_points.add_entry_point(check_set_total_supply_of_batch);
     entry_points.add_entry_point(check_uri);
-    entry_points.add_entry_point(check_set_uri);
     entry_points.add_entry_point(check_is_non_fungible);
     entry_points.add_entry_point(check_total_fungible_supply);
 

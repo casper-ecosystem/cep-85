@@ -1,13 +1,10 @@
 //! Implementation of allowances.
-use alloc::{
-    format,
-    string::{String, ToString},
-};
+use alloc::string::{String, ToString};
 use casper_types::U256;
 
 use crate::{
     constants::TOKEN_URI,
-    utils::{get_dictionary_value_from_key, set_dictionary_value_for_key},
+    utils::{get_dictionary_value_from_key, replace_token_id_in_uri, set_dictionary_value_for_key},
 };
 
 pub fn write_uri_of(id: &U256, uri: &str) {
@@ -19,5 +16,5 @@ pub fn read_uri_of(id: &U256) -> String {
 
     let raw_uri: String =
         get_dictionary_value_from_key(TOKEN_URI, &id.to_string()).unwrap_or_default();
-    raw_uri.replace("{id}", &format!("{id}"))
+    replace_token_id_in_uri(&raw_uri, id)
 }

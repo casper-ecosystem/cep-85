@@ -18,10 +18,11 @@ use casper_types::{
 use cep85::constants::{
     ADMIN_LIST, ARG_ACCOUNT, ARG_NAME, ARG_OWNER, ARG_RECIPIENT, ARG_TOTAL_SUPPLY, ARG_URI,
     BURNER_LIST, ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT,
-    ENTRY_POINT_SET_TOTAL_SUPPLY_OF, META_LIST, MINTER_LIST, NONE_LIST, TOKEN_CONTRACT,
+    ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST,
+    TOKEN_CONTRACT,
 };
 use cep85_test_contract::constants::{
-    CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, RESULT_KEY,
+    CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_URI, RESULT_KEY,
 };
 
 #[derive(Clone)]
@@ -126,6 +127,52 @@ pub fn get_test_result<T: FromBytes + CLTyped>(
         .expect("should have latest version");
 
     builder.get_value(*contract_hash, RESULT_KEY)
+}
+
+pub fn cep85_set_uri<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    cep85_token: &'a ContractHash,
+    updating_account: AccountHash,
+    uri: &str,
+    id: Option<U256>,
+) -> &'a mut InMemoryWasmTestBuilder {
+    let set_uri_args = if let Some(id) = id {
+        runtime_args! {
+            ARG_ID => id,
+            ARG_URI => uri,
+        }
+    } else {
+        runtime_args! {
+            ARG_URI => uri,
+        }
+    };
+    let set_uri_request = ExecuteRequestBuilder::contract_call_by_hash(
+        updating_account,
+        *cep85_token,
+        ENTRY_POINT_SET_URI,
+        set_uri_args,
+    )
+    .build();
+    builder.exec(set_uri_request)
+}
+
+pub fn cep85_check_uri(
+    builder: &mut InMemoryWasmTestBuilder,
+    contract_package_hash: &ContractPackageHash,
+    id: Option<U256>,
+) -> String {
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        *contract_package_hash,
+        None,
+        ENTRY_POINT_CHECK_URI,
+        runtime_args! {
+            ARG_ID => id,
+        },
+    )
+    .build();
+    builder.exec(exec_request).expect_success().commit();
+    get_test_result(builder, *contract_package_hash)
 }
 
 pub fn cep85_mint<'a>(

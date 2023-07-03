@@ -14,6 +14,5 @@ pub const ENTRY_POINT_CHECK_SUPPLY_OF_BATCH: &str = "check_supply_of_batch";
 pub const ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH: &str = "check_total_supply_of_batch";
 pub const ENTRY_POINT_CHECK_SET_TOTAL_SUPPLY_OF_BATCH: &str = "check_set_total_supply_of_batch";
 pub const ENTRY_POINT_CHECK_URI: &str = "check_uri";
-pub const ENTRY_POINT_CHECK_SET_URI: &str = "check_set_uri";
 pub const ENTRY_POINT_CHECK_IS_NON_FUNGIBLE: &str = "check_is_non_fungible";
 pub const ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY: &str = "check_total_fungible_supply";

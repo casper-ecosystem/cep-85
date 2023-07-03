@@ -4,6 +4,7 @@ use crate::{
 };
 use alloc::{
     borrow::ToOwned,
+    format,
     string::{String, ToString},
     vec,
     vec::Vec,
@@ -18,7 +19,7 @@ use casper_types::{
     api_error,
     bytesrepr::{self, FromBytes, ToBytes},
     system::CallStackElement,
-    ApiError, CLTyped, ContractHash, ContractPackageHash, Key, URef,
+    ApiError, CLTyped, ContractHash, ContractPackageHash, Key, URef, U256,
 };
 use core::{convert::TryInto, mem::MaybeUninit};
 
@@ -180,6 +181,10 @@ pub fn get_transfer_filter_method() -> Option<String> {
         Cep85Error::MissingTransferFilterMethod,
         Cep85Error::InvalidTransferFilterMethod,
     )
+}
+
+pub fn replace_token_id_in_uri(raw_uri: &str, id: &U256) -> String {
+    raw_uri.replace("{id}", &format!("{id}"))
 }
 
 fn get_uref(name: &str) -> URef {

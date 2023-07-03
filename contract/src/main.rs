@@ -701,9 +701,7 @@ pub extern "C" fn set_total_supply_of_batch() {
 
 #[no_mangle]
 pub extern "C" fn uri() {
-    let id: Option<U256> =
-        get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId).unwrap_or_revert();
-
+    let id: Option<U256> = get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId);
     let uri: String = match id {
         Some(id) => read_uri_of(&id),
         None => {
@@ -720,8 +718,7 @@ pub extern "C" fn uri() {
 pub extern "C" fn set_uri() {
     sec_check(vec![SecurityBadge::Admin, SecurityBadge::Meta]);
 
-    let id: Option<U256> =
-        get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId).unwrap_or_revert();
+    let id: Option<U256> = get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId);
 
     let uri: String =
         get_named_arg_with_user_errors(URI, Cep85Error::MissingAccount, Cep85Error::InvalidAccount)
