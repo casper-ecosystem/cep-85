@@ -16,13 +16,16 @@ use casper_types::{
     ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
 };
 use cep85::constants::{
-    ADMIN_LIST, ARG_ACCOUNT, ARG_NAME, ARG_OWNER, ARG_RECIPIENT, ARG_TOTAL_SUPPLY, ARG_URI,
-    BURNER_LIST, ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT,
-    ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST,
+    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_IDS, ARG_NAME, ARG_OWNER, ARG_RECIPIENT,
+    ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST, ENTRY_POINT_BURN,
+    ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST,
     TOKEN_CONTRACT,
 };
 use cep85_test_contract::constants::{
-    CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_URI, RESULT_KEY,
+    CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_SUPPLY_OF,
+    ENTRY_POINT_CHECK_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_URI, RESULT_KEY,
 };
 
 #[derive(Clone)]
@@ -263,6 +266,110 @@ pub fn cep85_set_total_supply_of<'a>(
     )
     .build();
     builder.exec(set_total_supply_request)
+}
+
+pub fn cep85_check_total_supply_of(
+    builder: &mut InMemoryWasmTestBuilder,
+    contract_package_hash: &ContractPackageHash,
+    id: U256,
+) -> U256 {
+    let check_total_supply_of_args = runtime_args! {
+        ARG_ID => id,
+    };
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        *contract_package_hash,
+        None,
+        ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
+        check_total_supply_of_args,
+    )
+    .build();
+    builder.exec(exec_request).expect_success().commit();
+    get_test_result(builder, *contract_package_hash)
+}
+
+pub fn cep85_set_total_supply_of_batch<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    cep85_token: &'a ContractHash,
+    burning_account: AccountHash,
+    ids: Vec<U256>,
+    total_supplies: Vec<U256>,
+) -> &'a mut casper_engine_test_support::WasmTestBuilder<
+    casper_execution_engine::storage::global_state::in_memory::InMemoryGlobalState,
+> {
+    let set_total_supply_of_batch_request = ExecuteRequestBuilder::contract_call_by_hash(
+        burning_account,
+        *cep85_token,
+        ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH,
+        runtime_args! {
+            ARG_IDS => ids,
+            ARG_TOTAL_SUPPLIES => total_supplies,
+        },
+    )
+    .build();
+    builder.exec(set_total_supply_of_batch_request)
+}
+
+pub fn cep85_check_total_supply_of_batch(
+    builder: &mut InMemoryWasmTestBuilder,
+    contract_package_hash: &ContractPackageHash,
+    ids: Vec<U256>,
+) -> Vec<U256> {
+    let check_total_supply_batch_of_args = runtime_args! {
+        ARG_IDS => ids,
+    };
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        *contract_package_hash,
+        None,
+        ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
+        check_total_supply_batch_of_args,
+    )
+    .build();
+    builder.exec(exec_request).expect_success().commit();
+    get_test_result(builder, *contract_package_hash)
+}
+
+pub fn cep85_check_supply_of(
+    builder: &mut InMemoryWasmTestBuilder,
+    contract_package_hash: &ContractPackageHash,
+    id: U256,
+) -> U256 {
+    let check_supply_of_args = runtime_args! {
+        ARG_ID => id,
+    };
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        *contract_package_hash,
+        None,
+        ENTRY_POINT_CHECK_SUPPLY_OF,
+        check_supply_of_args,
+    )
+    .build();
+    builder.exec(exec_request).expect_success().commit();
+    get_test_result(builder, *contract_package_hash)
+}
+
+pub fn cep85_check_supply_of_batch(
+    builder: &mut InMemoryWasmTestBuilder,
+    contract_package_hash: &ContractPackageHash,
+    accounts: Vec<Key>,
+    ids: Vec<U256>,
+) -> Vec<U256> {
+    let check_supply_of_batch_args = runtime_args! {
+        ARG_ACCOUNTS => accounts,
+        ARG_IDS => ids,
+    };
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        *contract_package_hash,
+        None,
+        ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
+        check_supply_of_batch_args,
+    )
+    .build();
+    builder.exec(exec_request).expect_success().commit();
+    get_test_result(builder, *contract_package_hash)
 }
 
 pub struct SecurityLists {
