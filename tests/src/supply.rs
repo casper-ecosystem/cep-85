@@ -1,5 +1,5 @@
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
+use casper_types::{bytesrepr::ToBytes, runtime_args, ContractPackageHash, Key, RuntimeArgs, U256};
 use cep85::{
     constants::{ARG_ENABLE_MINT_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_URI},
     modalities::EventsMode,
@@ -8,9 +8,9 @@ use cep85::{
 use crate::utility::{
     constants::{TOKEN_NAME, TOKEN_URI},
     installer_request_builders::{
-        cep85_check_supply_of, cep85_check_supply_of_batch, cep85_check_total_supply_of,
-        cep85_check_total_supply_of_batch, cep85_mint, cep85_set_total_supply_of,
-        cep85_set_total_supply_of_batch, setup_with_args, TestContext,
+        cep85_batch_burn, cep85_batch_mint, cep85_check_supply_of, cep85_check_supply_of_batch,
+        cep85_check_total_supply_of, cep85_check_total_supply_of_batch, cep85_mint,
+        cep85_set_total_supply_of, cep85_set_total_supply_of_batch, setup_with_args, TestContext,
     },
 };
 
@@ -167,10 +167,10 @@ fn should_get_supply_of_batch_for_ids() {
     );
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let ids = vec![U256::one(), U256::from(2)];
     let recipient: Key = minting_account.into();
     let mint_amount = U256::from(2);
     let total_supplies = vec![U256::from(2), U256::from(3)];
-    let ids = vec![U256::one(), U256::from(2)];
 
     // Set total supply for each ID using batch function
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
@@ -182,18 +182,17 @@ fn should_get_supply_of_batch_for_ids() {
     );
     set_total_supply_of_batch_call.expect_success().commit();
 
-    // Mint tokens for each ID
-    for id in &ids {
-        let mint_call = cep85_mint(
-            &mut builder,
-            &cep85_token,
-            minting_account,
-            recipient,
-            *id,
-            mint_amount,
-        );
-        mint_call.expect_success().commit();
-    }
+    // Mint tokens for each ID using batch function
+    let batch_mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        minting_account,
+        recipient,
+        ids.clone(),
+        vec![mint_amount; ids.len()],
+    );
+
+    batch_mint_call.expect_success().commit();
 
     // Get the supply of each ID using batch function
     let actual_supplies = cep85_check_supply_of_batch(
@@ -206,5 +205,33 @@ fn should_get_supply_of_batch_for_ids() {
     // Verify the supplies
     for (index, _) in ids.iter().enumerate() {
         assert_eq!(actual_supplies[index], mint_amount);
+    }
+
+    let burning_account = *DEFAULT_ACCOUNT_ADDR;
+    // Owner is now last recipient
+    let owner = recipient;
+
+    // Perform a batch burn call
+    let batch_burn_call = cep85_batch_burn(
+        &mut builder,
+        &cep85_token,
+        burning_account,
+        owner,
+        ids.clone(),
+        vec![mint_amount; ids.len()],
+    );
+    batch_burn_call.expect_success().commit();
+
+    // Get the supply of each ID using batch function
+    let actual_supplies = cep85_check_supply_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        vec![burning_account.into(); ids.len()],
+        ids.clone(),
+    );
+
+    // Verify the supplies equal zero
+    for (index, _) in ids.iter().enumerate() {
+        assert_eq!(actual_supplies[index], U256::zero());
     }
 }
