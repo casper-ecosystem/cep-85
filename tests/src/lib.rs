@@ -18,3 +18,6 @@ mod supply;
 
 #[cfg(test)]
 mod balances;
+
+#[cfg(test)]
+mod mint;

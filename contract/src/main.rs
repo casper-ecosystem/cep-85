@@ -462,25 +462,28 @@ pub extern "C" fn batch_mint() {
     )
     .unwrap_or_revert();
 
-    // Vérifier si les vecteurs ids et amounts ont la même longueur
     if ids.len() != amounts.len() {
         revert(Cep85Error::MismatchParamsLength);
     }
 
-    // Parcourir les vecteurs ids et amounts et effectuer les mintings
     for (i, &id) in ids.iter().enumerate() {
         let amount = amounts[i];
 
         let recipient_balance = read_balance_from(&recipient, &id);
         let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_default();
-        let new_total_supply = {
-            let total_supply = read_supply_of(&id);
-            total_supply
+        let new_supply = {
+            let supply = read_supply_of(&id);
+            let total_max_supply = read_total_supply_of(&id);
+            if supply.checked_add(amount).unwrap_or_default() > total_max_supply {
+                revert(Cep85Error::ExceededMaxTotalSupply);
+            }
+
+            supply
                 .checked_add(amount)
                 .unwrap_or_revert_with(Cep85Error::Overflow)
         };
 
-        write_supply_of(&id, &new_total_supply);
+        write_supply_of(&id, &new_supply);
         write_balance_to(&recipient, &id, &new_recipient_balance);
 
         let uri: String =

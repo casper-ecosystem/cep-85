@@ -22,6 +22,7 @@ fn should_check_balance_of() {
             cep85_token,
             cep85_test_contract_package,
             test_accounts,
+            ..
         },
     ) = setup_with_args(
         runtime_args! {
@@ -64,6 +65,7 @@ fn should_check_balance_of_batch() {
             cep85_token,
             cep85_test_contract_package,
             test_accounts,
+            ..
         },
     ) = setup_with_args(
         runtime_args! {
@@ -79,7 +81,7 @@ fn should_check_balance_of_batch() {
     let recipient_user_1 = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let recipient_user_2 = Key::from(*test_accounts.get(&ACCOUNT_USER_2).unwrap());
     let mut ids: Vec<U256> = vec![U256::one(), U256::from(2)];
-    let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
@@ -100,7 +102,7 @@ fn should_check_balance_of_batch() {
     let actual_balances =
         cep85_check_balance_of_batch(&mut builder, &cep85_test_contract_package, recipients, ids);
 
-    let expected_balances = vec![U256::one(), U256::from(2), U256::zero()];
+    let expected_balances = vec![U256::one(), U256::one(), U256::zero()];
 
     assert_eq!(actual_balances, expected_balances);
 }
@@ -113,6 +115,7 @@ fn should_error_on_balance_of_batch_args_len_difference() {
             cep85_token,
             cep85_test_contract_package,
             test_accounts,
+            ..
         },
     ) = setup_with_args(
         runtime_args! {
