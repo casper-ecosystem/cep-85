@@ -16,11 +16,11 @@ use casper_types::{
     ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
 };
 use cep85::constants::{
-    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_IDS, ARG_NAME, ARG_OWNER, ARG_RECIPIENT,
-    ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST, ENTRY_POINT_BURN,
-    ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
-    ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST,
-    TOKEN_CONTRACT,
+    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_IDS, ARG_NAME, ARG_OWNER,
+    ARG_RECIPIENT, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST,
+    ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT, ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY,
+    ENTRY_POINT_MINT, ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH,
+    ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST, TOKEN_CONTRACT,
 };
 use cep85_test_contract::constants::{
     CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_SUPPLY_OF,
@@ -202,6 +202,28 @@ pub fn cep85_mint<'a>(
     builder.exec(mint_request)
 }
 
+pub fn cep85_batch_mint<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    cep85_token: &'a ContractHash,
+    minting_account: AccountHash,
+    recipient: Key,
+    ids: Vec<U256>,
+    amounts: Vec<U256>,
+) -> &'a mut InMemoryWasmTestBuilder {
+    let mint_request = ExecuteRequestBuilder::contract_call_by_hash(
+        minting_account,
+        *cep85_token,
+        ENTRY_POINT_BATCH_MINT,
+        runtime_args! {
+            ARG_RECIPIENT => recipient,
+            ARG_IDS => ids,
+            ARG_AMOUNTS => amounts,
+        },
+    )
+    .build();
+    builder.exec(mint_request)
+}
+
 pub fn cep85_burn<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
@@ -220,6 +242,28 @@ pub fn cep85_burn<'a>(
             ARG_OWNER => owner,
             ARG_ID => id,
             ARG_AMOUNT => amount,
+        },
+    )
+    .build();
+    builder.exec(burn_request)
+}
+
+pub fn cep85_batch_burn<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    cep85_token: &'a ContractHash,
+    burning_account: AccountHash,
+    owner: Key,
+    ids: Vec<U256>,
+    amounts: Vec<U256>,
+) -> &'a mut InMemoryWasmTestBuilder {
+    let burn_request = ExecuteRequestBuilder::contract_call_by_hash(
+        burning_account,
+        *cep85_token,
+        ENTRY_POINT_BATCH_BURN,
+        runtime_args! {
+            ARG_OWNER => owner,
+            ARG_IDS => ids,
+            ARG_AMOUNTS => amounts,
         },
     )
     .build();
