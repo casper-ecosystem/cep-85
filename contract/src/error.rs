@@ -98,6 +98,10 @@ pub enum Cep85Error {
     InvalidNoneList = 60075,
     MissingTotalSupplies = 60076,
     InvalidTotalSupplies = 60077,
+    OverflowMint = 60078,
+    OverflowBatchMint = 60079,
+    OverflowBurn = 60080,
+    OverflowBatchBurn = 60081,
 }
 
 impl From<Cep85Error> for ApiError {

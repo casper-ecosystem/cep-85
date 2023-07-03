@@ -21,3 +21,6 @@ mod balances;
 
 #[cfg(test)]
 mod mint;
+
+#[cfg(test)]
+mod burn;

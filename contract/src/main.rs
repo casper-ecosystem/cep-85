@@ -408,7 +408,7 @@ pub extern "C" fn mint() {
 
         supply
             .checked_add(amount)
-            .unwrap_or_revert_with(Cep85Error::Overflow)
+            .unwrap_or_revert_with(Cep85Error::OverflowMint)
     };
 
     write_supply_of(&id, &new_supply);
@@ -480,7 +480,7 @@ pub extern "C" fn batch_mint() {
 
             supply
                 .checked_add(amount)
-                .unwrap_or_revert_with(Cep85Error::Overflow)
+                .unwrap_or_revert_with(Cep85Error::OverflowBatchMint)
         };
 
         write_supply_of(&id, &new_supply);
@@ -523,6 +523,7 @@ pub extern "C" fn burn() {
         Cep85Error::InvalidOwner,
     )
     .unwrap_or_revert();
+
     let (caller, _) = get_verified_caller();
     if owner != caller {
         revert(Cep85Error::InvalidBurnTarget);
@@ -545,7 +546,7 @@ pub extern "C" fn burn() {
         let total_supply = read_supply_of(&id);
         total_supply
             .checked_sub(amount)
-            .unwrap_or_revert_with(Cep85Error::Overflow)
+            .unwrap_or_revert_with(Cep85Error::OverflowBurn)
     };
 
     write_supply_of(&id, &new_total_supply);
@@ -574,6 +575,11 @@ pub extern "C" fn batch_burn() {
     )
     .unwrap_or_revert();
 
+    let (caller, _) = get_verified_caller();
+    if owner != caller {
+        revert(Cep85Error::InvalidBurnTarget);
+    }
+
     let ids: Vec<U256> =
         get_named_arg_with_user_errors(ARG_IDS, Cep85Error::MissingIds, Cep85Error::InvalidIds)
             .unwrap_or_revert();
@@ -598,7 +604,7 @@ pub extern "C" fn batch_burn() {
             let total_supply = read_supply_of(&id);
             total_supply
                 .checked_sub(amount)
-                .unwrap_or_revert_with(Cep85Error::Overflow)
+                .unwrap_or_revert_with(Cep85Error::OverflowBatchBurn)
         };
 
         write_supply_of(&id, &new_total_supply);
