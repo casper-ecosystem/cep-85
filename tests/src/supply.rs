@@ -1,5 +1,5 @@
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{bytesrepr::ToBytes, runtime_args, ContractPackageHash, Key, RuntimeArgs, U256};
+use casper_types::{runtime_args, Key, RuntimeArgs, U256};
 use cep85::{
     constants::{ARG_ENABLE_MINT_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_URI},
     modalities::EventsMode,

@@ -22,7 +22,7 @@ use crate::utility::{
 };
 
 #[test]
-fn test_security_no_rights() {
+fn should_test_security_no_rights() {
     let (
         mut builder,
         TestContext {
@@ -105,7 +105,7 @@ fn test_security_no_rights() {
 }
 
 #[test]
-fn test_security_meta_rights() {
+fn should_test_security_meta_rights() {
     let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
     let account_user_1 = public_key_account_user_1.to_account_hash();
     let mut test_accounts = HashMap::new();
@@ -202,7 +202,7 @@ fn test_security_meta_rights() {
 }
 
 #[test]
-fn test_security_minter_rights() {
+fn should_test_security_minter_rights() {
     let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
     let account_user_1 = public_key_account_user_1.to_account_hash();
     let mut test_accounts = HashMap::new();
@@ -271,7 +271,7 @@ fn test_security_minter_rights() {
 }
 
 #[test]
-fn test_security_burner_rights() {
+fn should_test_security_burner_rights() {
     let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
     let account_user_1 = public_key_account_user_1.to_account_hash();
     let mut test_accounts = HashMap::new();
@@ -381,7 +381,7 @@ fn test_security_burner_rights() {
 }
 
 #[test]
-fn test_change_security() {
+fn should_test_change_security() {
     let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
     let account_user_1 = public_key_account_user_1.to_account_hash();
     let mut test_accounts = HashMap::new();

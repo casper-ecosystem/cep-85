@@ -15,3 +15,6 @@ mod uri;
 
 #[cfg(test)]
 mod supply;
+
+#[cfg(test)]
+mod balances;

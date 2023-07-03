@@ -23,9 +23,10 @@ use cep85::constants::{
     ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST, TOKEN_CONTRACT,
 };
 use cep85_test_contract::constants::{
-    CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_SUPPLY_OF,
-    ENTRY_POINT_CHECK_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
-    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_URI, RESULT_KEY,
+    CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_BALANCE_OF_BATCH,
+    ENTRY_POINT_CHECK_SUPPLY_OF, ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
+    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
+    ENTRY_POINT_CHECK_URI, RESULT_KEY,
 };
 
 #[derive(Clone)]
@@ -285,6 +286,28 @@ pub fn cep85_check_balance_of(
         *contract_package_hash,
         None,
         ENTRY_POINT_CHECK_BALANCE_OF,
+        check_balance_args,
+    )
+    .build();
+    builder.exec(exec_request).expect_success().commit();
+    get_test_result(builder, *contract_package_hash)
+}
+
+pub fn cep85_check_balance_of_batch(
+    builder: &mut InMemoryWasmTestBuilder,
+    contract_package_hash: &ContractPackageHash,
+    accounts: Vec<Key>,
+    ids: Vec<U256>,
+) -> Vec<U256> {
+    let check_balance_args = runtime_args! {
+        ARG_ACCOUNTS => accounts,
+        ARG_IDS => ids,
+    };
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        *contract_package_hash,
+        None,
+        ENTRY_POINT_CHECK_BALANCE_OF_BATCH,
         check_balance_args,
     )
     .build();
