@@ -244,14 +244,7 @@ fn should_not_batch_burn_above_balance() {
     let mut test_accounts = HashMap::new();
     test_accounts.insert(ACCOUNT_USER_1, account_user_1);
 
-    let (
-        mut builder,
-        TestContext {
-            cep85_token,
-            test_accounts,
-            ..
-        },
-    ) = setup_with_args(
+    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
@@ -266,7 +259,7 @@ fn should_not_batch_burn_above_balance() {
     fund_account(&mut builder, account_user_1);
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let recipient = Key::from(account_user_1);
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
