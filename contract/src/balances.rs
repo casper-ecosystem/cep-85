@@ -46,12 +46,8 @@ pub fn transfer_balance(
         runtime::revert(Cep85Error::SelfTransfer);
     }
 
-    // Check if the recipient is a valid address
-    if !runtime::is_valid_uref(
-        *recipient
-            .as_uref()
-            .unwrap_or_revert_with(Cep85Error::InvalidRecipient),
-    ) {
+    //Check if the recipient is a an account
+    if (*recipient).into_account().is_none() {
         runtime::revert(Cep85Error::InvalidRecipient);
     }
 

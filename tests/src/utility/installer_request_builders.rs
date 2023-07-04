@@ -12,15 +12,19 @@ use casper_engine_test_support::{
     PRODUCTION_RUN_GENESIS_REQUEST,
 };
 use casper_types::{
-    account::AccountHash, bytesrepr::FromBytes, runtime_args, system::mint::ARG_ID, CLTyped,
-    ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
+    account::AccountHash,
+    bytesrepr::{Bytes, FromBytes},
+    runtime_args,
+    system::mint::{ARG_ID, ARG_TO},
+    CLTyped, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
 };
 use cep85::constants::{
-    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_IDS, ARG_NAME, ARG_OWNER,
-    ARG_RECIPIENT, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST,
+    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_DATA, ARG_FROM, ARG_IDS, ARG_NAME,
+    ARG_OWNER, ARG_RECIPIENT, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST,
     ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT, ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY,
-    ENTRY_POINT_MINT, ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH,
-    ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST, TOKEN_CONTRACT,
+    ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER,
+    ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI,
+    META_LIST, MINTER_LIST, NONE_LIST, TOKEN_CONTRACT,
 };
 use cep85_test_contract::constants::{
     CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_BALANCE_OF_BATCH,
@@ -437,6 +441,56 @@ pub fn cep85_check_supply_of_batch(
     .build();
     builder.exec(exec_request).expect_success().commit();
     get_test_result(builder, *contract_package_hash)
+}
+
+pub fn cep85_transfer_from<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    cep85_token: &'a ContractHash,
+    from: AccountHash,
+    to: AccountHash,
+    id: U256,
+    amount: U256,
+    data: Vec<Bytes>,
+) -> &'a mut InMemoryWasmTestBuilder {
+    let transfer_request = ExecuteRequestBuilder::contract_call_by_hash(
+        from,
+        *cep85_token,
+        ENTRY_POINT_SAFE_TRANSFER,
+        runtime_args! {
+            ARG_FROM => Key::from(from),
+            ARG_TO => Key::from(to),
+            ARG_ID => id,
+            ARG_AMOUNT => amount,
+            ARG_DATA => data,
+        },
+    )
+    .build();
+    builder.exec(transfer_request)
+}
+
+pub fn cep85_batch_transfer_from<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    cep85_token: &'a ContractHash,
+    from: AccountHash,
+    to: AccountHash,
+    ids: Vec<U256>,
+    amounts: Vec<U256>,
+    data: Vec<Bytes>,
+) -> &'a mut InMemoryWasmTestBuilder {
+    let transfer_request = ExecuteRequestBuilder::contract_call_by_hash(
+        from,
+        *cep85_token,
+        ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
+        runtime_args! {
+            ARG_FROM => Key::from(from),
+            ARG_TO => Key::from(to),
+            ARG_IDS => ids,
+            ARG_AMOUNTS => amounts,
+            ARG_DATA => data,
+        },
+    )
+    .build();
+    builder.exec(transfer_request)
 }
 
 pub struct SecurityLists {

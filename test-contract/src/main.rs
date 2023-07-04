@@ -20,22 +20,19 @@ use casper_contract::{
     },
 };
 use casper_types::{
-    runtime_args, system::auction::ARG_AMOUNT, CLType, ContractHash, EntryPoint, EntryPointAccess,
-    EntryPointType, EntryPoints, Key, Parameter, RuntimeArgs, U256,
+    runtime_args, CLType, ContractHash, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
+    Key, Parameter, RuntimeArgs, U256,
 };
 use cep85::constants::{
-    ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR,
-    ARG_TO, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT,
-    ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE,
-    ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER,
-    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
-    ENTRY_POINT_TOTAL_SUPPLY_OF, ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_URI,
-    TOKEN_CONTRACT,
+    ARG_ACCOUNT, ARG_ACCOUNTS, ARG_APPROVED, ARG_ID, ARG_IDS, ARG_OPERATOR, ENTRY_POINT_BALANCE_OF,
+    ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL,
+    ENTRY_POINT_IS_NON_FUNGIBLE, ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SUPPLY_OF,
+    ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_URI, TOKEN_CONTRACT,
 };
 use constants::{
     CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_BALANCE_OF_BATCH,
     ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL, ENTRY_POINT_CHECK_IS_NON_FUNGIBLE,
-    ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
     ENTRY_POINT_CHECK_SET_APPROVAL_FOR_ALL, ENTRY_POINT_CHECK_SUPPLY_OF,
     ENTRY_POINT_CHECK_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY,
     ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
@@ -110,46 +107,6 @@ pub extern "C" fn check_is_approved_for_all() {
         is_approved_for_all_args,
     );
     store_result(result);
-}
-
-#[no_mangle]
-pub extern "C" fn check_safe_transfer_from() {
-    let token_contract: ContractHash = get_token_contract();
-    let from: Key = get_named_arg(ARG_FROM);
-    let to: Key = get_named_arg(ARG_TO);
-    let id: U256 = get_named_arg(ARG_ID);
-    let amount: U256 = get_named_arg(ARG_AMOUNT);
-    let safe_transfer_from_args = runtime_args! {
-        ARG_FROM => from,
-        ARG_TO => to,
-        ARG_ID => id,
-        ARG_AMOUNT => amount,
-    };
-    runtime::call_contract::<()>(
-        token_contract,
-        ENTRY_POINT_SAFE_TRANSFER,
-        safe_transfer_from_args,
-    );
-}
-
-#[no_mangle]
-pub extern "C" fn check_safe_batch_transfer_from() {
-    let token_contract: ContractHash = get_token_contract();
-    let from: Key = get_named_arg(ARG_FROM);
-    let to: Key = get_named_arg(ARG_TO);
-    let ids: Vec<U256> = get_named_arg(ARG_IDS);
-    let amounts: Vec<U256> = get_named_arg(ARG_AMOUNTS);
-    let safe_batch_transfer_from_args = runtime_args! {
-        ARG_FROM => from,
-        ARG_TO => to,
-        ARG_IDS => ids,
-        ARG_AMOUNTS => amounts,
-    };
-    runtime::call_contract::<()>(
-        token_contract,
-        ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
-        safe_batch_transfer_from_args,
-    );
 }
 
 #[no_mangle]
@@ -310,30 +267,6 @@ pub extern "C" fn call() {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     );
-    let check_safe_transfer_from = EntryPoint::new(
-        ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
-        vec![
-            Parameter::new(ARG_FROM, CLType::Key),
-            Parameter::new(ARG_TO, CLType::Key),
-            Parameter::new(ARG_ID, CLType::U256),
-            Parameter::new(ARG_AMOUNT, CLType::U256),
-        ],
-        CLType::Unit,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    );
-    let check_safe_batch_transfer_from = EntryPoint::new(
-        ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
-        vec![
-            Parameter::new(ARG_FROM, CLType::Key),
-            Parameter::new(ARG_TO, CLType::Key),
-            Parameter::new(ARG_IDS, CLType::List(Box::new(CLType::U256))),
-            Parameter::new(ARG_AMOUNTS, CLType::List(Box::new(CLType::U256))),
-        ],
-        CLType::Unit,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    );
     let check_supply_of = EntryPoint::new(
         ENTRY_POINT_CHECK_SUPPLY_OF,
         vec![Parameter::new(ARG_ID, CLType::U256)],
@@ -398,8 +331,6 @@ pub extern "C" fn call() {
     entry_points.add_entry_point(check_balance_of_batch);
     entry_points.add_entry_point(check_set_approval_for_all);
     entry_points.add_entry_point(check_is_approved_for_all);
-    entry_points.add_entry_point(check_safe_transfer_from);
-    entry_points.add_entry_point(check_safe_batch_transfer_from);
     entry_points.add_entry_point(check_supply_of);
     entry_points.add_entry_point(check_supply_of_batch);
     entry_points.add_entry_point(check_total_supply_of);

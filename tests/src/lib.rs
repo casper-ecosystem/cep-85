@@ -24,3 +24,6 @@ mod mint;
 
 #[cfg(test)]
 mod burn;
+
+#[cfg(test)]
+mod transfer;
