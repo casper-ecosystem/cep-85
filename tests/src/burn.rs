@@ -3,9 +3,10 @@ use std::collections::HashMap;
 use crate::utility::{
     constants::{ACCOUNT_USER_1, TOKEN_NAME, TOKEN_URI},
     installer_request_builders::{
-        cep85_batch_burn, cep85_batch_mint, cep85_burn, cep85_check_supply_of,
-        cep85_check_supply_of_batch, cep85_mint, cep85_set_total_supply_of,
-        cep85_set_total_supply_of_batch, setup_with_args, TestContext,
+        cep85_batch_burn, cep85_batch_mint, cep85_burn, cep85_check_balance_of,
+        cep85_check_balance_of_batch, cep85_check_supply_of, cep85_check_supply_of_batch,
+        cep85_mint, cep85_set_total_supply_of, cep85_set_total_supply_of_batch, setup_with_args,
+        TestContext,
     },
     support::{assert_expected_error, create_dummy_key_pair, fund_account},
 };
@@ -375,6 +376,12 @@ fn should_reduce_supply_on_burn() {
 
     assert_eq!(actual_supply, mint_amount);
 
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &recipient, &id);
+    let expected_balance = mint_amount;
+
+    assert_eq!(actual_balance, expected_balance);
+
     let burning_account = account_user_1;
     let owner: Key = recipient;
     let burn_amount = U256::one();
@@ -392,6 +399,12 @@ fn should_reduce_supply_on_burn() {
     let actual_supply = cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id);
     let expected_supply = U256::one();
     assert_eq!(actual_supply, expected_supply);
+
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &owner, &id);
+    let expected_balance = U256::one();
+
+    assert_eq!(actual_balance, expected_balance);
 }
 
 #[test]
@@ -459,6 +472,17 @@ fn should_reduce_supply_on_batch_burn() {
     assert_eq!(actual_supplies[0], mint_amounts[0]);
     assert_eq!(actual_supplies[1], mint_amounts[1]);
 
+    let actual_balances = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        vec![recipient, recipient],
+        ids.clone(),
+    );
+
+    let expected_balances = vec![mint_amounts[0], mint_amounts[1]];
+
+    assert_eq!(actual_balances, expected_balances);
+
     let burning_account = account_user_1;
     let owner: Key = recipient;
 
@@ -477,10 +501,20 @@ fn should_reduce_supply_on_batch_burn() {
 
     // Get the supply of each ID using batch function
     let actual_supplies =
-        cep85_check_supply_of_batch(&mut builder, &cep85_test_contract_package, ids);
+        cep85_check_supply_of_batch(&mut builder, &cep85_test_contract_package, ids.clone());
 
     let expected_remaining_amounts: Vec<U256> = vec![U256::zero(), U256::one()];
     // Verify the supplies
     assert_eq!(actual_supplies[0], expected_remaining_amounts[0]);
     assert_eq!(actual_supplies[1], expected_remaining_amounts[1]);
+
+    let actual_balances = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        vec![owner, owner],
+        ids,
+    );
+
+    let expected_remaining_balances: Vec<U256> = vec![U256::zero(), U256::one()];
+    assert_eq!(actual_balances, expected_remaining_balances);
 }
