@@ -30,7 +30,7 @@ fn should_burn_by_owner() {
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
             ARG_ENABLE_MINT_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
@@ -102,7 +102,7 @@ fn should_batch_burn_by_owner() {
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
             ARG_ENABLE_MINT_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
@@ -176,7 +176,7 @@ fn should_not_burn_above_balance() {
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
             ARG_ENABLE_MINT_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
@@ -251,7 +251,7 @@ fn should_not_batch_burn_above_balance() {
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
             ARG_ENABLE_MINT_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
@@ -334,7 +334,7 @@ fn should_reduce_supply_on_burn() {
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
             ARG_ENABLE_MINT_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
@@ -425,7 +425,7 @@ fn should_reduce_supply_on_batch_burn() {
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
             ARG_ENABLE_MINT_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },

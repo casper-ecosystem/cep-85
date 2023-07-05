@@ -1,7 +1,7 @@
 use crate::utility::{
     constants::{ACCOUNT_USER_1, TOKEN_NAME, TOKEN_URI},
     installer_request_builders::{
-        cep85_check_balance_of, cep85_mint, setup_with_args, TestContext,
+        cep85_check_balance_of, cep85_mint, setup, setup_with_args, TestContext,
     },
     support::{get_dictionary_value_from_key, get_event},
 };
@@ -23,7 +23,8 @@ fn should_have_events_schema_in_events_mode() {
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8
+            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_ENABLE_MINT_BURN => true
         },
         None,
     );
@@ -42,15 +43,7 @@ fn should_have_events_schema_in_events_mode() {
 
 #[test]
 fn should_not_have_events_dict_in_no_events_mode() {
-    let (builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
-            ARG_ENABLE_MINT_BURN => true
-        },
-        None,
-    );
+    let (builder, TestContext { cep85_token, .. }) = setup();
 
     let contract = builder
         .get_contract(cep85_token)
@@ -144,15 +137,7 @@ fn should_not_record_events_in_no_events_mode() {
             test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
-            ARG_ENABLE_MINT_BURN => true
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());

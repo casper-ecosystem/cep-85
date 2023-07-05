@@ -15,6 +15,7 @@ use cep85::{
         OPERATORS, PACKAGE_HASH, TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD, URI,
     },
     error::Cep85Error,
+    modalities::EventsMode,
 };
 
 #[test]
@@ -42,8 +43,8 @@ fn should_have_queryable_properties() {
 
     assert_eq!(name, TOKEN_NAME);
     assert_eq!(uri, TOKEN_URI);
-    assert_eq!(events_mode, 0u8);
-    assert_eq!(enable_mint_burn, 0u8);
+    assert_eq!(events_mode, EventsMode::NoEvents as u8);
+    assert_eq!(enable_mint_burn, true as u8);
     assert_eq!(transfer_filter_contract, None);
     assert_eq!(transfer_filter_method, None);
 }

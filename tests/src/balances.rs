@@ -1,17 +1,16 @@
 use crate::utility::{
-    constants::{ACCOUNT_USER_1, ACCOUNT_USER_2, TOKEN_NAME, TOKEN_URI},
+    constants::{ACCOUNT_USER_1, ACCOUNT_USER_2},
     installer_request_builders::{
-        cep85_batch_mint, cep85_check_balance_of, cep85_check_balance_of_batch, cep85_mint,
-        setup_with_args, TestContext,
+        cep85_batch_mint, cep85_check_balance_of, cep85_check_balance_of_batch, cep85_mint, setup,
+        TestContext,
     },
     support::assert_expected_error,
 };
 use casper_engine_test_support::{ExecuteRequestBuilder, DEFAULT_ACCOUNT_ADDR};
 use casper_types::{runtime_args, Key, RuntimeArgs, U256};
 use cep85::{
-    constants::{ARG_ACCOUNTS, ARG_ENABLE_MINT_BURN, ARG_EVENTS_MODE, ARG_IDS, ARG_NAME, ARG_URI},
+    constants::{ARG_ACCOUNTS, ARG_IDS},
     error::Cep85Error,
-    modalities::EventsMode,
 };
 use cep85_test_contract::constants::ENTRY_POINT_CHECK_BALANCE_OF_BATCH;
 #[test]
@@ -24,15 +23,7 @@ fn should_check_balance_of() {
             test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
@@ -67,15 +58,7 @@ fn should_check_balance_of_batch() {
             test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient_user_1 = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
@@ -117,15 +100,7 @@ fn should_error_on_balance_of_batch_args_len_difference() {
             test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());

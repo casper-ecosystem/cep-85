@@ -1,16 +1,9 @@
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use cep85::{
-    constants::{ARG_ENABLE_MINT_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_URI},
-    modalities::EventsMode,
-};
+use casper_types::{Key, U256};
 
-use crate::utility::{
-    constants::{TOKEN_NAME, TOKEN_URI},
-    installer_request_builders::{
-        cep85_check_is_non_fungible, cep85_check_total_fungible_supply, cep85_mint,
-        cep85_set_total_supply_of, setup_with_args, TestContext,
-    },
+use crate::utility::installer_request_builders::{
+    cep85_check_is_non_fungible, cep85_check_total_fungible_supply, cep85_mint,
+    cep85_set_total_supply_of, setup, TestContext,
 };
 
 #[test]
@@ -22,15 +15,7 @@ fn should_check_if_fungible() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let minting_recipient = Key::from(minting_account);
@@ -75,15 +60,7 @@ fn should_check_if_non_fungible() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let minting_recipient = Key::from(minting_account);
@@ -116,15 +93,7 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let minting_recipient = Key::from(minting_account);
@@ -187,15 +156,7 @@ fn should_get_total_fungible_supply() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let minting_recipient = Key::from(minting_account);

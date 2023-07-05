@@ -1,19 +1,15 @@
 use crate::utility::{
-    constants::{ACCOUNT_USER_1, TOKEN_NAME, TOKEN_URI},
+    constants::ACCOUNT_USER_1,
     installer_request_builders::{
         cep85_batch_mint, cep85_check_balance_of, cep85_check_balance_of_batch, cep85_mint,
-        cep85_set_total_supply_of, cep85_set_total_supply_of_batch, setup_with_args, TestContext,
+        cep85_set_total_supply_of, cep85_set_total_supply_of_batch, setup, TestContext,
     },
     support::assert_expected_error,
 };
 
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use cep85::{
-    constants::{ARG_ENABLE_MINT_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_URI},
-    error::Cep85Error,
-    modalities::EventsMode,
-};
+use casper_types::{Key, U256};
+use cep85::error::Cep85Error;
 
 #[test]
 fn should_mint() {
@@ -25,15 +21,7 @@ fn should_mint() {
             test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
@@ -68,15 +56,7 @@ fn should_batch_mint() {
             test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
@@ -115,15 +95,7 @@ fn should_not_mint_above_total_supply() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
@@ -190,15 +162,7 @@ fn should_not_batch_mint_above_total_supply() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());

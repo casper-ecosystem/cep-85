@@ -1,16 +1,10 @@
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use cep85::{
-    constants::{ARG_ENABLE_MINT_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_URI},
-    modalities::EventsMode,
-    utils::replace_token_id_in_uri,
-};
+use casper_types::{Key, U256};
+use cep85::utils::replace_token_id_in_uri;
 
 use crate::utility::{
-    constants::{TOKEN_NAME, TOKEN_URI, TOKEN_URI_TEST},
-    installer_request_builders::{
-        cep85_check_uri, cep85_mint, cep85_set_uri, setup_with_args, TestContext,
-    },
+    constants::TOKEN_URI_TEST,
+    installer_request_builders::{cep85_check_uri, cep85_mint, cep85_set_uri, setup, TestContext},
 };
 
 #[test]
@@ -22,15 +16,7 @@ fn should_set_global_uri() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient: Key = minting_account.into();
@@ -76,15 +62,7 @@ fn should_set_uri_for_id() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient: Key = minting_account.into();

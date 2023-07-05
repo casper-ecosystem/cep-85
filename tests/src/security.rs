@@ -16,7 +16,7 @@ use crate::utility::{
     constants::{ACCOUNT_USER_1, ACCOUNT_USER_2, TOKEN_NAME, TOKEN_URI, TOKEN_URI_TEST},
     installer_request_builders::{
         cep85_burn, cep85_change_security, cep85_check_uri, cep85_mint, cep85_set_total_supply_of,
-        cep85_set_uri, setup_with_args, SecurityLists, TestContext,
+        cep85_set_uri, setup, setup_with_args, SecurityLists, TestContext,
     },
     support::{assert_expected_error, create_dummy_key_pair, fund_account},
 };
@@ -30,15 +30,7 @@ fn should_test_security_no_rights() {
             test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
     let recipient: Key = minting_account.into();
@@ -123,7 +115,7 @@ fn should_test_security_meta_rights() {
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
             ARG_ENABLE_MINT_BURN => true,
             META_LIST => vec![Key::from(account_user_1)]
         },
@@ -219,7 +211,7 @@ fn should_test_security_minter_rights() {
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
             ARG_ENABLE_MINT_BURN => true,
             MINTER_LIST => vec![Key::from(account_user_1)]
         },
@@ -288,7 +280,7 @@ fn should_test_security_burner_rights() {
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
             ARG_ENABLE_MINT_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
@@ -398,7 +390,7 @@ fn should_test_change_security() {
         runtime_args! {
             ARG_NAME => TOKEN_NAME,
             ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
             ARG_ENABLE_MINT_BURN => true,
             ADMIN_LIST => vec![Key::from(account_user_1)],
         },

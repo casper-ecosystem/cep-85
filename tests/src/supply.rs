@@ -1,17 +1,12 @@
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use cep85::{
-    constants::{ARG_ENABLE_MINT_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_URI},
-    error::Cep85Error,
-    modalities::EventsMode,
-};
+use casper_types::{Key, U256};
+use cep85::error::Cep85Error;
 
 use crate::utility::{
-    constants::{TOKEN_NAME, TOKEN_URI},
     installer_request_builders::{
         cep85_batch_burn, cep85_batch_mint, cep85_check_supply_of, cep85_check_supply_of_batch,
         cep85_check_total_supply_of, cep85_check_total_supply_of_batch, cep85_mint,
-        cep85_set_total_supply_of, cep85_set_total_supply_of_batch, setup_with_args, TestContext,
+        cep85_set_total_supply_of, cep85_set_total_supply_of_batch, setup, TestContext,
     },
     support::assert_expected_error,
 };
@@ -25,15 +20,7 @@ fn should_set_total_supply_of_id() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let total_supply = U256::from(2);
@@ -65,15 +52,7 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let total_supply = U256::from(2);
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
@@ -143,15 +122,7 @@ fn should_set_total_supply_batch_for_ids() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let ids = vec![U256::from(1), U256::from(2)];
@@ -184,15 +155,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let minting_recipient = Key::from(minting_account);
@@ -263,15 +226,7 @@ fn should_get_supply_of_id() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let recipient: Key = minting_account.into();
@@ -315,15 +270,7 @@ fn should_get_supply_of_batch_for_ids() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true,
-        },
-        None,
-    );
+    ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let ids = vec![U256::one(), U256::from(2)];
