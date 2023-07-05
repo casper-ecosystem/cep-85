@@ -184,10 +184,10 @@ pub fn supply_of() -> EntryPoint {
 pub fn supply_of_batch() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_SUPPLY_OF_BATCH,
-        vec![
-            Parameter::new(ARG_ACCOUNT, CLType::Key),
-            Parameter::new(ARG_IDS, CLType::List(Box::new(CLType::U256))),
-        ],
+        vec![Parameter::new(
+            ARG_IDS,
+            CLType::List(Box::new(CLType::U256)),
+        )],
         CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
         EntryPointType::Contract,

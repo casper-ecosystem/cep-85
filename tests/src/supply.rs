@@ -356,12 +356,8 @@ fn should_get_supply_of_batch_for_ids() {
     batch_mint_call.expect_success().commit();
 
     // Get the supply of each ID using batch function
-    let actual_supplies = cep85_check_supply_of_batch(
-        &mut builder,
-        &cep85_test_contract_package,
-        vec![minting_account.into(); ids.len()],
-        ids.clone(),
-    );
+    let actual_supplies =
+        cep85_check_supply_of_batch(&mut builder, &cep85_test_contract_package, ids.clone());
 
     // Verify the supplies
     for (index, _) in ids.iter().enumerate() {
@@ -384,12 +380,8 @@ fn should_get_supply_of_batch_for_ids() {
     batch_burn_call.expect_success().commit();
 
     // Get the supply of each ID using batch function
-    let actual_supplies = cep85_check_supply_of_batch(
-        &mut builder,
-        &cep85_test_contract_package,
-        vec![burning_account.into(); ids.len()],
-        ids.clone(),
-    );
+    let actual_supplies =
+        cep85_check_supply_of_batch(&mut builder, &cep85_test_contract_package, ids.clone());
 
     // Verify the supplies equal zero
     for (index, _) in ids.iter().enumerate() {

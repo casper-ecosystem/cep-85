@@ -438,11 +438,9 @@ pub fn cep85_check_supply_of(
 pub fn cep85_check_supply_of_batch(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
-    accounts: Vec<Key>,
     ids: Vec<U256>,
 ) -> Vec<U256> {
     let check_supply_of_batch_args = runtime_args! {
-        ARG_ACCOUNTS => accounts,
         ARG_IDS => ids,
     };
     let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(

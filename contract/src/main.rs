@@ -416,17 +416,15 @@ pub extern "C" fn mint() {
 
     let recipient_balance = read_balance_from(&recipient, &id);
     let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_default();
-    let new_supply = {
-        let supply = read_supply_of(&id);
-        let total_max_supply = read_total_supply_of(&id);
-        if supply.checked_add(amount).unwrap_or_default() > total_max_supply {
-            revert(Cep85Error::ExceededMaxTotalSupply);
-        }
 
-        supply
-            .checked_add(amount)
-            .unwrap_or_revert_with(Cep85Error::OverflowMint)
-    };
+    let supply = read_supply_of(&id);
+    let new_supply = supply
+        .checked_add(amount)
+        .unwrap_or_revert_with(Cep85Error::OverflowMint);
+    let total_max_supply = read_total_supply_of(&id);
+    if new_supply > total_max_supply {
+        revert(Cep85Error::ExceededMaxTotalSupply);
+    }
 
     write_supply_of(&id, &new_supply);
     write_balance_to(&recipient, &id, &new_recipient_balance);
@@ -489,17 +487,15 @@ pub extern "C" fn batch_mint() {
 
         let recipient_balance = read_balance_from(&recipient, &id);
         let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_default();
-        let new_supply = {
-            let supply = read_supply_of(&id);
-            let total_max_supply = read_total_supply_of(&id);
-            if supply.checked_add(amount).unwrap_or_default() > total_max_supply {
-                revert(Cep85Error::ExceededMaxTotalSupply);
-            }
 
-            supply
-                .checked_add(amount)
-                .unwrap_or_revert_with(Cep85Error::OverflowBatchMint)
-        };
+        let supply = read_supply_of(&id);
+        let total_max_supply = read_total_supply_of(&id);
+        let new_supply = supply
+            .checked_add(amount)
+            .unwrap_or_revert_with(Cep85Error::OverflowBatchMint);
+        if new_supply > total_max_supply {
+            revert(Cep85Error::ExceededMaxTotalSupply);
+        }
 
         write_supply_of(&id, &new_supply);
         write_balance_to(&recipient, &id, &new_recipient_balance);
@@ -567,14 +563,14 @@ pub extern "C" fn burn() {
 
     let owner_balance = read_balance_from(&owner, &id);
     let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_default();
-    let new_total_supply = {
-        let total_supply = read_supply_of(&id);
-        total_supply
+    let new_supply = {
+        let supply = read_supply_of(&id);
+        supply
             .checked_sub(amount)
             .unwrap_or_revert_with(Cep85Error::OverflowBurn)
     };
 
-    write_supply_of(&id, &new_total_supply);
+    write_supply_of(&id, &new_supply);
     write_balance_to(&owner, &id, &new_owner_balance);
     record_event_dictionary(Event::Burn(Burn { id, owner, amount }));
 }
@@ -632,14 +628,14 @@ pub extern "C" fn batch_burn() {
         let owner_balance = read_balance_from(&owner, &id);
         let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_default();
 
-        let new_total_supply = {
-            let total_supply = read_supply_of(&id);
-            total_supply
+        let new_supply = {
+            let supply = read_supply_of(&id);
+            supply
                 .checked_sub(amount)
                 .unwrap_or_revert_with(Cep85Error::OverflowBatchBurn)
         };
 
-        write_supply_of(&id, &new_total_supply);
+        write_supply_of(&id, &new_supply);
         write_balance_to(&owner, &id, &new_owner_balance);
         record_event_dictionary(Event::Burn(Burn { id, owner, amount }));
     }

@@ -28,9 +28,9 @@ use cep85::constants::{
     ARG_OPERATOR, ARG_TO, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT,
     ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE,
     ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
-    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
-    ENTRY_POINT_TOTAL_SUPPLY_OF, ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_URI,
-    TOKEN_CONTRACT,
+    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_SUPPLY_OF_BATCH,
+    ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_URI, TOKEN_CONTRACT,
 };
 use constants::{
     CEP85_TEST_CONTRACT_NAME, CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF,
@@ -171,15 +171,13 @@ pub extern "C" fn check_supply_of() {
 #[no_mangle]
 pub extern "C" fn check_supply_of_batch() {
     let token_contract: ContractHash = get_token_contract();
-    let accounts: Vec<Key> = get_named_arg(ARG_ACCOUNTS);
     let ids: Vec<U256> = get_named_arg(ARG_IDS);
     let check_supply_of_batch_args = runtime_args! {
-        ARG_ACCOUNTS => accounts,
         ARG_IDS => ids,
     };
     let result = runtime::call_contract::<Vec<U256>>(
         token_contract,
-        ENTRY_POINT_BALANCE_OF_BATCH,
+        ENTRY_POINT_SUPPLY_OF_BATCH,
         check_supply_of_batch_args,
     );
     store_result(result);
@@ -354,10 +352,10 @@ pub extern "C" fn call() {
     );
     let check_supply_of_batch = EntryPoint::new(
         ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
-        vec![
-            Parameter::new(ARG_ACCOUNTS, CLType::List(Box::new(CLType::Key))),
-            Parameter::new(ARG_IDS, CLType::List(Box::new(CLType::U256))),
-        ],
+        vec![Parameter::new(
+            ARG_IDS,
+            CLType::List(Box::new(CLType::U256)),
+        )],
         CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
