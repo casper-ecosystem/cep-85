@@ -27,3 +27,6 @@ mod burn;
 
 #[cfg(test)]
 mod transfer;
+
+#[cfg(test)]
+mod fungible;

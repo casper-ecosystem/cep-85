@@ -84,7 +84,7 @@ fn should_test_security_no_rights() {
     let bunrning_account = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
     let owner: Key = bunrning_account.into();
 
-    let burn_call = cep85_burn(
+    let failing_burn_call = cep85_burn(
         &mut builder,
         &cep85_token,
         bunrning_account,
@@ -93,7 +93,7 @@ fn should_test_security_no_rights() {
         mint_amount,
     );
 
-    burn_call.expect_failure();
+    failing_burn_call.expect_failure();
 
     let error = builder.get_error().expect("must have error");
 

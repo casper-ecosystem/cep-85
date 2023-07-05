@@ -240,10 +240,15 @@ pub extern "C" fn set_approval_for_all() {
     )
     .unwrap_or_revert();
 
-    let (caller, _) = get_verified_caller();
+    let (caller, caller_package) = get_verified_caller();
 
     // If caller tries to approve itself as operator that's probably a mistake and we revert.
-    if caller == operator {
+    let is_self_approval: bool = match caller_package {
+        Some(caller_package) => operator == caller_package || operator == caller,
+        None => operator == caller,
+    };
+
+    if !is_self_approval {
         runtime::revert(Cep85Error::SelfOperatorApproval);
     }
 
@@ -271,11 +276,17 @@ pub extern "C" fn safe_transfer_from() {
         get_named_arg_with_user_errors(ARG_FROM, Cep85Error::MissingFrom, Cep85Error::InvalidFrom)
             .unwrap_or_revert();
 
-    let (caller, _) = get_verified_caller();
+    let (caller, caller_package) = get_verified_caller();
 
     // Check if the caller is the spender or an operator
-    let is_approved: bool = read_operator(&from, &caller);
-    if from != caller && !is_approved {
+    let is_approved: bool = match caller_package {
+        Some(caller_package) => {
+            from == caller || from == caller_package || read_operator(&from, &caller_package)
+        }
+        None => from == caller || read_operator(&from, &caller),
+    };
+
+    if !is_approved {
         runtime::revert(Cep85Error::NotApproved);
     }
 
@@ -335,11 +346,17 @@ pub extern "C" fn safe_batch_transfer_from() {
         get_named_arg_with_user_errors(ARG_FROM, Cep85Error::MissingFrom, Cep85Error::InvalidFrom)
             .unwrap_or_revert();
 
-    let (caller, _) = get_verified_caller();
+    let (caller, caller_package) = get_verified_caller();
 
     // Check if the caller is the spender or an operator
-    let is_approved: bool = read_operator(&from, &caller);
-    if from != caller && !is_approved {
+    let is_approved: bool = match caller_package {
+        Some(caller_package) => {
+            from == caller || from == caller_package || read_operator(&from, &caller_package)
+        }
+        None => from == caller || read_operator(&from, &caller),
+    };
+
+    if !is_approved {
         runtime::revert(Cep85Error::NotApproved);
     }
 
@@ -430,6 +447,7 @@ pub extern "C" fn mint() {
     }))
 }
 
+/// Batch mint specified amounts of multiple tokens to one `recipient`.
 #[no_mangle]
 pub extern "C" fn batch_mint() {
     if 0_u8
@@ -524,8 +542,15 @@ pub extern "C" fn burn() {
     )
     .unwrap_or_revert();
 
-    let (caller, _) = get_verified_caller();
-    if owner != caller {
+    let (caller, caller_package) = get_verified_caller();
+
+    // Check if the caller is the owner
+    let is_approved: bool = match caller_package {
+        Some(caller_package) => owner == caller_package || owner == caller,
+        None => owner == caller,
+    };
+
+    if !is_approved {
         revert(Cep85Error::InvalidBurnTarget);
     }
 
@@ -575,8 +600,15 @@ pub extern "C" fn batch_burn() {
     )
     .unwrap_or_revert();
 
-    let (caller, _) = get_verified_caller();
-    if owner != caller {
+    let (caller, caller_package) = get_verified_caller();
+
+    // Check if the caller is the owner
+    let is_approved: bool = match caller_package {
+        Some(caller_package) => owner == caller_package || owner == caller,
+        None => owner == caller,
+    };
+
+    if !is_approved {
         revert(Cep85Error::InvalidBurnTarget);
     }
 
@@ -647,6 +679,13 @@ pub extern "C" fn set_total_supply_of() {
         Cep85Error::InvalidTotalSupply,
     )
     .unwrap_or_revert();
+
+    let current_supply: U256 = read_supply_of(&id);
+
+    if total_supply < current_supply {
+        runtime::revert(Cep85Error::InvalidTotalSupply);
+    }
+
     write_total_supply_of(&id, &total_supply);
     record_event_dictionary(Event::SetTotalSupply(SetTotalSupply { id, total_supply }));
 }
@@ -703,6 +742,12 @@ pub extern "C" fn set_total_supply_of_batch() {
     }
 
     for (id, total_supply) in ids.into_iter().zip(total_supplies.into_iter()) {
+        let current_supply: U256 = read_supply_of(&id);
+
+        if total_supply < current_supply {
+            runtime::revert(Cep85Error::InvalidTotalSupply);
+        }
+
         write_total_supply_of(&id, &total_supply);
         record_event_dictionary(Event::SetTotalSupply(SetTotalSupply { id, total_supply }));
     }
