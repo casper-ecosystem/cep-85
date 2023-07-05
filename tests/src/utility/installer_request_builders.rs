@@ -495,7 +495,9 @@ pub fn cep85_transfer_from<'a>(
         .build(),
         Key::Hash(hash) => {
             let hash_bytes: &[u8; 32] = hash.as_slice().try_into().expect("Hash must be 32 bytes");
-            if direct_call_test_contract.is_none() {
+            let call_package =
+                direct_call_test_contract.is_none() || direct_call_test_contract == Some(false);
+            if call_package {
                 if let Ok(contract_package_hash) = ContractPackageHash::try_from(*hash_bytes) {
                     ExecuteRequestBuilder::versioned_contract_call_by_hash(
                         *DEFAULT_ACCOUNT_ADDR,
@@ -567,8 +569,9 @@ pub fn cep85_batch_transfer_from<'a>(
         .build(),
         Key::Hash(hash) => {
             let hash_bytes: &[u8; 32] = hash.as_slice().try_into().expect("Hash must be 32 bytes");
-
-            if direct_call_test_contract.is_none() {
+            let call_package =
+                direct_call_test_contract.is_none() || direct_call_test_contract == Some(false);
+            if call_package {
                 if let Ok(contract_package_hash) = ContractPackageHash::try_from(*hash_bytes) {
                     ExecuteRequestBuilder::versioned_contract_call_by_hash(
                         *DEFAULT_ACCOUNT_ADDR,
