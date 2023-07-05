@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    convert::{TryFrom, TryInto},
+};
 
 use super::{
     constants::{
@@ -22,17 +25,17 @@ use cep85::constants::{
     ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_DATA, ARG_FROM, ARG_IDS, ARG_NAME,
     ARG_OWNER, ARG_RECIPIENT, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST,
     ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT, ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY,
-    ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER,
+    ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
     ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI,
     META_LIST, MINTER_LIST, NONE_LIST, TOKEN_CONTRACT,
 };
 use cep85_test_contract::constants::{
-    CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_BALANCE_OF_BATCH,
-    ENTRY_POINT_CHECK_IS_NON_FUNGIBLE, ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
-    ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM, ENTRY_POINT_CHECK_SUPPLY_OF,
-    ENTRY_POINT_CHECK_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY,
-    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
-    ENTRY_POINT_CHECK_URI, RESULT_KEY,
+    CEP85_TEST_CONTRACT_NAME, CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF,
+    ENTRY_POINT_CHECK_BALANCE_OF_BATCH, ENTRY_POINT_CHECK_IS_NON_FUNGIBLE,
+    ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
+    ENTRY_POINT_CHECK_SUPPLY_OF, ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
+    ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_URI, RESULT_KEY,
 };
 
 #[derive(Clone)]
@@ -109,7 +112,7 @@ pub fn setup_with_args(
 
     let cep85_test_contract = account
         .named_keys()
-        .get(CEP85_TEST_TOKEN_CONTRACT_NAME)
+        .get(CEP85_TEST_CONTRACT_NAME)
         .and_then(|key| key.into_hash())
         .map(ContractHash::new)
         .expect("should have contract hash");
@@ -151,13 +154,13 @@ pub fn get_test_result<T: FromBytes + CLTyped>(
 pub fn cep85_set_uri<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    updating_account: &AccountHash,
+    updating_account: &'a AccountHash,
     uri: &str,
-    id: Option<U256>,
+    id: &Option<U256>,
 ) -> &'a mut InMemoryWasmTestBuilder {
     let set_uri_args = if let Some(id) = id {
         runtime_args! {
-            ARG_ID => id,
+            ARG_ID => *id,
             ARG_URI => uri,
         }
     } else {
@@ -197,7 +200,7 @@ pub fn cep85_check_uri(
 pub fn cep85_mint<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    minting_account: &AccountHash,
+    minting_account: &'a AccountHash,
     recipient: &Key,
     id: &U256,
     amount: &U256,
@@ -221,9 +224,9 @@ pub fn cep85_mint<'a>(
 pub fn cep85_batch_mint<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    minting_account: &AccountHash,
+    minting_account: &'a AccountHash,
     recipient: &Key,
-    ids: &Vec<U256>,
+    ids: Vec<U256>,
     amounts: Vec<U256>,
 ) -> &'a mut InMemoryWasmTestBuilder {
     let mint_request = ExecuteRequestBuilder::contract_call_by_hash(
@@ -232,7 +235,7 @@ pub fn cep85_batch_mint<'a>(
         ENTRY_POINT_BATCH_MINT,
         runtime_args! {
             ARG_RECIPIENT => *recipient,
-            ARG_IDS => *ids,
+            ARG_IDS => ids,
             ARG_AMOUNTS => amounts,
         },
     )
@@ -243,7 +246,7 @@ pub fn cep85_batch_mint<'a>(
 pub fn cep85_burn<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    burning_account: &AccountHash,
+    burning_account: &'a AccountHash,
     owner: &Key,
     id: &U256,
     amount: &U256,
@@ -267,10 +270,10 @@ pub fn cep85_burn<'a>(
 pub fn cep85_batch_burn<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    burning_account: &AccountHash,
+    burning_account: &'a AccountHash,
     owner: &Key,
-    ids: &Vec<U256>,
-    amounts: &Vec<U256>,
+    ids: Vec<U256>,
+    amounts: Vec<U256>,
 ) -> &'a mut InMemoryWasmTestBuilder {
     let burn_request = ExecuteRequestBuilder::contract_call_by_hash(
         *burning_account,
@@ -278,8 +281,8 @@ pub fn cep85_batch_burn<'a>(
         ENTRY_POINT_BATCH_BURN,
         runtime_args! {
             ARG_OWNER => *owner,
-            ARG_IDS => *ids,
-            ARG_AMOUNTS => *amounts,
+            ARG_IDS => ids,
+            ARG_AMOUNTS => amounts,
         },
     )
     .build();
@@ -311,12 +314,12 @@ pub fn cep85_check_balance_of(
 pub fn cep85_check_balance_of_batch(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
-    accounts: &Vec<Key>,
-    ids: &Vec<U256>,
+    accounts: Vec<Key>,
+    ids: Vec<U256>,
 ) -> Vec<U256> {
     let check_balance_args = runtime_args! {
-        ARG_ACCOUNTS => *accounts,
-        ARG_IDS => *ids,
+        ARG_ACCOUNTS => accounts,
+        ARG_IDS => ids,
     };
     let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
         *DEFAULT_ACCOUNT_ADDR,
@@ -333,7 +336,7 @@ pub fn cep85_check_balance_of_batch(
 pub fn cep85_set_total_supply_of<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    admin_account: &AccountHash,
+    admin_account: &'a AccountHash,
     id: &U256,
     total_supply: &U256,
 ) -> &'a mut InMemoryWasmTestBuilder {
@@ -373,9 +376,9 @@ pub fn cep85_check_total_supply_of(
 pub fn cep85_set_total_supply_of_batch<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    burning_account: &AccountHash,
-    ids: &Vec<U256>,
-    total_supplies: &Vec<U256>,
+    burning_account: &'a AccountHash,
+    ids: Vec<U256>,
+    total_supplies: Vec<U256>,
 ) -> &'a mut casper_engine_test_support::WasmTestBuilder<
     casper_execution_engine::storage::global_state::in_memory::InMemoryGlobalState,
 > {
@@ -384,8 +387,8 @@ pub fn cep85_set_total_supply_of_batch<'a>(
         *cep85_token,
         ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH,
         runtime_args! {
-            ARG_IDS => *ids,
-            ARG_TOTAL_SUPPLIES => *total_supplies,
+            ARG_IDS => ids,
+            ARG_TOTAL_SUPPLIES => total_supplies,
         },
     )
     .build();
@@ -395,10 +398,10 @@ pub fn cep85_set_total_supply_of_batch<'a>(
 pub fn cep85_check_total_supply_of_batch(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
-    ids: &Vec<U256>,
+    ids: Vec<U256>,
 ) -> Vec<U256> {
     let check_total_supply_batch_of_args = runtime_args! {
-        ARG_IDS => *ids,
+        ARG_IDS => ids,
     };
     let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
         *DEFAULT_ACCOUNT_ADDR,
@@ -435,12 +438,12 @@ pub fn cep85_check_supply_of(
 pub fn cep85_check_supply_of_batch(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
-    accounts: &Vec<Key>,
-    ids: &Vec<U256>,
+    accounts: Vec<Key>,
+    ids: Vec<U256>,
 ) -> Vec<U256> {
     let check_supply_of_batch_args = runtime_args! {
-        ARG_ACCOUNTS => *accounts,
-        ARG_IDS => *ids,
+        ARG_ACCOUNTS => accounts,
+        ARG_IDS => ids,
     };
     let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
         *DEFAULT_ACCOUNT_ADDR,
@@ -454,43 +457,81 @@ pub fn cep85_check_supply_of_batch(
     get_test_result(builder, *contract_package_hash)
 }
 
+pub struct TransferData<'a> {
+    pub from: &'a Key,
+    pub to: &'a Key,
+    pub ids: Vec<U256>,
+    pub amounts: Vec<U256>,
+    pub data: Vec<Bytes>,
+}
+
 pub fn cep85_transfer_from<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    from: &Key,
-    to: &Key,
-    id: &U256,
-    amount: &U256,
-    data: &Vec<Bytes>,
+    transfer_data: TransferData<'a>,
+    direct_call_test_contract: Option<bool>,
 ) -> &'a mut InMemoryWasmTestBuilder {
+    let TransferData {
+        from,
+        to,
+        ids,
+        amounts,
+        data,
+    } = transfer_data;
+
     let transfer_request = match from {
         Key::Account(sender) => ExecuteRequestBuilder::contract_call_by_hash(
             *sender,
             *cep85_token,
-            ENTRY_POINT_SAFE_TRANSFER,
+            ENTRY_POINT_SAFE_TRANSFER_FROM,
             runtime_args! {
                 ARG_FROM => *from,
                 ARG_TO => *to,
-                ARG_ID => *id,
-                ARG_AMOUNT => *amount,
-                ARG_DATA => *data,
+                ARG_ID => ids[0],
+                ARG_AMOUNT => amounts[0],
+                ARG_DATA => data,
             },
         )
         .build(),
-        Key::Hash(contract_package_hash) => ExecuteRequestBuilder::versioned_contract_call_by_hash(
-            *DEFAULT_ACCOUNT_ADDR,
-            ContractPackageHash::new(*contract_package_hash),
-            None,
-            ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
-            runtime_args! {
-                ARG_FROM => *from,
-                ARG_TO => *to,
-                ARG_ID => *id,
-                ARG_AMOUNT => *amount,
-                ARG_DATA => *data,
-            },
-        )
-        .build(),
+        Key::Hash(hash) => {
+            let hash_bytes: &[u8; 32] = hash.as_slice().try_into().expect("Hash must be 32 bytes");
+            if direct_call_test_contract.is_none() {
+                if let Ok(contract_package_hash) = ContractPackageHash::try_from(*hash_bytes) {
+                    ExecuteRequestBuilder::versioned_contract_call_by_hash(
+                        *DEFAULT_ACCOUNT_ADDR,
+                        contract_package_hash,
+                        None,
+                        ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
+                        runtime_args! {
+                            ARG_FROM => *from,
+                            ARG_TO => *to,
+                            ARG_ID => ids[0],
+                            ARG_AMOUNT => amounts[0],
+                            ARG_DATA => data,
+                        },
+                    )
+                    .build()
+                } else {
+                    panic!("Unknown variant");
+                }
+            } else if let Ok(contract_hash) = ContractHash::try_from(*hash_bytes) {
+                ExecuteRequestBuilder::contract_call_by_hash(
+                    *DEFAULT_ACCOUNT_ADDR,
+                    contract_hash,
+                    ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
+                    runtime_args! {
+                        ARG_FROM => *from,
+                        ARG_TO => *to,
+                        ARG_ID => ids[0],
+                        ARG_AMOUNT => amounts[0],
+                        ARG_DATA => data,
+                    },
+                )
+                .build()
+            } else {
+                panic!("Unknown variant");
+            }
+        }
         _ => panic!("Unknown variant"),
     };
     builder.exec(transfer_request)
@@ -499,12 +540,17 @@ pub fn cep85_transfer_from<'a>(
 pub fn cep85_batch_transfer_from<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    from: &Key,
-    to: &Key,
-    ids: &Vec<U256>,
-    amounts: &Vec<U256>,
-    data: &Vec<Bytes>,
+    transfer_data: TransferData<'a>,
+    direct_call_test_contract: Option<bool>,
 ) -> &'a mut InMemoryWasmTestBuilder {
+    let TransferData {
+        from,
+        to,
+        ids,
+        amounts,
+        data,
+    } = transfer_data;
+
     let transfer_request = match from {
         Key::Account(sender) => ExecuteRequestBuilder::contract_call_by_hash(
             *sender,
@@ -513,28 +559,55 @@ pub fn cep85_batch_transfer_from<'a>(
             runtime_args! {
                 ARG_FROM => *from,
                 ARG_TO => *to,
-                ARG_IDS => *ids,
-                ARG_AMOUNTS => *amounts,
-                ARG_DATA => *data,
+                ARG_IDS => ids,
+                ARG_AMOUNTS => amounts,
+                ARG_DATA => data,
             },
         )
         .build(),
-        Key::Hash(contract_package_hash) => ExecuteRequestBuilder::versioned_contract_call_by_hash(
-            *DEFAULT_ACCOUNT_ADDR,
-            ContractPackageHash::new(*contract_package_hash),
-            None,
-            ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
-            runtime_args! {
-                ARG_FROM => *from,
-                ARG_TO => *to,
-                ARG_IDS => *ids,
-                ARG_AMOUNTS => *amounts,
-                ARG_DATA => *data,
-            },
-        )
-        .build(),
+        Key::Hash(hash) => {
+            let hash_bytes: &[u8; 32] = hash.as_slice().try_into().expect("Hash must be 32 bytes");
+
+            if direct_call_test_contract.is_none() {
+                if let Ok(contract_package_hash) = ContractPackageHash::try_from(*hash_bytes) {
+                    ExecuteRequestBuilder::versioned_contract_call_by_hash(
+                        *DEFAULT_ACCOUNT_ADDR,
+                        contract_package_hash,
+                        None,
+                        ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
+                        runtime_args! {
+                            ARG_FROM => *from,
+                            ARG_TO => *to,
+                            ARG_IDS => ids,
+                            ARG_AMOUNTS => amounts,
+                            ARG_DATA => data,
+                        },
+                    )
+                    .build()
+                } else {
+                    panic!("Unknown variant");
+                }
+            } else if let Ok(contract_hash) = ContractHash::try_from(*hash_bytes) {
+                ExecuteRequestBuilder::contract_call_by_hash(
+                    *DEFAULT_ACCOUNT_ADDR,
+                    contract_hash,
+                    ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
+                    runtime_args! {
+                        ARG_FROM => *from,
+                        ARG_TO => *to,
+                        ARG_IDS => ids,
+                        ARG_AMOUNTS => amounts,
+                        ARG_DATA => data,
+                    },
+                )
+                .build()
+            } else {
+                panic!("Unknown variant");
+            }
+        }
         _ => panic!("Unknown variant"),
     };
+
     builder.exec(transfer_request)
 }
 
@@ -589,8 +662,8 @@ pub struct SecurityLists {
 pub fn cep85_change_security<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    admin_account: &AccountHash,
-    security_lists: &SecurityLists,
+    admin_account: &'a AccountHash,
+    security_lists: SecurityLists,
 ) -> &'a mut InMemoryWasmTestBuilder {
     let SecurityLists {
         minter_list,

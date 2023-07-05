@@ -77,8 +77,8 @@ pub extern "C" fn init() {
         CONTRACT_HASH,
         get_named_arg_with_user_errors::<Key>(
             CONTRACT_HASH,
-            Cep85Error::MissingPackageHash,
-            Cep85Error::InvalidPackageHash,
+            Cep85Error::MissingContractHash,
+            Cep85Error::InvalidContractHash,
         )
         .unwrap_or_revert(),
     );

@@ -42,9 +42,9 @@ fn should_check_if_fungible() {
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
         &cep85_token,
-        minting_account,
-        id,
-        total_supply,
+        &minting_account,
+        &id,
+        &total_supply,
     );
 
     set_total_supply_of_call.expect_success().commit();
@@ -52,16 +52,16 @@ fn should_check_if_fungible() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
     let is_non_fungible =
-        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, id);
+        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id);
 
     assert!(!is_non_fungible);
 }
@@ -93,16 +93,16 @@ fn should_check_if_non_fungible() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
     let is_non_fungible =
-        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, id);
+        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id);
 
     assert!(is_non_fungible);
 }
@@ -136,9 +136,9 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
         &cep85_token,
-        minting_account,
-        id,
-        total_supply,
+        &minting_account,
+        &id,
+        &total_supply,
     );
 
     set_total_supply_of_call.expect_success().commit();
@@ -146,16 +146,16 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
     let is_non_fungible =
-        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, id);
+        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id);
 
     assert!(!is_non_fungible);
 
@@ -165,15 +165,15 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
         &cep85_token,
-        minting_account,
-        id,
-        total_supply,
+        &minting_account,
+        &id,
+        &total_supply,
     );
 
     set_total_supply_of_call.expect_success().commit();
 
     let is_now_non_fungible =
-        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, id);
+        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id);
 
     assert!(is_now_non_fungible);
 }
@@ -207,9 +207,9 @@ fn should_get_total_fungible_supply() {
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
         &cep85_token,
-        minting_account,
-        id,
-        total_supply,
+        &minting_account,
+        &id,
+        &total_supply,
     );
 
     set_total_supply_of_call.expect_success().commit();
@@ -217,16 +217,16 @@ fn should_get_total_fungible_supply() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
     let fungible_supply =
-        cep85_check_total_fungible_supply(&mut builder, &cep85_test_contract_package, id);
+        cep85_check_total_fungible_supply(&mut builder, &cep85_test_contract_package, &id);
 
     // Fungible supply should be 6
     let expected_fungible_supply = total_supply - mint_amount;

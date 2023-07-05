@@ -45,10 +45,10 @@ fn should_burn_by_owner() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -61,10 +61,10 @@ fn should_burn_by_owner() {
     let failing_burn_call = cep85_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
-        id,
-        burn_amount,
+        &burning_account,
+        &owner,
+        &id,
+        &burn_amount,
     );
     failing_burn_call.expect_failure();
 
@@ -81,10 +81,10 @@ fn should_burn_by_owner() {
     let burn_call = cep85_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
-        id,
-        burn_amount,
+        &burning_account,
+        &owner,
+        &id,
+        &burn_amount,
     );
     burn_call.expect_success().commit();
 }
@@ -118,8 +118,8 @@ fn should_batch_burn_by_owner() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
+        &minting_account,
+        &recipient,
         ids.clone(),
         amounts.clone(),
     );
@@ -132,8 +132,8 @@ fn should_batch_burn_by_owner() {
     let failing_burn_call = cep85_batch_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
+        &burning_account,
+        &owner,
         ids.clone(),
         amounts.clone(),
     );
@@ -153,8 +153,8 @@ fn should_batch_burn_by_owner() {
     let burn_call = cep85_batch_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
+        &burning_account,
+        &owner,
         ids,
         amounts,
     );
@@ -191,10 +191,10 @@ fn should_not_burn_above_balance() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -209,10 +209,10 @@ fn should_not_burn_above_balance() {
     let failing_burn_call = cep85_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
-        id,
-        burn_amount,
+        &burning_account,
+        &owner,
+        &id,
+        &burn_amount,
     );
     failing_burn_call.expect_failure();
 
@@ -229,10 +229,10 @@ fn should_not_burn_above_balance() {
     let burn_call = cep85_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
-        id,
-        burn_amount,
+        &burning_account,
+        &owner,
+        &id,
+        &burn_amount,
     );
     burn_call.expect_success().commit();
 }
@@ -267,8 +267,8 @@ fn should_not_batch_burn_above_balance() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
+        &minting_account,
+        &recipient,
         ids.clone(),
         amounts,
     );
@@ -284,8 +284,8 @@ fn should_not_batch_burn_above_balance() {
     let failing_batch_burn_call = cep85_batch_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
+        &burning_account,
+        &owner,
         ids.clone(),
         burn_amounts,
     );
@@ -305,8 +305,8 @@ fn should_not_batch_burn_above_balance() {
     let batch_burn_call = cep85_batch_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
+        &burning_account,
+        &owner,
         ids,
         burn_amounts,
     );

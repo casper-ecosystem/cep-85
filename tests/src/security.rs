@@ -49,10 +49,10 @@ fn should_test_security_no_rights() {
     let failing_mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     // minting account is not in minter nor admin list
@@ -71,10 +71,10 @@ fn should_test_security_no_rights() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     // default address is in admin list by default
@@ -87,10 +87,10 @@ fn should_test_security_no_rights() {
     let failing_burn_call = cep85_burn(
         &mut builder,
         &cep85_token,
-        bunrning_account,
-        owner,
-        id,
-        mint_amount,
+        &bunrning_account,
+        &owner,
+        &id,
+        &mint_amount,
     );
 
     failing_burn_call.expect_failure();
@@ -141,10 +141,10 @@ fn should_test_security_meta_rights() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -156,14 +156,14 @@ fn should_test_security_meta_rights() {
     let failing_meta_call = cep85_set_uri(
         &mut builder,
         &cep85_token,
-        updating_account,
+        &updating_account,
         new_uri,
-        Some(id),
+        &Some(id),
     );
 
     failing_meta_call.expect_failure();
 
-    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, Some(id));
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, &Some(id));
 
     assert_eq!(actual_uri, replace_token_id_in_uri(TOKEN_URI, &id));
 
@@ -173,14 +173,14 @@ fn should_test_security_meta_rights() {
     let meta_call = cep85_set_uri(
         &mut builder,
         &cep85_token,
-        updating_account,
+        &updating_account,
         new_uri,
-        Some(id),
+        &Some(id),
     );
 
     meta_call.expect_success().commit();
 
-    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, Some(id));
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, &Some(id));
 
     assert_eq!(actual_uri, replace_token_id_in_uri(TOKEN_URI_TEST, &id));
 
@@ -190,13 +190,13 @@ fn should_test_security_meta_rights() {
     let meta_call = cep85_set_uri(
         &mut builder,
         &cep85_token,
-        updating_account,
+        &updating_account,
         TOKEN_URI,
-        None,
+        &None,
     );
     meta_call.expect_success().commit();
 
-    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, None);
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, &None);
 
     assert_eq!(actual_uri, TOKEN_URI);
 }
@@ -238,10 +238,10 @@ fn should_test_security_minter_rights() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -253,10 +253,10 @@ fn should_test_security_minter_rights() {
     let failing_mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     failing_mint_call.expect_failure();
@@ -309,9 +309,9 @@ fn should_test_security_burner_rights() {
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
         &cep85_token,
-        minting_account,
-        id,
-        total_supply,
+        &minting_account,
+        &id,
+        &total_supply,
     );
 
     set_total_supply_of_call.expect_success().commit();
@@ -319,10 +319,10 @@ fn should_test_security_burner_rights() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -336,10 +336,10 @@ fn should_test_security_burner_rights() {
     let failing_burn_call = cep85_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
-        id,
-        burn_amount,
+        &burning_account,
+        &owner,
+        &id,
+        &burn_amount,
     );
 
     failing_burn_call.expect_failure();
@@ -358,10 +358,10 @@ fn should_test_security_burner_rights() {
     let burn_call = cep85_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
-        id,
-        burn_amount,
+        &burning_account,
+        &owner,
+        &id,
+        &burn_amount,
     );
     burn_call.expect_success().commit();
 
@@ -372,10 +372,10 @@ fn should_test_security_burner_rights() {
     let burn_call = cep85_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
-        id,
-        burn_amount,
+        &burning_account,
+        &owner,
+        &id,
+        &burn_amount,
     );
     burn_call.expect_success().commit();
 }
@@ -414,9 +414,9 @@ fn should_test_change_security() {
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
         &cep85_token,
-        minting_account,
-        id,
-        total_supply,
+        &minting_account,
+        &id,
+        &total_supply,
     );
 
     set_total_supply_of_call.expect_success().commit();
@@ -424,10 +424,10 @@ fn should_test_change_security() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     // account_user_1 is in admin list
@@ -446,17 +446,17 @@ fn should_test_change_security() {
     };
 
     let change_security =
-        cep85_change_security(&mut builder, &cep85_token, account_user_1, security_lists);
+        cep85_change_security(&mut builder, &cep85_token, &account_user_1, security_lists);
 
     change_security.expect_success().commit();
 
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     // account_user_2 is in minter list
@@ -471,17 +471,17 @@ fn should_test_change_security() {
     };
 
     let change_security =
-        cep85_change_security(&mut builder, &cep85_token, account_user_1, security_lists);
+        cep85_change_security(&mut builder, &cep85_token, &account_user_1, security_lists);
 
     change_security.expect_success().commit();
 
     let failing_mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     // minting account is in none list now, so the same mint request should fail

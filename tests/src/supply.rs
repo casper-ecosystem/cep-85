@@ -43,15 +43,15 @@ fn should_set_total_supply_of_id() {
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
         &cep85_token,
-        minting_account,
-        id,
-        total_supply,
+        &minting_account,
+        &id,
+        &total_supply,
     );
 
     set_total_supply_of_call.expect_success().commit();
 
     let actual_total_supply =
-        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, id);
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
 
     assert_eq!(actual_total_supply, total_supply);
 }
@@ -85,25 +85,25 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
         &cep85_token,
-        minting_account,
-        id,
-        total_supply,
+        &minting_account,
+        &id,
+        &total_supply,
     );
 
     set_total_supply_of_call.expect_success().commit();
 
     let actual_total_supply =
-        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, id);
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
 
     assert_eq!(actual_total_supply, total_supply);
 
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -113,9 +113,9 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
     let failing_set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
         &cep85_token,
-        minting_account,
-        id,
-        new_total_supply,
+        &minting_account,
+        &id,
+        &new_total_supply,
     );
 
     failing_set_total_supply_of_call.expect_failure();
@@ -129,7 +129,7 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
     );
 
     let actual_total_supply =
-        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, id);
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
 
     assert_eq!(actual_total_supply, total_supply);
 }
@@ -160,7 +160,7 @@ fn should_set_total_supply_batch_for_ids() {
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         total_supplies.clone(),
     );
@@ -204,7 +204,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         total_supplies.clone(),
     );
@@ -216,8 +216,8 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
     let batch_mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
+        &minting_account,
+        &minting_recipient,
         ids.clone(),
         amounts,
     );
@@ -233,7 +233,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
     let failing_set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         new_total_supplies,
     );
@@ -283,9 +283,9 @@ fn should_get_supply_of_id() {
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
         &cep85_token,
-        minting_account,
-        id,
-        total_supply,
+        &minting_account,
+        &id,
+        &total_supply,
     );
 
     set_total_supply_of_call.expect_success().commit();
@@ -293,15 +293,15 @@ fn should_get_supply_of_id() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
-    let actual_supply = cep85_check_supply_of(&mut builder, &cep85_test_contract_package, id);
+    let actual_supply = cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id);
 
     assert_eq!(actual_supply, mint_amount);
 }
@@ -335,20 +335,22 @@ fn should_get_supply_of_batch_for_ids() {
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         total_supplies,
     );
     set_total_supply_of_batch_call.expect_success().commit();
 
+    let mint_amounts = vec![mint_amount; ids.len()];
+
     // Mint tokens for each ID using batch function
     let batch_mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
+        &minting_account,
+        &recipient,
         ids.clone(),
-        vec![mint_amount; ids.len()],
+        mint_amounts,
     );
 
     batch_mint_call.expect_success().commit();
@@ -374,8 +376,8 @@ fn should_get_supply_of_batch_for_ids() {
     let batch_burn_call = cep85_batch_burn(
         &mut builder,
         &cep85_token,
-        burning_account,
-        owner,
+        &burning_account,
+        &owner,
         ids.clone(),
         vec![mint_amount; ids.len()],
     );

@@ -40,10 +40,10 @@ fn should_set_global_uri() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -53,10 +53,16 @@ fn should_set_global_uri() {
     // default address is in admin list, request should succeed
     let updating_account = *DEFAULT_ACCOUNT_ADDR;
 
-    let meta_call = cep85_set_uri(&mut builder, &cep85_token, updating_account, new_uri, None);
+    let meta_call = cep85_set_uri(
+        &mut builder,
+        &cep85_token,
+        &updating_account,
+        new_uri,
+        &None,
+    );
     meta_call.expect_success().commit();
 
-    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, None);
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, &None);
 
     assert_eq!(actual_uri, TOKEN_URI_TEST);
 }
@@ -88,10 +94,10 @@ fn should_set_uri_for_id() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -104,14 +110,14 @@ fn should_set_uri_for_id() {
     let meta_call = cep85_set_uri(
         &mut builder,
         &cep85_token,
-        updating_account,
+        &updating_account,
         new_uri,
-        Some(id),
+        &Some(id),
     );
 
     meta_call.expect_success().commit();
 
-    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, Some(id));
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, &Some(id));
 
     assert_eq!(actual_uri, replace_token_id_in_uri(TOKEN_URI_TEST, &id));
 }

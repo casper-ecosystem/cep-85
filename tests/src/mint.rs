@@ -43,16 +43,16 @@ fn should_mint() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
     let actual_balance =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, recipient, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &recipient, &id);
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -87,8 +87,8 @@ fn should_batch_mint() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
+        &minting_account,
+        &recipient,
         ids.clone(),
         amounts,
     );
@@ -134,10 +134,10 @@ fn should_not_mint_above_total_supply() {
     let failing_mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     failing_mint_call.expect_failure();
@@ -155,9 +155,9 @@ fn should_not_mint_above_total_supply() {
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
         &cep85_token,
-        minting_account,
-        id,
-        total_supply,
+        &minting_account,
+        &id,
+        &total_supply,
     );
 
     set_total_supply_of_call.expect_success().commit();
@@ -165,16 +165,16 @@ fn should_not_mint_above_total_supply() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
     let actual_balance =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, recipient, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &recipient, &id);
     let expected_balance = total_supply;
 
     assert_eq!(actual_balance, expected_balance);
@@ -211,8 +211,8 @@ fn should_not_batch_mint_above_total_supply() {
     let failing_mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
+        &minting_account,
+        &recipient,
         ids.clone(),
         amounts.clone(),
     );
@@ -232,7 +232,7 @@ fn should_not_batch_mint_above_total_supply() {
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         total_supplies.clone(),
     );
@@ -242,8 +242,8 @@ fn should_not_batch_mint_above_total_supply() {
     let batch_mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
+        &minting_account,
+        &recipient,
         ids.clone(),
         amounts,
     );

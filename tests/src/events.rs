@@ -108,16 +108,16 @@ fn should_record_events_in_events_mode() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
     let actual_balance =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, recipient, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &recipient, &id);
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -162,16 +162,16 @@ fn should_not_record_events_in_no_events_mode() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
     let actual_balance =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, recipient, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &recipient, &id);
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);

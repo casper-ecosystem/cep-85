@@ -42,16 +42,16 @@ fn should_check_balance_of() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
     let actual_balance =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, recipient, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &recipient, &id);
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -87,8 +87,8 @@ fn should_check_balance_of_batch() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient_user_1,
+        &minting_account,
+        &recipient_user_1,
         ids.clone(),
         amounts,
     );
@@ -136,8 +136,8 @@ fn should_error_on_balance_of_batch_args_len_difference() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        recipient,
+        &minting_account,
+        &recipient,
         ids.clone(),
         amounts,
     );

@@ -11,7 +11,7 @@ use crate::utility::{
     installer_request_builders::{
         cep85_batch_mint, cep85_batch_transfer_from, cep85_check_balance_of,
         cep85_check_balance_of_batch, cep85_mint, cep85_set_total_supply_of_batch,
-        cep85_transfer_from, setup_with_args, TestContext,
+        cep85_transfer_from, setup_with_args, TestContext, TransferData,
     },
     support::assert_expected_error,
 };
@@ -44,10 +44,10 @@ fn should_transfer_full_owned_amount() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -55,8 +55,8 @@ fn should_transfer_full_owned_amount() {
     let actual_balance_before = cep85_check_balance_of(
         &mut builder,
         &cep85_test_contract_package,
-        minting_recipient,
-        id,
+        &minting_recipient,
+        &id,
     );
     let expected_balance_before = U256::one();
 
@@ -70,21 +70,25 @@ fn should_transfer_full_owned_amount() {
     let transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        id,
-        transfer_amount,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+        None,
     );
     transfer_call.expect_success().commit();
 
     let actual_balance_after =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, from, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
     let expected_balance_after = U256::zero();
 
     assert_eq!(actual_balance_after, expected_balance_after);
 
-    let actual_balance = cep85_check_balance_of(&mut builder, &cep85_test_contract_package, to, id);
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -125,7 +129,7 @@ fn should_batch_transfer_full_owned_amount() {
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         total_supplies,
     );
@@ -135,8 +139,8 @@ fn should_batch_transfer_full_owned_amount() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
+        &minting_account,
+        &minting_recipient,
         ids.clone(),
         amounts.clone(),
     );
@@ -155,11 +159,14 @@ fn should_batch_transfer_full_owned_amount() {
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        ids.clone(),
-        amounts,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts,
+            data,
+        },
+        None,
     );
     transfer_call.expect_success().commit();
 
@@ -201,10 +208,10 @@ fn should_not_transfer_more_than_owned_balance() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -212,8 +219,8 @@ fn should_not_transfer_more_than_owned_balance() {
     let actual_balance_before = cep85_check_balance_of(
         &mut builder,
         &cep85_test_contract_package,
-        minting_recipient,
-        id,
+        &minting_recipient,
+        &id,
     );
     let expected_balance_before = U256::one();
 
@@ -227,11 +234,14 @@ fn should_not_transfer_more_than_owned_balance() {
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        id,
-        transfer_amount,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+        None,
     );
     failing_transfer_call.expect_failure();
 
@@ -244,12 +254,13 @@ fn should_not_transfer_more_than_owned_balance() {
     );
 
     let actual_balance_after =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, from, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
     let expected_balance_after = U256::one();
 
     assert_eq!(actual_balance_after, expected_balance_after);
 
-    let actual_balance = cep85_check_balance_of(&mut builder, &cep85_test_contract_package, to, id);
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
     let expected_balance = U256::zero();
 
     assert_eq!(actual_balance, expected_balance);
@@ -290,7 +301,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         total_supplies,
     );
@@ -300,8 +311,8 @@ fn should_not_batch_transfer_more_than_owned_balance() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
+        &minting_account,
+        &minting_recipient,
         ids.clone(),
         mint_amounts,
     );
@@ -320,11 +331,14 @@ fn should_not_batch_transfer_more_than_owned_balance() {
     let failing_transfer_call = cep85_batch_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        ids.clone(),
-        transfer_amounts,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts: transfer_amounts,
+            data,
+        },
+        None,
     );
 
     failing_transfer_call.expect_failure();
@@ -374,10 +388,10 @@ fn should_not_be_able_to_own_transfer() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -385,8 +399,8 @@ fn should_not_be_able_to_own_transfer() {
     let actual_balance_before = cep85_check_balance_of(
         &mut builder,
         &cep85_test_contract_package,
-        minting_recipient,
-        id,
+        &minting_recipient,
+        &id,
     );
     let expected_balance_before = U256::one();
 
@@ -402,12 +416,16 @@ fn should_not_be_able_to_own_transfer() {
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        id,
-        transfer_amount,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+        None,
     );
+
     failing_transfer_call.expect_failure();
 
     let error = builder.get_error().expect("must have error");
@@ -419,12 +437,13 @@ fn should_not_be_able_to_own_transfer() {
     );
 
     let actual_balance_after =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, from, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
     let expected_balance_after = U256::one();
 
     assert_eq!(actual_balance_after, expected_balance_after);
 
-    let actual_balance = cep85_check_balance_of(&mut builder, &cep85_test_contract_package, to, id);
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -465,7 +484,7 @@ fn should_not_be_able_to_own_batch_transfer() {
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         total_supplies,
     );
@@ -475,8 +494,8 @@ fn should_not_be_able_to_own_batch_transfer() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
+        &minting_account,
+        &minting_recipient,
         ids.clone(),
         mint_amounts,
     );
@@ -495,11 +514,14 @@ fn should_not_be_able_to_own_batch_transfer() {
     let failing_transfer_call = cep85_batch_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        ids.clone(),
-        transfer_amounts,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts: transfer_amounts,
+            data,
+        },
+        None,
     );
 
     failing_transfer_call.expect_failure();
@@ -550,10 +572,10 @@ fn should_verify_zero_amount_transfer_is_noop() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -561,8 +583,8 @@ fn should_verify_zero_amount_transfer_is_noop() {
     let actual_balance_before = cep85_check_balance_of(
         &mut builder,
         &cep85_test_contract_package,
-        minting_recipient,
-        id,
+        &minting_recipient,
+        &id,
     );
     let expected_balance_before = U256::one();
 
@@ -576,12 +598,16 @@ fn should_verify_zero_amount_transfer_is_noop() {
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        id,
-        transfer_amount,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+        None,
     );
+
     failing_transfer_call.expect_failure();
 
     let error = builder.get_error().expect("must have error");
@@ -593,12 +619,13 @@ fn should_verify_zero_amount_transfer_is_noop() {
     );
 
     let actual_balance_after =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, from, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
     let expected_balance_after = U256::one();
 
     assert_eq!(actual_balance_after, expected_balance_after);
 
-    let actual_balance = cep85_check_balance_of(&mut builder, &cep85_test_contract_package, to, id);
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
     let expected_balance = U256::zero();
 
     assert_eq!(actual_balance, expected_balance);
@@ -639,7 +666,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         total_supplies,
     );
@@ -649,8 +676,8 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
+        &minting_account,
+        &minting_recipient,
         ids.clone(),
         mint_amounts,
     );
@@ -669,11 +696,14 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
     let failing_transfer_call = cep85_batch_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        ids.clone(),
-        transfer_amounts,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts: transfer_amounts,
+            data,
+        },
+        None,
     );
 
     failing_transfer_call.expect_failure();
@@ -728,10 +758,10 @@ fn should_transfer_account_to_account() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -739,8 +769,8 @@ fn should_transfer_account_to_account() {
     let actual_balance_before = cep85_check_balance_of(
         &mut builder,
         &cep85_test_contract_package,
-        minting_recipient,
-        id,
+        &minting_recipient,
+        &id,
     );
     let expected_balance_before = U256::one();
 
@@ -749,21 +779,25 @@ fn should_transfer_account_to_account() {
     let transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        id,
-        transfer_amount,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+        None,
     );
     transfer_call.expect_success().commit();
 
     let actual_balance_after =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, from, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
     let expected_balance_after = U256::zero();
 
     assert_eq!(actual_balance_after, expected_balance_after);
 
-    let actual_balance = cep85_check_balance_of(&mut builder, &cep85_test_contract_package, to, id);
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -804,7 +838,7 @@ fn should_batch_transfer_account_to_account() {
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         total_supplies,
     );
@@ -814,8 +848,8 @@ fn should_batch_transfer_account_to_account() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
+        &minting_account,
+        &minting_recipient,
         ids.clone(),
         amounts.clone(),
     );
@@ -834,11 +868,14 @@ fn should_batch_transfer_account_to_account() {
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        ids.clone(),
-        amounts,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts,
+            data,
+        },
+        None,
     );
     transfer_call.expect_success().commit();
 
@@ -884,10 +921,10 @@ fn should_transfer_account_to_contract_package() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -895,8 +932,8 @@ fn should_transfer_account_to_contract_package() {
     let actual_balance_before = cep85_check_balance_of(
         &mut builder,
         &cep85_test_contract_package,
-        minting_recipient,
-        id,
+        &minting_recipient,
+        &id,
     );
     let expected_balance_before = U256::one();
 
@@ -905,21 +942,25 @@ fn should_transfer_account_to_contract_package() {
     let transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        id,
-        transfer_amount,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+        None,
     );
     transfer_call.expect_success().commit();
 
     let actual_balance_after =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, from, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
     let expected_balance_after = U256::zero();
 
     assert_eq!(actual_balance_after, expected_balance_after);
 
-    let actual_balance = cep85_check_balance_of(&mut builder, &cep85_test_contract_package, to, id);
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -960,7 +1001,7 @@ fn should_batch_transfer_account_to_contract_package() {
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         total_supplies,
     );
@@ -970,8 +1011,8 @@ fn should_batch_transfer_account_to_contract_package() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
+        &minting_account,
+        &minting_recipient,
         ids.clone(),
         amounts.clone(),
     );
@@ -990,11 +1031,14 @@ fn should_batch_transfer_account_to_contract_package() {
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        ids.clone(),
-        amounts,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts,
+            data,
+        },
+        None,
     );
     transfer_call.expect_success().commit();
 
@@ -1039,10 +1083,10 @@ fn should_transfer_contract_package_to_contract() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
@@ -1050,8 +1094,8 @@ fn should_transfer_contract_package_to_contract() {
     let actual_balance_before = cep85_check_balance_of(
         &mut builder,
         &cep85_test_contract_package,
-        minting_recipient,
-        id,
+        &minting_recipient,
+        &id,
     );
     let expected_balance_before = U256::one();
 
@@ -1060,21 +1104,25 @@ fn should_transfer_contract_package_to_contract() {
     let transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        id,
-        transfer_amount,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+        None,
     );
     transfer_call.expect_success().commit();
 
     let actual_balance_after =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, from, id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
     let expected_balance_after = U256::zero();
 
     assert_eq!(actual_balance_after, expected_balance_after);
 
-    let actual_balance = cep85_check_balance_of(&mut builder, &cep85_test_contract_package, to, id);
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -1114,7 +1162,7 @@ fn should_batch_transfer_contract_package_to_contract() {
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
         &cep85_token,
-        minting_account,
+        &minting_account,
         ids.clone(),
         total_supplies,
     );
@@ -1124,8 +1172,8 @@ fn should_batch_transfer_contract_package_to_contract() {
     let mint_call = cep85_batch_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
+        &minting_account,
+        &minting_recipient,
         ids.clone(),
         amounts.clone(),
     );
@@ -1144,11 +1192,14 @@ fn should_batch_transfer_contract_package_to_contract() {
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        ids.clone(),
-        amounts,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts,
+            data,
+        },
+        None,
     );
     transfer_call.expect_success().commit();
 
@@ -1169,6 +1220,7 @@ fn should_transfer_account_to_contract() {
         TestContext {
             cep85_token,
             cep85_test_contract,
+            cep85_test_contract_package,
             test_accounts,
             ..
         },
@@ -1194,16 +1246,20 @@ fn should_transfer_account_to_contract() {
     let mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
-        minting_account,
-        minting_recipient,
-        id,
-        mint_amount,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
-    let actual_balance_before =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract, minting_recipient, id);
+    let actual_balance_before = cep85_check_balance_of(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_recipient,
+        &id,
+    );
     let expected_balance_before = U256::one();
 
     assert_eq!(actual_balance_before, expected_balance_before);
@@ -1211,21 +1267,276 @@ fn should_transfer_account_to_contract() {
     let transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
-        from,
-        to,
-        id,
-        transfer_amount,
-        data,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+        None,
     );
     transfer_call.expect_success().commit();
 
-    let actual_balance_after = cep85_check_balance_of(&mut builder, &cep85_test_contract, from, id);
+    let actual_balance_after =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
     let expected_balance_after = U256::zero();
 
     assert_eq!(actual_balance_after, expected_balance_after);
 
-    let actual_balance = cep85_check_balance_of(&mut builder, &cep85_test_contract, to, id);
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
+}
+
+#[test]
+fn should_batch_transfer_account_to_contract_() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            test_accounts,
+            ..
+        },
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_NAME => TOKEN_NAME,
+            ARG_URI => TOKEN_URI,
+            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_ENABLE_MINT_BURN => true
+        },
+        None,
+    );
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let from = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient = from;
+    let to = Key::Hash(cep85_test_contract.value());
+    let data: Vec<Bytes> = vec![];
+    let recipients = vec![from, from, to, to];
+    let expected_balance_before: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+
+    let total_supplies = amounts.clone();
+    let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        ids.clone(),
+        total_supplies,
+    );
+
+    set_total_supply_of_batch_call.expect_success().commit();
+
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        ids.clone(),
+        amounts.clone(),
+    );
+
+    mint_call.expect_success().commit();
+
+    let actual_balances_before = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        recipients.clone(),
+        vec![ids.clone(); 2_usize].into_iter().flatten().collect(),
+    );
+
+    assert_eq!(actual_balances_before, expected_balance_before);
+
+    let transfer_call = cep85_batch_transfer_from(
+        &mut builder,
+        &cep85_token,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts,
+            data,
+        },
+        None,
+    );
+    transfer_call.expect_success().commit();
+
+    let actual_balances_after = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        recipients,
+        vec![ids; 2_usize].into_iter().flatten().collect(),
+    );
+
+    assert_eq!(actual_balances_after, expected_balance_after);
+}
+
+#[test]
+fn should_transfer_contract_to_contract() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_NAME => TOKEN_NAME,
+            ARG_URI => TOKEN_URI,
+            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_ENABLE_MINT_BURN => true
+        },
+        None,
+    );
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let from = Key::Hash(cep85_test_contract.value());
+    let minting_recipient = from;
+    let to = Key::Hash([42; 32]);
+    let mint_amount = U256::one();
+    let id = U256::one();
+    let transfer_amount = U256::one();
+    let data: Vec<Bytes> = vec![];
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+    );
+
+    mint_call.expect_success().commit();
+
+    let actual_balance_before = cep85_check_balance_of(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_recipient,
+        &id,
+    );
+    let expected_balance_before = U256::one();
+
+    assert_eq!(actual_balance_before, expected_balance_before);
+
+    let transfer_call = cep85_transfer_from(
+        &mut builder,
+        &cep85_token,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+        Some(true),
+    );
+    transfer_call.expect_success().commit();
+
+    let actual_balance_after =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+    let expected_balance_after = U256::zero();
+
+    assert_eq!(actual_balance_after, expected_balance_after);
+
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+    let expected_balance = U256::one();
+
+    assert_eq!(actual_balance, expected_balance);
+}
+
+#[test]
+fn should_batch_transfer_contract_to_contract() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_NAME => TOKEN_NAME,
+            ARG_URI => TOKEN_URI,
+            ARG_EVENTS_MODE => EventsMode::CES as u8,
+            ARG_ENABLE_MINT_BURN => true
+        },
+        None,
+    );
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let from = Key::Hash(cep85_test_contract.value());
+    let minting_recipient = from;
+    let to = Key::Hash([42; 32]);
+    let data: Vec<Bytes> = vec![];
+    let recipients = vec![from, from, to, to];
+    let expected_balance_before: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+
+    let total_supplies = amounts.clone();
+    let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        ids.clone(),
+        total_supplies,
+    );
+
+    set_total_supply_of_batch_call.expect_success().commit();
+
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        ids.clone(),
+        amounts.clone(),
+    );
+
+    mint_call.expect_success().commit();
+
+    let actual_balances_before = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        recipients.clone(),
+        vec![ids.clone(); 2_usize].into_iter().flatten().collect(),
+    );
+
+    assert_eq!(actual_balances_before, expected_balance_before);
+
+    let transfer_call = cep85_batch_transfer_from(
+        &mut builder,
+        &cep85_token,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts,
+            data,
+        },
+        Some(true),
+    );
+    transfer_call.expect_success().commit();
+
+    let actual_balances_after = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        recipients,
+        vec![ids; 2_usize].into_iter().flatten().collect(),
+    );
+
+    assert_eq!(actual_balances_after, expected_balance_after);
 }
