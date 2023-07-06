@@ -30,3 +30,6 @@ mod transfer;
 
 #[cfg(test)]
 mod fungible;
+
+#[cfg(test)]
+mod filter;

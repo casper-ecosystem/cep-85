@@ -1,12 +1,13 @@
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{Key, U256};
-use cep85::error::Cep85Error;
+use casper_types::{runtime_args, Key, RuntimeArgs, U256};
+use cep85::{constants::ARG_ENABLE_BURN, error::Cep85Error};
 
 use crate::utility::{
     installer_request_builders::{
         cep85_batch_burn, cep85_batch_mint, cep85_check_supply_of, cep85_check_supply_of_batch,
         cep85_check_total_supply_of, cep85_check_total_supply_of_batch, cep85_mint,
-        cep85_set_total_supply_of, cep85_set_total_supply_of_batch, setup, TestContext,
+        cep85_set_total_supply_of, cep85_set_total_supply_of_batch, setup, setup_with_args,
+        TestContext,
     },
     support::assert_expected_error,
 };
@@ -270,8 +271,12 @@ fn should_get_supply_of_batch_for_ids() {
             cep85_test_contract_package,
             ..
         },
-    ) = setup();
-
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_ENABLE_BURN => true,
+        },
+        None,
+    );
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let ids = vec![U256::one(), U256::from(2)];
     let recipient: Key = minting_account.into();

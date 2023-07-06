@@ -1,5 +1,5 @@
 use crate::{
-    constants::{TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD},
+    constants::{ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD},
     error::Cep85Error,
 };
 use alloc::{
@@ -169,7 +169,7 @@ pub fn set_dictionary_value_for_key<T: CLTyped + ToBytes + Copy>(
 
 pub fn get_transfer_filter_contract() -> Option<ContractHash> {
     get_stored_value_with_user_errors(
-        TRANSFER_FILTER_CONTRACT,
+        ARG_TRANSFER_FILTER_CONTRACT,
         Cep85Error::MissingTransferFilterContract,
         Cep85Error::InvalidTransferFilterContract,
     )
@@ -177,7 +177,7 @@ pub fn get_transfer_filter_contract() -> Option<ContractHash> {
 
 pub fn get_transfer_filter_method() -> Option<String> {
     get_stored_value_with_user_errors(
-        TRANSFER_FILTER_METHOD,
+        ARG_TRANSFER_FILTER_METHOD,
         Cep85Error::MissingTransferFilterMethod,
         Cep85Error::InvalidTransferFilterMethod,
     )

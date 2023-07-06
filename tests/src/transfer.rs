@@ -69,17 +69,17 @@ fn should_transfer_full_owned_amount() {
     );
     transfer_call.expect_success().commit();
 
-    let actual_balance_after =
+    let actual_balance_from =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
-    let expected_balance_after = U256::zero();
+    let expected_balance_from = U256::zero();
 
-    assert_eq!(actual_balance_after, expected_balance_after);
+    assert_eq!(actual_balance_from, expected_balance_from);
 
-    let actual_balance =
+    let actual_balance_to =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
-    let expected_balance = U256::one();
+    let expected_balance_to = U256::one();
 
-    assert_eq!(actual_balance, expected_balance);
+    assert_eq!(actual_balance_to, expected_balance_to);
 }
 
 #[test]
@@ -225,17 +225,17 @@ fn should_not_transfer_more_than_owned_balance() {
         "should not allow to transfer above balance",
     );
 
-    let actual_balance_after =
+    let actual_balance_from =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
-    let expected_balance_after = U256::one();
+    let expected_balance_from = U256::one();
 
-    assert_eq!(actual_balance_after, expected_balance_after);
+    assert_eq!(actual_balance_from, expected_balance_from);
 
-    let actual_balance =
+    let actual_balance_to =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
-    let expected_balance = U256::zero();
+    let expected_balance_to = U256::zero();
 
-    assert_eq!(actual_balance, expected_balance);
+    assert_eq!(actual_balance_to, expected_balance_to);
 }
 
 #[test]
@@ -392,17 +392,17 @@ fn should_not_be_able_to_own_transfer() {
         "should not allow to self transfer",
     );
 
-    let actual_balance_after =
+    let actual_balance_from =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
-    let expected_balance_after = U256::one();
+    let expected_balance_from = U256::one();
 
-    assert_eq!(actual_balance_after, expected_balance_after);
+    assert_eq!(actual_balance_from, expected_balance_from);
 
-    let actual_balance =
+    let actual_balance_to =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
-    let expected_balance = U256::one();
+    let expected_balance_to = U256::one();
 
-    assert_eq!(actual_balance, expected_balance);
+    assert_eq!(actual_balance_to, expected_balance_to);
 }
 
 #[test]
@@ -558,11 +558,11 @@ fn should_verify_zero_amount_transfer_is_noop() {
         "should not allow to transfer 0 amount",
     );
 
-    let actual_balance_after =
+    let actual_balance_from =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
-    let expected_balance_after = U256::one();
+    let expected_balance_from = U256::one();
 
-    assert_eq!(actual_balance_after, expected_balance_after);
+    assert_eq!(actual_balance_from, expected_balance_from);
 
     let actual_balance =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
@@ -714,17 +714,17 @@ fn should_transfer_account_to_account() {
     );
     transfer_call.expect_success().commit();
 
-    let actual_balance_after =
+    let actual_balance_from =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
-    let expected_balance_after = U256::zero();
+    let expected_balance_from = U256::zero();
 
-    assert_eq!(actual_balance_after, expected_balance_after);
+    assert_eq!(actual_balance_from, expected_balance_from);
 
-    let actual_balance =
+    let actual_balance_to =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
-    let expected_balance = U256::one();
+    let expected_balance_to = U256::one();
 
-    assert_eq!(actual_balance, expected_balance);
+    assert_eq!(actual_balance_to, expected_balance_to);
 }
 
 #[test]
@@ -861,17 +861,17 @@ fn should_transfer_account_to_contract_package() {
     );
     transfer_call.expect_success().commit();
 
-    let actual_balance_after =
+    let actual_balance_from =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
-    let expected_balance_after = U256::zero();
+    let expected_balance_from = U256::zero();
 
-    assert_eq!(actual_balance_after, expected_balance_after);
+    assert_eq!(actual_balance_from, expected_balance_from);
 
-    let actual_balance =
+    let actual_balance_to =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
-    let expected_balance = U256::one();
+    let expected_balance_to = U256::one();
 
-    assert_eq!(actual_balance, expected_balance);
+    assert_eq!(actual_balance_to, expected_balance_to);
 }
 
 #[test]
@@ -1007,17 +1007,17 @@ fn should_transfer_contract_package_to_contract() {
     );
     transfer_call.expect_success().commit();
 
-    let actual_balance_after =
+    let actual_balance_from =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
-    let expected_balance_after = U256::zero();
+    let expected_balance_from = U256::zero();
 
-    assert_eq!(actual_balance_after, expected_balance_after);
+    assert_eq!(actual_balance_from, expected_balance_from);
 
-    let actual_balance =
+    let actual_balance_to =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
-    let expected_balance = U256::one();
+    let expected_balance_to = U256::one();
 
-    assert_eq!(actual_balance, expected_balance);
+    assert_eq!(actual_balance_to, expected_balance_to);
 }
 
 #[test]
@@ -1154,17 +1154,17 @@ fn should_transfer_account_to_contract() {
     );
     transfer_call.expect_success().commit();
 
-    let actual_balance_after =
+    let actual_balance_from =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
-    let expected_balance_after = U256::zero();
+    let expected_balance_from = U256::zero();
 
-    assert_eq!(actual_balance_after, expected_balance_after);
+    assert_eq!(actual_balance_from, expected_balance_from);
 
-    let actual_balance =
+    let actual_balance_to =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
-    let expected_balance = U256::one();
+    let expected_balance_to = U256::one();
 
-    assert_eq!(actual_balance, expected_balance);
+    assert_eq!(actual_balance_to, expected_balance_to);
 }
 
 #[test]
@@ -1302,17 +1302,17 @@ fn should_transfer_contract_to_contract() {
     );
     transfer_call.expect_success().commit();
 
-    let actual_balance_after =
+    let actual_balance_from =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
-    let expected_balance_after = U256::zero();
+    let expected_balance_from = U256::zero();
 
-    assert_eq!(actual_balance_after, expected_balance_after);
+    assert_eq!(actual_balance_from, expected_balance_from);
 
-    let actual_balance =
+    let actual_balance_to =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
-    let expected_balance = U256::one();
+    let expected_balance_to = U256::one();
 
-    assert_eq!(actual_balance, expected_balance);
+    assert_eq!(actual_balance_to, expected_balance_to);
 }
 
 #[test]

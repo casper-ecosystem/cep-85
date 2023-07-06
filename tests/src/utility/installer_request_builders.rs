@@ -21,17 +21,13 @@ use casper_types::{
     system::mint::{ARG_ID, ARG_TO},
     CLTyped, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
 };
-use cep85::{
-    constants::{
-        ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_DATA, ARG_ENABLE_MINT_BURN,
-        ARG_EVENTS_MODE, ARG_FROM, ARG_IDS, ARG_NAME, ARG_OWNER, ARG_RECIPIENT, ARG_TOTAL_SUPPLIES,
-        ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT,
-        ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT,
-        ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
-        ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH,
-        ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST, TOKEN_CONTRACT,
-    },
-    modalities::EventsMode,
+use cep85::constants::{
+    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_DATA, ARG_FROM, ARG_IDS, ARG_NAME,
+    ARG_OWNER, ARG_RECIPIENT, ARG_TOKEN_CONTRACT, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_URI,
+    BURNER_LIST, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT, ENTRY_POINT_BURN,
+    ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
+    ENTRY_POINT_SAFE_TRANSFER_FROM, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST,
 };
 use cep85_test_contract::constants::{
     CEP85_TEST_CONTRACT_NAME, CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF,
@@ -50,16 +46,15 @@ pub struct TestContext {
     pub test_accounts: HashMap<[u8; 32], AccountHash>,
 }
 
+fn default_args() -> RuntimeArgs {
+    runtime_args! {
+        ARG_NAME => TOKEN_NAME,
+        ARG_URI => TOKEN_URI,
+    }
+}
+
 pub fn setup() -> (InMemoryWasmTestBuilder, TestContext) {
-    setup_with_args(
-        runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
-            ARG_ENABLE_MINT_BURN => true
-        },
-        None,
-    )
+    setup_with_args(default_args(), None)
 }
 
 pub fn setup_with_args(
@@ -78,9 +73,12 @@ pub fn setup_with_args(
         .entry(ACCOUNT_USER_2)
         .or_insert_with(|| create_funded_dummy_account(&mut builder, Some(ACCOUNT_USER_2)));
 
-    let install_request_contract =
-        ExecuteRequestBuilder::standard(*DEFAULT_ACCOUNT_ADDR, CEP85_CONTRACT_WASM, install_args)
-            .build();
+    let install_request_contract = ExecuteRequestBuilder::standard(
+        *DEFAULT_ACCOUNT_ADDR,
+        CEP85_CONTRACT_WASM,
+        merge_args(install_args),
+    )
+    .build();
 
     builder
         .exec(install_request_contract)
@@ -102,7 +100,7 @@ pub fn setup_with_args(
         *DEFAULT_ACCOUNT_ADDR,
         CEP85_TEST_CONTRACT_WASM,
         runtime_args! {
-            TOKEN_CONTRACT => Key::from(cep85_token)
+            ARG_TOKEN_CONTRACT => Key::from(cep85_token)
         },
     )
     .build();
@@ -694,4 +692,20 @@ pub fn cep85_change_security<'a>(
     )
     .build();
     builder.exec(change_security_request)
+}
+
+fn merge_args(install_args: RuntimeArgs) -> RuntimeArgs {
+    let mut merged_args = install_args;
+
+    if merged_args.get(ARG_NAME).is_none() {
+        if let Some(default_name_value) = default_args().get(ARG_NAME) {
+            merged_args.insert_cl_value(ARG_NAME, default_name_value.clone());
+        }
+    }
+    if merged_args.get(ARG_URI).is_none() {
+        if let Some(default_uri_value) = default_args().get(ARG_URI) {
+            merged_args.insert_cl_value(ARG_URI, default_uri_value.clone());
+        }
+    }
+    merged_args
 }

@@ -11,8 +11,8 @@ use casper_engine_test_support::{
 use casper_types::{runtime_args, ContractHash, RuntimeArgs};
 use cep85::{
     constants::{
-        ARG_NAME, ARG_URI, BALANCES, ENABLE_MINT_BURN, ENTRY_POINT_INIT, EVENTS_MODE, NAME,
-        OPERATORS, PACKAGE_HASH, TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD, URI,
+        ARG_ENABLE_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_PACKAGE_HASH, ARG_TRANSFER_FILTER_CONTRACT,
+        ARG_TRANSFER_FILTER_METHOD, ARG_URI, DICT_BALANCES, DICT_OPERATORS, ENTRY_POINT_INIT,
     },
     error::Cep85Error,
     modalities::EventsMode,
@@ -25,26 +25,29 @@ fn should_install_contract() {
         .get_contract(cep85_token)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains_key(PACKAGE_HASH), "{:?}", named_keys);
+    assert!(
+        named_keys.contains_key(ARG_PACKAGE_HASH),
+        "{:?}",
+        named_keys
+    );
 }
 
-// TODO
 #[test]
 fn should_have_queryable_properties() {
     let (mut builder, TestContext { cep85_token, .. }) = setup();
-    let name: String = builder.get_value(cep85_token, NAME);
-    let uri: String = builder.get_value(cep85_token, URI);
-    let events_mode: u8 = builder.get_value(cep85_token, EVENTS_MODE);
-    let enable_mint_burn: u8 = builder.get_value(cep85_token, ENABLE_MINT_BURN);
+    let name: String = builder.get_value(cep85_token, ARG_NAME);
+    let uri: String = builder.get_value(cep85_token, ARG_URI);
+    let events_mode: u8 = builder.get_value(cep85_token, ARG_EVENTS_MODE);
+    let enable_burn: u8 = builder.get_value(cep85_token, ARG_ENABLE_BURN);
     let transfer_filter_contract: Option<ContractHash> =
-        builder.get_value(cep85_token, TRANSFER_FILTER_CONTRACT);
+        builder.get_value(cep85_token, ARG_TRANSFER_FILTER_CONTRACT);
     let transfer_filter_method: Option<String> =
-        builder.get_value(cep85_token, TRANSFER_FILTER_METHOD);
+        builder.get_value(cep85_token, ARG_TRANSFER_FILTER_METHOD);
 
     assert_eq!(name, TOKEN_NAME);
     assert_eq!(uri, TOKEN_URI);
     assert_eq!(events_mode, EventsMode::NoEvents as u8);
-    assert_eq!(enable_mint_burn, true as u8);
+    assert_eq!(enable_burn, false as u8);
     assert_eq!(transfer_filter_contract, None);
     assert_eq!(transfer_filter_method, None);
 }
@@ -80,8 +83,8 @@ fn should_not_store_balances_or_allowances_under_account_after_install() {
         .expect("should have account");
 
     let named_keys = account.named_keys();
-    assert!(!named_keys.contains_key(BALANCES), "{:?}", named_keys);
-    assert!(!named_keys.contains_key(OPERATORS), "{:?}", named_keys);
+    assert!(!named_keys.contains_key(DICT_BALANCES), "{:?}", named_keys);
+    assert!(!named_keys.contains_key(DICT_OPERATORS), "{:?}", named_keys);
 }
 
 #[test]

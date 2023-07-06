@@ -1,12 +1,16 @@
 //! Contains definition of the entry points.
 use alloc::{boxed::Box, vec};
 
-use casper_types::{CLType, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Parameter};
+use casper_types::{
+    bytesrepr::Bytes, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
+    Parameter,
+};
 
 use crate::constants::{
-    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA,
-    ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TO, ARG_TOTAL_SUPPLIES,
-    ARG_TOTAL_SUPPLY, BURNER_LIST, CONTRACT_HASH, ENTRY_POINT_BALANCE_OF,
+    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED,
+    ARG_CONTRACT_HASH, ARG_DATA, ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR, ARG_OWNER,
+    ARG_PACKAGE_HASH, ARG_RECIPIENT, ARG_TO, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY,
+    ARG_TRANSFER_FILTER_CONTRACT, ARG_URI, BURNER_LIST, ENTRY_POINT_BALANCE_OF,
     ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT, ENTRY_POINT_BURN,
     ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL,
     ENTRY_POINT_IS_NON_FUNGIBLE, ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
@@ -14,16 +18,16 @@ use crate::constants::{
     ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI,
     ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_SUPPLY_OF_BATCH, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
     ENTRY_POINT_TOTAL_SUPPLY_OF, ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_URI, META_LIST,
-    MINTER_LIST, NONE_LIST, PACKAGE_HASH, TRANSFER_FILTER_CONTRACT, URI,
+    MINTER_LIST, NONE_LIST,
 };
 
 pub fn init() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_INIT,
         vec![
-            Parameter::new(PACKAGE_HASH, CLType::Key),
-            Parameter::new(CONTRACT_HASH, CLType::Key),
-            Parameter::new(TRANSFER_FILTER_CONTRACT, CLType::Key),
+            Parameter::new(ARG_PACKAGE_HASH, CLType::Key),
+            Parameter::new(ARG_CONTRACT_HASH, CLType::Key),
+            Parameter::new(ARG_TRANSFER_FILTER_CONTRACT, CLType::Key),
         ],
         CLType::Unit,
         EntryPointAccess::Public,
@@ -147,7 +151,7 @@ pub fn safe_transfer_from() -> EntryPoint {
             Parameter::new(ARG_TO, CLType::Key),
             Parameter::new(ARG_ID, CLType::U256),
             Parameter::new(ARG_AMOUNT, CLType::U256),
-            Parameter::new(ARG_DATA, CLType::List(Box::new(CLType::U8))),
+            Parameter::new(ARG_DATA, CLType::List(Box::new(Bytes::cl_type()))),
         ],
         CLType::Unit,
         EntryPointAccess::Public,
@@ -163,7 +167,7 @@ pub fn safe_batch_transfer_from() -> EntryPoint {
             Parameter::new(ARG_TO, CLType::Key),
             Parameter::new(ARG_IDS, CLType::List(Box::new(CLType::U256))),
             Parameter::new(ARG_AMOUNTS, CLType::List(Box::new(CLType::U256))),
-            Parameter::new(ARG_DATA, CLType::List(Box::new(CLType::U8))),
+            Parameter::new(ARG_DATA, CLType::List(Box::new(Bytes::cl_type()))),
         ],
         CLType::Unit,
         EntryPointAccess::Public,
@@ -258,7 +262,7 @@ pub fn set_uri() -> EntryPoint {
         ENTRY_POINT_SET_URI,
         vec![
             Parameter::new(ARG_ID, CLType::U256),
-            Parameter::new(URI, CLType::String),
+            Parameter::new(ARG_URI, CLType::String),
         ],
         CLType::Unit,
         EntryPointAccess::Public,

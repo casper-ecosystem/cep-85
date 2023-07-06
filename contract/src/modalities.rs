@@ -1,3 +1,9 @@
+use alloc::vec;
+use casper_types::{
+    bytesrepr::{FromBytes, ToBytes, U8_SERIALIZED_LENGTH},
+    CLType, CLTyped,
+};
+
 use crate::error::Cep85Error;
 use core::convert::TryFrom;
 
@@ -23,8 +29,9 @@ impl TryFrom<u8> for EventsMode {
 
 #[repr(u8)]
 #[non_exhaustive]
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone, Copy, Default, Debug)]
 pub enum TransferFilterContractResult {
+    #[default]
     DenyTransfer = 0,
     ProceedTransfer,
 }
@@ -35,5 +42,32 @@ impl From<u8> for TransferFilterContractResult {
             0 => TransferFilterContractResult::DenyTransfer,
             _ => TransferFilterContractResult::ProceedTransfer,
         }
+    }
+}
+
+impl CLTyped for TransferFilterContractResult {
+    fn cl_type() -> casper_types::CLType {
+        CLType::U8
+    }
+}
+
+impl FromBytes for TransferFilterContractResult {
+    fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), casper_types::bytesrepr::Error> {
+        match bytes.split_first() {
+            None => Err(casper_types::bytesrepr::Error::EarlyEndOfStream),
+            Some((byte, rem)) => match TransferFilterContractResult::try_from(*byte) {
+                Ok(kind) => Ok((kind, rem)),
+                Err(_) => Err(casper_types::bytesrepr::Error::EarlyEndOfStream),
+            },
+        }
+    }
+}
+impl ToBytes for TransferFilterContractResult {
+    fn to_bytes(&self) -> Result<alloc::vec::Vec<u8>, casper_types::bytesrepr::Error> {
+        Ok(vec![*self as u8])
+    }
+
+    fn serialized_length(&self) -> usize {
+        U8_SERIALIZED_LENGTH
     }
 }

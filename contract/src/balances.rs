@@ -8,7 +8,7 @@ use casper_contract::{
 use casper_types::{Key, U256};
 
 use crate::{
-    constants::{BALANCES, CONTRACT_HASH},
+    constants::{ARG_CONTRACT_HASH, DICT_BALANCES},
     error::Cep85Error,
     utils::{
         get_dictionary_value_from_key, make_dictionary_item_key, set_dictionary_value_for_key,
@@ -17,14 +17,18 @@ use crate::{
 
 /// Writes token balance of a specified account into a dictionary.
 pub fn write_balance_to(account: &Key, id: &U256, amount: &U256) {
-    set_dictionary_value_for_key(BALANCES, &make_dictionary_item_key(account, id), amount)
+    set_dictionary_value_for_key(
+        DICT_BALANCES,
+        &make_dictionary_item_key(account, id),
+        amount,
+    )
 }
 
 /// Reads token balance of a specified account.
 ///
 /// If a given account does not have balances in the system, then a 0 is returned.
 pub fn read_balance_from(account: &Key, id: &U256) -> U256 {
-    get_dictionary_value_from_key(BALANCES, &make_dictionary_item_key(account, id))
+    get_dictionary_value_from_key(DICT_BALANCES, &make_dictionary_item_key(account, id))
         .unwrap_or_default()
 }
 
@@ -53,7 +57,7 @@ pub fn transfer_balance(
 
     // Check if the recipient is the contract address
     let contract_key =
-        get_key(CONTRACT_HASH).unwrap_or_revert_with(Cep85Error::MissingContractHash);
+        get_key(ARG_CONTRACT_HASH).unwrap_or_revert_with(Cep85Error::MissingContractHash);
     if &contract_key == recipient {
         runtime::revert(Cep85Error::InvalidRecipient);
     }

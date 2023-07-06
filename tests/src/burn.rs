@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::utility::{
-    constants::{ACCOUNT_USER_1, TOKEN_NAME, TOKEN_URI},
+    constants::ACCOUNT_USER_1,
     installer_request_builders::{
         cep85_batch_burn, cep85_batch_mint, cep85_burn, cep85_check_balance_of,
         cep85_check_balance_of_batch, cep85_check_supply_of, cep85_check_supply_of_batch,
@@ -14,9 +14,8 @@ use crate::utility::{
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
 use casper_types::{runtime_args, Key, RuntimeArgs, U256};
 use cep85::{
-    constants::{ARG_ENABLE_MINT_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_URI, BURNER_LIST},
+    constants::{ARG_ENABLE_BURN, BURNER_LIST},
     error::Cep85Error,
-    modalities::EventsMode,
 };
 
 #[test]
@@ -28,10 +27,7 @@ fn should_burn_by_owner() {
 
     let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
         runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
-            ARG_ENABLE_MINT_BURN => true,
+            ARG_ENABLE_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
         Some(test_accounts),
@@ -100,10 +96,7 @@ fn should_batch_burn_by_owner() {
     test_accounts.insert(ACCOUNT_USER_1, account_user_1);
     let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
         runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
-            ARG_ENABLE_MINT_BURN => true,
+            ARG_ENABLE_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
         Some(test_accounts),
@@ -174,10 +167,7 @@ fn should_not_burn_above_balance() {
 
     let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
         runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
-            ARG_ENABLE_MINT_BURN => true,
+            ARG_ENABLE_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
         Some(test_accounts),
@@ -249,10 +239,7 @@ fn should_not_batch_burn_above_balance() {
 
     let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
         runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
-            ARG_ENABLE_MINT_BURN => true,
+            ARG_ENABLE_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
         Some(test_accounts),
@@ -332,10 +319,7 @@ fn should_reduce_supply_on_burn() {
         },
     ) = setup_with_args(
         runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
-            ARG_ENABLE_MINT_BURN => true,
+            ARG_ENABLE_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
         Some(test_accounts),
@@ -423,10 +407,7 @@ fn should_reduce_supply_on_batch_burn() {
         },
     ) = setup_with_args(
         runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
-            ARG_EVENTS_MODE => EventsMode::NoEvents as u8,
-            ARG_ENABLE_MINT_BURN => true,
+            ARG_ENABLE_BURN => true,
             BURNER_LIST => vec![Key::from(account_user_1)]
         },
         Some(test_accounts),

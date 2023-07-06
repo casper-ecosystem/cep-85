@@ -1,5 +1,5 @@
 use crate::utility::{
-    constants::{ACCOUNT_USER_1, TOKEN_NAME, TOKEN_URI},
+    constants::{ACCOUNT_USER_1, TOKEN_URI},
     installer_request_builders::{
         cep85_check_balance_of, cep85_mint, setup, setup_with_args, TestContext,
     },
@@ -9,7 +9,7 @@ use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
 use casper_event_standard::{Schemas, EVENTS_DICT, EVENTS_SCHEMA};
 use casper_types::{runtime_args, Key, RuntimeArgs, U256};
 use cep85::{
-    constants::{ARG_ENABLE_MINT_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_URI},
+    constants::ARG_EVENTS_MODE,
     events::{
         ApprovalForAll, Burn, ChangeSecurity, Mint, SetTotalSupply, TransferBatch, TransferSingle,
         Uri,
@@ -21,10 +21,7 @@ use cep85::{
 fn should_have_events_schema_in_events_mode() {
     let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
         runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
             ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true
         },
         None,
     );
@@ -57,10 +54,7 @@ fn should_not_have_events_dict_in_no_events_mode() {
 fn should_have_events_dict_with_events_mode_ces() {
     let (builder, TestContext { cep85_token, .. }) = setup_with_args(
         runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
             ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true
         },
         None,
     );
@@ -85,10 +79,7 @@ fn should_record_events_in_events_mode() {
         },
     ) = setup_with_args(
         runtime_args! {
-            ARG_NAME => TOKEN_NAME,
-            ARG_URI => TOKEN_URI,
             ARG_EVENTS_MODE => EventsMode::CES as u8,
-            ARG_ENABLE_MINT_BURN => true
         },
         None,
     );
