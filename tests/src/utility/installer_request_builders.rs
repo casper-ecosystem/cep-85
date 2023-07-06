@@ -464,12 +464,12 @@ pub fn cep85_check_supply_of_batch(
 pub fn cep85_set_approval_for_all<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    sender: &'a AccountHash,
+    owner: &'a AccountHash,
     operator: &'a Key,
     approved: bool,
 ) -> &'a mut InMemoryWasmTestBuilder {
     let set_approval_for_all_request = ExecuteRequestBuilder::contract_call_by_hash(
-        *sender,
+        *owner,
         *cep85_token,
         ENTRY_POINT_SET_APPROVAL_FOR_ALL,
         runtime_args! {
@@ -486,7 +486,7 @@ pub fn cep85_check_is_approved(
     contract_package_hash: &ContractPackageHash,
     account: &Key,
     operator: &Key,
-) {
+) -> bool {
     let check_is_approved_args = runtime_args! {
         ARG_ACCOUNT => *account,
         ARG_OPERATOR => *operator,
@@ -500,6 +500,7 @@ pub fn cep85_check_is_approved(
     )
     .build();
     builder.exec(exec_request).expect_success().commit();
+    get_test_result(builder, *contract_package_hash)
 }
 
 pub struct TransferData<'a> {
@@ -526,8 +527,8 @@ pub fn cep85_transfer_from<'a>(
     } = transfer_data;
 
     let transfer_request = match from {
-        Key::Account(hash) => ExecuteRequestBuilder::contract_call_by_hash(
-            *sender,
+        Key::Account(_hash) => ExecuteRequestBuilder::contract_call_by_hash(
+            *sender, // We do not use above _hash here because from and sender could be different
             *cep85_token,
             ENTRY_POINT_SAFE_TRANSFER_FROM,
             runtime_args! {
@@ -601,8 +602,8 @@ pub fn cep85_batch_transfer_from<'a>(
     } = transfer_data;
 
     let transfer_request = match from {
-        Key::Account(hash) => ExecuteRequestBuilder::contract_call_by_hash(
-            *sender,
+        Key::Account(_hash) => ExecuteRequestBuilder::contract_call_by_hash(
+            *sender, // We do not use above _hash here because from and sender could be different
             *cep85_token,
             ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
             runtime_args! {

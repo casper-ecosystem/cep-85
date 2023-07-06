@@ -224,9 +224,9 @@ pub extern "C" fn balance_of_batch() {
 #[no_mangle]
 pub extern "C" fn is_approved_for_all() {
     let owner: Key = get_named_arg_with_user_errors(
-        ARG_OWNER,
-        Cep85Error::MissingOwner,
-        Cep85Error::InvalidOwner,
+        ARG_ACCOUNT,
+        Cep85Error::MissingAccount,
+        Cep85Error::InvalidAccount,
     )
     .unwrap_or_revert();
 
