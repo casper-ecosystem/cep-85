@@ -191,6 +191,7 @@ fn check_transfers_with_transfer_filter_contract() {
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
+        &account_user_1,
         TransferData {
             from: &from,
             to: &to,
@@ -241,6 +242,7 @@ fn check_transfers_with_transfer_filter_contract() {
     let transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
+        &account_user_1,
         TransferData {
             from: &from,
             to: &to,
@@ -295,6 +297,7 @@ fn check_transfers_with_transfer_filter_contract() {
     let transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
+        &account_user_1,
         TransferData {
             from: &from,
             to: &to,

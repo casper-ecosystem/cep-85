@@ -27,12 +27,11 @@ use casper_types::{
 };
 use cep85::{
     constants::{
-        ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA, ARG_FROM, ARG_ID, ARG_IDS,
-        ARG_OPERATOR, ARG_TO, ARG_TOKEN_CONTRACT, ENTRY_POINT_BALANCE_OF,
-        ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL,
-        ENTRY_POINT_IS_NON_FUNGIBLE, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
-        ENTRY_POINT_SAFE_TRANSFER_FROM, ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SUPPLY_OF,
-        ENTRY_POINT_SUPPLY_OF_BATCH, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
+        ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_DATA, ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR,
+        ARG_TO, ARG_TOKEN_CONTRACT, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH,
+        ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE,
+        ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
+        ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_SUPPLY_OF_BATCH, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
         ENTRY_POINT_TOTAL_SUPPLY_OF, ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_URI,
     },
     modalities::TransferFilterContractResult,
@@ -42,11 +41,10 @@ use constants::{
     ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_BALANCE_OF_BATCH,
     ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL, ENTRY_POINT_CHECK_IS_NON_FUNGIBLE,
     ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
-    ENTRY_POINT_CHECK_SET_APPROVAL_FOR_ALL, ENTRY_POINT_CHECK_SUPPLY_OF,
-    ENTRY_POINT_CHECK_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY,
-    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
-    ENTRY_POINT_CHECK_URI, ENTRY_POINT_SET_FILTER_CONTRACT_RETURN_VALUE,
-    ENTRY_POINT_TRANSFER_FILTER_METHOD,
+    ENTRY_POINT_CHECK_SUPPLY_OF, ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
+    ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_URI,
+    ENTRY_POINT_SET_FILTER_CONTRACT_RETURN_VALUE, ENTRY_POINT_TRANSFER_FILTER_METHOD,
 };
 use utils::{get_token_contract, store_result};
 
@@ -116,22 +114,6 @@ pub extern "C" fn check_balance_of_batch() {
         balance_of_batch_args,
     );
     store_result(result);
-}
-
-#[no_mangle]
-pub extern "C" fn check_set_approval_for_all() {
-    let token_contract: ContractHash = get_token_contract();
-    let operator: Key = get_named_arg(ARG_OPERATOR);
-    let approved: bool = get_named_arg(ARG_APPROVED);
-    let set_approval_for_all_args = runtime_args! {
-        ARG_OPERATOR => operator,
-        ARG_APPROVED => approved,
-    };
-    call_contract::<()>(
-        token_contract,
-        ENTRY_POINT_SET_APPROVAL_FOR_ALL,
-        set_approval_for_all_args,
-    );
 }
 
 #[no_mangle]
@@ -354,16 +336,6 @@ pub extern "C" fn call() {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     );
-    let check_set_approval_for_all = EntryPoint::new(
-        ENTRY_POINT_CHECK_SET_APPROVAL_FOR_ALL,
-        vec![
-            Parameter::new(ARG_OPERATOR, CLType::Key),
-            Parameter::new(ARG_APPROVED, CLType::Bool),
-        ],
-        CLType::Unit,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    );
     let check_is_approved_for_all = EntryPoint::new(
         ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL,
         vec![
@@ -462,7 +434,6 @@ pub extern "C" fn call() {
     entry_points.add_entry_point(can_transfer);
     entry_points.add_entry_point(check_balance_of);
     entry_points.add_entry_point(check_balance_of_batch);
-    entry_points.add_entry_point(check_set_approval_for_all);
     entry_points.add_entry_point(check_is_approved_for_all);
     entry_points.add_entry_point(check_safe_transfer_from);
     entry_points.add_entry_point(check_safe_batch_transfer_from);

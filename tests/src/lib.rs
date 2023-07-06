@@ -33,3 +33,6 @@ mod fungible;
 
 #[cfg(test)]
 mod filter;
+
+#[cfg(test)]
+mod allowance;

@@ -22,20 +22,22 @@ use casper_types::{
     CLTyped, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
 };
 use cep85::constants::{
-    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_DATA, ARG_FROM, ARG_IDS, ARG_NAME,
-    ARG_OWNER, ARG_RECIPIENT, ARG_TOKEN_CONTRACT, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_URI,
-    BURNER_LIST, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT, ENTRY_POINT_BURN,
-    ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
-    ENTRY_POINT_SAFE_TRANSFER_FROM, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
+    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA, ARG_FROM, ARG_IDS,
+    ARG_NAME, ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TOKEN_CONTRACT, ARG_TOTAL_SUPPLIES,
+    ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT,
+    ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT,
+    ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
+    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
     ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST,
 };
 use cep85_test_contract::constants::{
     CEP85_TEST_CONTRACT_NAME, CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF,
-    ENTRY_POINT_CHECK_BALANCE_OF_BATCH, ENTRY_POINT_CHECK_IS_NON_FUNGIBLE,
-    ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
-    ENTRY_POINT_CHECK_SUPPLY_OF, ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
-    ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
-    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_URI, RESULT_KEY,
+    ENTRY_POINT_CHECK_BALANCE_OF_BATCH, ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL,
+    ENTRY_POINT_CHECK_IS_NON_FUNGIBLE, ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
+    ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM, ENTRY_POINT_CHECK_SUPPLY_OF,
+    ENTRY_POINT_CHECK_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY,
+    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
+    ENTRY_POINT_CHECK_URI, RESULT_KEY,
 };
 
 #[derive(Clone)]
@@ -380,14 +382,14 @@ pub fn cep85_check_total_supply_of(
 pub fn cep85_set_total_supply_of_batch<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
-    burning_account: &'a AccountHash,
+    sender: &'a AccountHash,
     ids: Vec<U256>,
     total_supplies: Vec<U256>,
 ) -> &'a mut casper_engine_test_support::WasmTestBuilder<
     casper_execution_engine::storage::global_state::in_memory::InMemoryGlobalState,
 > {
     let set_total_supply_of_batch_request = ExecuteRequestBuilder::contract_call_by_hash(
-        *burning_account,
+        *sender,
         *cep85_token,
         ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH,
         runtime_args! {
@@ -459,6 +461,47 @@ pub fn cep85_check_supply_of_batch(
     get_test_result(builder, *contract_package_hash)
 }
 
+pub fn cep85_set_approval_for_all<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    cep85_token: &'a ContractHash,
+    sender: &'a AccountHash,
+    operator: &'a Key,
+    approved: bool,
+) -> &'a mut InMemoryWasmTestBuilder {
+    let set_approval_for_all_request = ExecuteRequestBuilder::contract_call_by_hash(
+        *sender,
+        *cep85_token,
+        ENTRY_POINT_SET_APPROVAL_FOR_ALL,
+        runtime_args! {
+            ARG_OPERATOR => *operator,
+            ARG_APPROVED => approved,
+        },
+    )
+    .build();
+    builder.exec(set_approval_for_all_request)
+}
+
+pub fn cep85_check_is_approved(
+    builder: &mut InMemoryWasmTestBuilder,
+    contract_package_hash: &ContractPackageHash,
+    account: &Key,
+    operator: &Key,
+) {
+    let check_is_approved_args = runtime_args! {
+        ARG_ACCOUNT => *account,
+        ARG_OPERATOR => *operator,
+    };
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        *contract_package_hash,
+        None,
+        ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL,
+        check_is_approved_args,
+    )
+    .build();
+    builder.exec(exec_request).expect_success().commit();
+}
+
 pub struct TransferData<'a> {
     pub from: &'a Key,
     pub to: &'a Key,
@@ -470,6 +513,7 @@ pub struct TransferData<'a> {
 pub fn cep85_transfer_from<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
+    sender: &'a AccountHash,
     transfer_data: TransferData<'a>,
     direct_call_test_contract: Option<bool>,
 ) -> &'a mut InMemoryWasmTestBuilder {
@@ -482,7 +526,7 @@ pub fn cep85_transfer_from<'a>(
     } = transfer_data;
 
     let transfer_request = match from {
-        Key::Account(sender) => ExecuteRequestBuilder::contract_call_by_hash(
+        Key::Account(hash) => ExecuteRequestBuilder::contract_call_by_hash(
             *sender,
             *cep85_token,
             ENTRY_POINT_SAFE_TRANSFER_FROM,
@@ -502,7 +546,7 @@ pub fn cep85_transfer_from<'a>(
             if call_package {
                 if let Ok(contract_package_hash) = ContractPackageHash::try_from(*hash_bytes) {
                     ExecuteRequestBuilder::versioned_contract_call_by_hash(
-                        *DEFAULT_ACCOUNT_ADDR,
+                        *sender,
                         contract_package_hash,
                         None,
                         ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
@@ -520,7 +564,7 @@ pub fn cep85_transfer_from<'a>(
                 }
             } else if let Ok(contract_hash) = ContractHash::try_from(*hash_bytes) {
                 ExecuteRequestBuilder::contract_call_by_hash(
-                    *DEFAULT_ACCOUNT_ADDR,
+                    *sender,
                     contract_hash,
                     ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
                     runtime_args! {
@@ -544,6 +588,7 @@ pub fn cep85_transfer_from<'a>(
 pub fn cep85_batch_transfer_from<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
+    sender: &'a AccountHash,
     transfer_data: TransferData<'a>,
     direct_call_test_contract: Option<bool>,
 ) -> &'a mut InMemoryWasmTestBuilder {
@@ -556,7 +601,7 @@ pub fn cep85_batch_transfer_from<'a>(
     } = transfer_data;
 
     let transfer_request = match from {
-        Key::Account(sender) => ExecuteRequestBuilder::contract_call_by_hash(
+        Key::Account(hash) => ExecuteRequestBuilder::contract_call_by_hash(
             *sender,
             *cep85_token,
             ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
@@ -576,7 +621,7 @@ pub fn cep85_batch_transfer_from<'a>(
             if call_package {
                 if let Ok(contract_package_hash) = ContractPackageHash::try_from(*hash_bytes) {
                     ExecuteRequestBuilder::versioned_contract_call_by_hash(
-                        *DEFAULT_ACCOUNT_ADDR,
+                        *sender,
                         contract_package_hash,
                         None,
                         ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
@@ -594,7 +639,7 @@ pub fn cep85_batch_transfer_from<'a>(
                 }
             } else if let Ok(contract_hash) = ContractHash::try_from(*hash_bytes) {
                 ExecuteRequestBuilder::contract_call_by_hash(
-                    *DEFAULT_ACCOUNT_ADDR,
+                    *sender,
                     contract_hash,
                     ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
                     runtime_args! {

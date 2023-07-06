@@ -259,7 +259,7 @@ pub extern "C" fn set_approval_for_all() {
         None => operator == caller,
     };
 
-    if !is_self_approval {
+    if is_self_approval {
         runtime::revert(Cep85Error::SelfOperatorApproval);
     }
 
