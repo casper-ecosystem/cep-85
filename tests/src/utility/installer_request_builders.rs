@@ -162,11 +162,11 @@ pub fn cep85_set_uri<'a>(
     cep85_token: &'a ContractHash,
     updating_account: &'a AccountHash,
     uri: &str,
-    id: &Option<U256>,
+    id: Option<U256>,
 ) -> &'a mut InMemoryWasmTestBuilder {
     let set_uri_args = if let Some(id) = id {
         runtime_args! {
-            ARG_ID => *id,
+            ARG_ID => id,
             ARG_URI => uri,
         }
     } else {
@@ -187,7 +187,7 @@ pub fn cep85_set_uri<'a>(
 pub fn cep85_check_uri(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
-    id: &Option<U256>,
+    id: Option<U256>,
 ) -> String {
     let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
         *DEFAULT_ACCOUNT_ADDR,
@@ -195,7 +195,7 @@ pub fn cep85_check_uri(
         None,
         ENTRY_POINT_CHECK_URI,
         runtime_args! {
-            ARG_ID => *id,
+            ARG_ID => id,
         },
     )
     .build();
