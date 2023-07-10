@@ -292,7 +292,10 @@ pub extern "C" fn safe_transfer_from() {
     // Check if the caller is the spender or an operator
     let is_approved: bool = match caller_package {
         Some(caller_package) => {
-            from == caller || from == caller_package || read_operator(&from, &caller_package)
+            from == caller
+                || from == caller_package
+                || read_operator(&from, &caller_package)
+                || read_operator(&from, &caller)
         }
         None => from == caller || read_operator(&from, &caller),
     };
@@ -362,7 +365,10 @@ pub extern "C" fn safe_batch_transfer_from() {
     // Check if the caller is the spender or an operator
     let is_approved: bool = match caller_package {
         Some(caller_package) => {
-            from == caller || from == caller_package || read_operator(&from, &caller_package)
+            from == caller
+                || from == caller_package
+                || read_operator(&from, &caller_package)
+                || read_operator(&from, &caller)
         }
         None => from == caller || read_operator(&from, &caller),
     };

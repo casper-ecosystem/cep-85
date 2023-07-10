@@ -3,11 +3,12 @@ use casper_types::{bytesrepr::Bytes, Key, U256};
 use cep85::error::Cep85Error;
 
 use crate::utility::{
-    constants::ACCOUNT_USER_1,
+    constants::{ACCOUNT_USER_1, ACCOUNT_USER_2},
     installer_request_builders::{
-        cep85_batch_mint, cep85_batch_transfer_from, cep85_check_balance_of,
-        cep85_check_balance_of_batch, cep85_check_is_approved, cep85_mint,
-        cep85_set_approval_for_all, cep85_transfer_from, setup, TestContext, TransferData,
+        cep85_batch_mint, cep85_batch_transfer_from, cep85_batch_transfer_from_as_contract,
+        cep85_check_balance_of, cep85_check_balance_of_batch, cep85_check_is_approved, cep85_mint,
+        cep85_set_approval_for_all, cep85_transfer_from, cep85_transfer_from_as_contract, setup,
+        TestContext, TransferData,
     },
     support::assert_expected_error,
 };
@@ -172,6 +173,106 @@ fn should_remove_approval_of_an_account() {
         &operator,
         approved,
     );
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, approved);
+
+    let not_approved = !approved;
+
+    let set_approval_for_all_call = cep85_set_approval_for_all(
+        &mut builder,
+        &cep85_token,
+        &DEFAULT_ACCOUNT_ADDR,
+        &operator,
+        not_approved,
+    );
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, not_approved);
+}
+
+#[test]
+fn should_remove_approval_of_a_contract() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup();
+
+    let owner = *DEFAULT_ACCOUNT_ADDR;
+    let approving_account = Key::from(owner);
+    let operator = Key::Hash([42; 32]);
+    let approved = true;
+
+    let set_approval_for_all_call =
+        cep85_set_approval_for_all(&mut builder, &cep85_token, &owner, &operator, approved);
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, approved);
+
+    let not_approved = !approved;
+
+    let set_approval_for_all_call = cep85_set_approval_for_all(
+        &mut builder,
+        &cep85_token,
+        &DEFAULT_ACCOUNT_ADDR,
+        &operator,
+        not_approved,
+    );
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, not_approved);
+}
+
+#[test]
+fn should_remove_approval_of_a_package() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup();
+
+    let owner = *DEFAULT_ACCOUNT_ADDR;
+    let approving_account = Key::from(owner);
+    let operator = Key::from(cep85_test_contract_package);
+    let approved = true;
+
+    let set_approval_for_all_call =
+        cep85_set_approval_for_all(&mut builder, &cep85_token, &owner, &operator, approved);
     set_approval_for_all_call.expect_success().commit();
 
     let is_approved = cep85_check_is_approved(
@@ -483,6 +584,811 @@ fn should_batch_transfer_from_account_to_account_with_allowance() {
             data,
         },
         None,
+    );
+    transfer_call.expect_success().commit();
+
+    let actual_balances_after = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        recipients,
+        vec![ids; 2_usize].into_iter().flatten().collect(),
+    );
+
+    assert_eq!(actual_balances_after, expected_balance_after);
+}
+
+#[test]
+fn should_not_transfer_from_account_to_account_through_contract_without_allowance() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract_package,
+            test_accounts,
+            ..
+        },
+    ) = setup();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let account_user_2 = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
+    let minting_recipient = Key::from(account_user_1);
+    let mint_amount = U256::one();
+    let id = U256::one();
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+    );
+
+    mint_call.expect_success().commit();
+
+    let from = minting_recipient;
+    let to = Key::from(account_user_2);
+    let transfer_amount = U256::one();
+    let data: Vec<Bytes> = vec![];
+
+    // Let's try to send as a contract a transfer request from owner account_user_1 to
+    // account_user_2, this request should fail
+    let failing_transfer_call = cep85_transfer_from_as_contract(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_account,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+    );
+    failing_transfer_call.expect_failure();
+
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::NotApproved as u16,
+        "Only owner or approved operator can transfer token on behalf of token owner",
+    );
+
+    let actual_balance_from =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+    let expected_balance_from = U256::one();
+
+    assert_eq!(actual_balance_from, expected_balance_from);
+
+    let actual_balance_to =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+    let expected_balance_to = U256::zero();
+
+    assert_eq!(actual_balance_to, expected_balance_to);
+}
+
+#[test]
+fn should_not_batch_transfer_from_account_to_account_through_contract_without_allowance() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            test_accounts,
+            ..
+        },
+    ) = setup();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let account_user_2 = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
+    let minting_recipient = Key::from(account_user_1);
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::one()];
+
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        ids.clone(),
+        amounts.clone(),
+    );
+
+    mint_call.expect_success().commit();
+
+    let owner = account_user_1;
+    let approving_account = Key::from(owner);
+    let operator = Key::from(cep85_test_contract);
+    let not_approved = false;
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, not_approved);
+
+    let from = minting_recipient;
+    let to = Key::from(account_user_2);
+    let data: Vec<Bytes> = vec![];
+    let recipients = vec![from, from, to, to];
+    let expected_balance_after: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
+
+    // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
+    // request should fail as not approved
+    let failing_transfer_call = cep85_batch_transfer_from_as_contract(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_account,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts,
+            data,
+        },
+    );
+    failing_transfer_call.expect_failure();
+
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::NotApproved as u16,
+        "Only owner or approved operator can transfer token on behalf of token owner",
+    );
+
+    let actual_balances_after = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        recipients,
+        vec![ids; 2_usize].into_iter().flatten().collect(),
+    );
+
+    assert_eq!(actual_balances_after, expected_balance_after);
+}
+
+#[test]
+fn should_transfer_from_account_to_account_through_contract_with_allowance() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            test_accounts,
+            ..
+        },
+    ) = setup();
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let account_user_2 = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
+    let minting_recipient = Key::from(account_user_1);
+    let mint_amount = U256::one();
+    let id = U256::one();
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+    );
+
+    mint_call.expect_success().commit();
+
+    let from = minting_recipient;
+    let to = Key::from(account_user_2);
+    let transfer_amount = U256::one();
+    let data: Vec<Bytes> = vec![];
+
+    let owner = account_user_1;
+    let approving_account = Key::from(owner);
+    let operator = Key::from(cep85_test_contract);
+    let approved = true;
+
+    let set_approval_for_all_call =
+        cep85_set_approval_for_all(&mut builder, &cep85_token, &owner, &operator, approved);
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, approved);
+
+    // Let's try to send as a contract a transfer request from owner account_user_1 to
+    // account_user_2, this request should succeed as contract is operator for owner account_user_1
+    let transfer_call = cep85_transfer_from_as_contract(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_account,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+    );
+    transfer_call.expect_success().commit();
+
+    let actual_balance_from =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+    let expected_balance_from = U256::zero();
+
+    assert_eq!(actual_balance_from, expected_balance_from);
+
+    let actual_balance_to =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+    let expected_balance_to = U256::one();
+
+    assert_eq!(actual_balance_to, expected_balance_to);
+}
+
+#[test]
+fn should_transfer_from_account_to_account_through_package_with_allowance() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract_package,
+            test_accounts,
+            ..
+        },
+    ) = setup();
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let account_user_2 = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
+    let minting_recipient = Key::from(account_user_1);
+    let mint_amount = U256::one();
+    let id = U256::one();
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+    );
+
+    mint_call.expect_success().commit();
+
+    let from = minting_recipient;
+    let to = Key::from(account_user_2);
+    let transfer_amount = U256::one();
+    let data: Vec<Bytes> = vec![];
+
+    let owner = account_user_1;
+    let approving_account = Key::from(owner);
+
+    // Here we approve a package and not a contract only
+    let operator = Key::from(cep85_test_contract_package);
+    let approved = true;
+
+    let set_approval_for_all_call =
+        cep85_set_approval_for_all(&mut builder, &cep85_token, &owner, &operator, approved);
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, approved);
+
+    // Let's try to send as a contract a transfer request from owner account_user_1 to
+    // account_user_2, this request should succeed as package is operator for owner account_user_1
+    let transfer_call = cep85_transfer_from_as_contract(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_account,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+    );
+    transfer_call.expect_success().commit();
+
+    let actual_balance_from =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+    let expected_balance_from = U256::zero();
+
+    assert_eq!(actual_balance_from, expected_balance_from);
+
+    let actual_balance_to =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+    let expected_balance_to = U256::one();
+
+    assert_eq!(actual_balance_to, expected_balance_to);
+}
+
+#[test]
+fn should_batch_transfer_from_account_to_account_through_contract_with_allowance() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            test_accounts,
+            ..
+        },
+    ) = setup();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let account_user_2 = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
+    let minting_recipient = Key::from(account_user_1);
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::one()];
+
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        ids.clone(),
+        amounts.clone(),
+    );
+
+    mint_call.expect_success().commit();
+
+    let owner = account_user_1;
+    let approving_account = Key::from(owner);
+    let operator = Key::from(cep85_test_contract);
+    let approved = true;
+
+    let set_approval_for_all_call =
+        cep85_set_approval_for_all(&mut builder, &cep85_token, &owner, &operator, approved);
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, approved);
+
+    let from = minting_recipient;
+    let to = Key::from(account_user_2);
+    let data: Vec<Bytes> = vec![];
+    let recipients = vec![from, from, to, to];
+    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+
+    // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
+    // request should succeed as account_user_1 is operator for owner DEFAULT_ACCOUNT_ADDR
+    let transfer_call = cep85_batch_transfer_from_as_contract(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_account,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts,
+            data,
+        },
+    );
+    transfer_call.expect_success().commit();
+
+    let actual_balances_after = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        recipients,
+        vec![ids; 2_usize].into_iter().flatten().collect(),
+    );
+
+    assert_eq!(actual_balances_after, expected_balance_after);
+}
+
+#[test]
+fn should_batch_transfer_from_account_to_account_through_package_with_allowance() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract_package,
+            test_accounts,
+            ..
+        },
+    ) = setup();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let account_user_2 = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
+    let minting_recipient = Key::from(account_user_1);
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::one()];
+
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        ids.clone(),
+        amounts.clone(),
+    );
+
+    mint_call.expect_success().commit();
+
+    let owner = account_user_1;
+    let approving_account = Key::from(owner);
+    let operator = Key::from(cep85_test_contract_package);
+    let approved = true;
+
+    let set_approval_for_all_call =
+        cep85_set_approval_for_all(&mut builder, &cep85_token, &owner, &operator, approved);
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, approved);
+
+    let from = minting_recipient;
+    let to = Key::from(account_user_2);
+    let data: Vec<Bytes> = vec![];
+    let recipients = vec![from, from, to, to];
+    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+
+    // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
+    // request should succeed as account_user_1 is operator for owner DEFAULT_ACCOUNT_ADDR
+    let transfer_call = cep85_batch_transfer_from_as_contract(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_account,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts,
+            data,
+        },
+    );
+    transfer_call.expect_success().commit();
+
+    let actual_balances_after = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        recipients,
+        vec![ids; 2_usize].into_iter().flatten().collect(),
+    );
+
+    assert_eq!(actual_balances_after, expected_balance_after);
+}
+
+#[test]
+fn should_transfer_from_account_to_contract_through_contract_with_allowance() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            test_accounts,
+            ..
+        },
+    ) = setup();
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let minting_recipient = Key::from(account_user_1);
+    let mint_amount = U256::one();
+    let id = U256::one();
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+    );
+
+    mint_call.expect_success().commit();
+
+    let from = minting_recipient;
+    let to = Key::from(cep85_test_contract);
+    let transfer_amount = U256::one();
+    let data: Vec<Bytes> = vec![];
+
+    let owner = account_user_1;
+    let approving_account = Key::from(owner);
+    let operator = Key::from(cep85_test_contract);
+    let approved = true;
+
+    let set_approval_for_all_call =
+        cep85_set_approval_for_all(&mut builder, &cep85_token, &owner, &operator, approved);
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, approved);
+
+    // Let's try to send as a contract a transfer request from owner account_user_1 to
+    // account_user_2, this request should succeed as contract is operator for owner account_user_1
+    let transfer_call = cep85_transfer_from_as_contract(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_account,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+    );
+    transfer_call.expect_success().commit();
+
+    let actual_balance_from =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+    let expected_balance_from = U256::zero();
+
+    assert_eq!(actual_balance_from, expected_balance_from);
+
+    let actual_balance_to =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+    let expected_balance_to = U256::one();
+
+    assert_eq!(actual_balance_to, expected_balance_to);
+}
+
+#[test]
+fn should_transfer_from_account_to_contract_through_package_with_allowance() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            test_accounts,
+            ..
+        },
+    ) = setup();
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let minting_recipient = Key::from(account_user_1);
+    let mint_amount = U256::one();
+    let id = U256::one();
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+    );
+
+    mint_call.expect_success().commit();
+
+    let from = minting_recipient;
+    let to = Key::from(cep85_test_contract);
+    let transfer_amount = U256::one();
+    let data: Vec<Bytes> = vec![];
+
+    let owner = account_user_1;
+    let approving_account = Key::from(owner);
+    let operator = Key::from(cep85_test_contract_package);
+    let approved = true;
+
+    let set_approval_for_all_call =
+        cep85_set_approval_for_all(&mut builder, &cep85_token, &owner, &operator, approved);
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, approved);
+
+    // Let's try to send as a contract a transfer request from owner account_user_1 to
+    // account_user_2, this request should succeed as contract is operator for owner account_user_1
+    let transfer_call = cep85_transfer_from_as_contract(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_account,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+    );
+    transfer_call.expect_success().commit();
+
+    let actual_balance_from =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+    let expected_balance_from = U256::zero();
+
+    assert_eq!(actual_balance_from, expected_balance_from);
+
+    let actual_balance_to =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+    let expected_balance_to = U256::one();
+
+    assert_eq!(actual_balance_to, expected_balance_to);
+}
+
+#[test]
+fn should_batch_transfer_from_account_to_contract_through_contract_with_allowance() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            test_accounts,
+            ..
+        },
+    ) = setup();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let minting_recipient = Key::from(account_user_1);
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::one()];
+
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        ids.clone(),
+        amounts.clone(),
+    );
+
+    mint_call.expect_success().commit();
+
+    let owner = account_user_1;
+    let approving_account = Key::from(owner);
+    let operator = Key::from(cep85_test_contract);
+    let approved = true;
+
+    let set_approval_for_all_call =
+        cep85_set_approval_for_all(&mut builder, &cep85_token, &owner, &operator, approved);
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, approved);
+
+    let from = minting_recipient;
+    let to = Key::from(cep85_test_contract);
+    let data: Vec<Bytes> = vec![];
+    let recipients = vec![from, from, to, to];
+    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+
+    // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
+    // request should succeed as account_user_1 is operator for owner DEFAULT_ACCOUNT_ADDR
+    let transfer_call = cep85_batch_transfer_from_as_contract(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_account,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts,
+            data,
+        },
+    );
+    transfer_call.expect_success().commit();
+
+    let actual_balances_after = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        recipients,
+        vec![ids; 2_usize].into_iter().flatten().collect(),
+    );
+
+    assert_eq!(actual_balances_after, expected_balance_after);
+}
+
+#[test]
+fn should_batch_transfer_from_account_to_contract_through_package_with_allowance() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            test_accounts,
+            ..
+        },
+    ) = setup();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let minting_recipient = Key::from(account_user_1);
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::one()];
+
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        ids.clone(),
+        amounts.clone(),
+    );
+
+    mint_call.expect_success().commit();
+
+    let owner = account_user_1;
+    let approving_account = Key::from(owner);
+    let operator = Key::from(cep85_test_contract_package);
+    let approved = true;
+
+    let set_approval_for_all_call =
+        cep85_set_approval_for_all(&mut builder, &cep85_token, &owner, &operator, approved);
+    set_approval_for_all_call.expect_success().commit();
+
+    let is_approved = cep85_check_is_approved(
+        &mut builder,
+        &cep85_test_contract_package,
+        &approving_account,
+        &operator,
+    );
+
+    assert_eq!(is_approved, approved);
+
+    let from = minting_recipient;
+    let to = Key::from(cep85_test_contract);
+    let data: Vec<Bytes> = vec![];
+    let recipients = vec![from, from, to, to];
+    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+
+    // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
+    // request should succeed as account_user_1 is operator for owner DEFAULT_ACCOUNT_ADDR
+    let transfer_call = cep85_batch_transfer_from_as_contract(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_account,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: ids.clone(),
+            amounts,
+            data,
+        },
     );
     transfer_call.expect_success().commit();
 

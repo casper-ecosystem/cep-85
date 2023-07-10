@@ -586,6 +586,38 @@ pub fn cep85_transfer_from<'a>(
     builder.exec(transfer_request)
 }
 
+pub fn cep85_transfer_from_as_contract<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    contract_package_hash: &'a ContractPackageHash,
+    sender: &'a AccountHash,
+    transfer_data: TransferData<'a>,
+) -> &'a mut InMemoryWasmTestBuilder {
+    let TransferData {
+        from,
+        to,
+        ids,
+        amounts,
+        data,
+    } = transfer_data;
+
+    let transfer_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *sender,
+        *contract_package_hash,
+        None,
+        ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
+        runtime_args! {
+            ARG_FROM => *from,
+            ARG_TO => *to,
+            ARG_ID => ids[0],
+            ARG_AMOUNT => amounts[0],
+            ARG_DATA => data,
+        },
+    )
+    .build();
+
+    builder.exec(transfer_request)
+}
+
 pub fn cep85_batch_transfer_from<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
     cep85_token: &'a ContractHash,
@@ -658,6 +690,38 @@ pub fn cep85_batch_transfer_from<'a>(
         }
         _ => panic!("Unknown variant"),
     };
+
+    builder.exec(transfer_request)
+}
+
+pub fn cep85_batch_transfer_from_as_contract<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    contract_package_hash: &'a ContractPackageHash,
+    sender: &'a AccountHash,
+    transfer_data: TransferData<'a>,
+) -> &'a mut InMemoryWasmTestBuilder {
+    let TransferData {
+        from,
+        to,
+        ids,
+        amounts,
+        data,
+    } = transfer_data;
+
+    let transfer_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *sender,
+        *contract_package_hash,
+        None,
+        ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
+        runtime_args! {
+            ARG_FROM => *from,
+            ARG_TO => *to,
+            ARG_IDS => ids,
+            ARG_AMOUNTS => amounts,
+            ARG_DATA => data,
+        },
+    )
+    .build();
 
     builder.exec(transfer_request)
 }
