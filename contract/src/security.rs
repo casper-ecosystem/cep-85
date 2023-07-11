@@ -6,7 +6,7 @@ use casper_types::{
 };
 
 use crate::{
-    constants::SECURITY_BADGES,
+    constants::DICT_SECURITY_BADGES,
     error::Cep85Error,
     utils::{get_dictionary_value_from_key, get_verified_caller, set_dictionary_value_for_key},
 };
@@ -56,7 +56,7 @@ impl FromBytes for SecurityBadge {
 pub fn sec_check(allowed_badge_list: Vec<SecurityBadge>) {
     let caller = get_verified_caller().0;
     let user_badge: Option<SecurityBadge> = get_dictionary_value_from_key(
-        SECURITY_BADGES,
+        DICT_SECURITY_BADGES,
         &hex::encode(caller.to_bytes().unwrap_or_revert()),
     );
 
@@ -70,7 +70,7 @@ pub fn sec_check(allowed_badge_list: Vec<SecurityBadge>) {
 pub fn change_sec_badge(badge_map: &BTreeMap<Key, SecurityBadge>) {
     for (&user, &badge) in badge_map {
         set_dictionary_value_for_key(
-            SECURITY_BADGES,
+            DICT_SECURITY_BADGES,
             &hex::encode(user.to_bytes().unwrap_or_revert()),
             &badge,
         );

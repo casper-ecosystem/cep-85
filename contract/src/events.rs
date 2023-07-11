@@ -1,5 +1,5 @@
 use crate::{
-    constants::EVENTS_MODE, modalities::EventsMode, security::SecurityBadge,
+    constants::ARG_EVENTS_MODE, modalities::EventsMode, security::SecurityBadge,
     utils::get_stored_value,
 };
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
@@ -22,7 +22,7 @@ pub enum Event {
 
 pub fn record_event_dictionary(event: Event) {
     let events_mode: EventsMode =
-        EventsMode::try_from(get_stored_value::<u8>(EVENTS_MODE)).unwrap_or_revert();
+        EventsMode::try_from(get_stored_value::<u8>(ARG_EVENTS_MODE)).unwrap_or_revert();
 
     match events_mode {
         EventsMode::NoEvents => {}
@@ -172,7 +172,8 @@ fn ces(event: Event) {
 }
 
 pub fn init_events() {
-    let events_mode = EventsMode::try_from(get_stored_value::<u8>(EVENTS_MODE)).unwrap_or_revert();
+    let events_mode =
+        EventsMode::try_from(get_stored_value::<u8>(ARG_EVENTS_MODE)).unwrap_or_revert();
 
     if events_mode == EventsMode::CES {
         let schemas = Schemas::new()

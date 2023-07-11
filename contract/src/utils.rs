@@ -1,9 +1,10 @@
 use crate::{
-    constants::{TRANSFER_FILTER_CONTRACT, TRANSFER_FILTER_METHOD},
+    constants::{ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD},
     error::Cep85Error,
 };
 use alloc::{
     borrow::ToOwned,
+    format,
     string::{String, ToString},
     vec,
     vec::Vec,
@@ -18,7 +19,7 @@ use casper_types::{
     api_error,
     bytesrepr::{self, FromBytes, ToBytes},
     system::CallStackElement,
-    ApiError, CLTyped, ContractHash, ContractPackageHash, Key, URef,
+    ApiError, CLTyped, ContractHash, ContractPackageHash, Key, URef, U256,
 };
 use core::{convert::TryInto, mem::MaybeUninit};
 
@@ -168,7 +169,7 @@ pub fn set_dictionary_value_for_key<T: CLTyped + ToBytes + Copy>(
 
 pub fn get_transfer_filter_contract() -> Option<ContractHash> {
     get_stored_value_with_user_errors(
-        TRANSFER_FILTER_CONTRACT,
+        ARG_TRANSFER_FILTER_CONTRACT,
         Cep85Error::MissingTransferFilterContract,
         Cep85Error::InvalidTransferFilterContract,
     )
@@ -176,10 +177,14 @@ pub fn get_transfer_filter_contract() -> Option<ContractHash> {
 
 pub fn get_transfer_filter_method() -> Option<String> {
     get_stored_value_with_user_errors(
-        TRANSFER_FILTER_METHOD,
+        ARG_TRANSFER_FILTER_METHOD,
         Cep85Error::MissingTransferFilterMethod,
         Cep85Error::InvalidTransferFilterMethod,
     )
+}
+
+pub fn replace_token_id_in_uri(raw_uri: &str, id: &U256) -> String {
+    raw_uri.replace("{id}", &format!("{id}"))
 }
 
 fn get_uref(name: &str) -> URef {
