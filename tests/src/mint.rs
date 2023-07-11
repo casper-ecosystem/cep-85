@@ -24,7 +24,7 @@ fn should_mint() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let mint_amount = U256::one();
     let id = U256::one();
 
@@ -32,15 +32,19 @@ fn should_mint() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
-    let actual_balance =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &recipient, &id);
+    let actual_balance = cep85_check_balance_of(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_recipient,
+        &id,
+    );
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -59,7 +63,7 @@ fn should_batch_mint() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
@@ -68,14 +72,14 @@ fn should_batch_mint() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         ids.clone(),
         amounts,
     );
 
     mint_call.expect_success().commit();
 
-    let recipients: Vec<Key> = vec![recipient, recipient];
+    let recipients: Vec<Key> = vec![minting_recipient, minting_recipient];
 
     let actual_balances =
         cep85_check_balance_of_batch(&mut builder, &cep85_test_contract_package, recipients, ids);
@@ -98,7 +102,7 @@ fn should_not_mint_above_total_supply() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let id = U256::one();
     // Token total supply has not been raised to 2, mint request should fail
     let mint_amount = U256::from(2);
@@ -107,7 +111,7 @@ fn should_not_mint_above_total_supply() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
@@ -138,15 +142,19 @@ fn should_not_mint_above_total_supply() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
-    let actual_balance =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &recipient, &id);
+    let actual_balance = cep85_check_balance_of(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_recipient,
+        &id,
+    );
     let expected_balance = total_supply;
 
     assert_eq!(actual_balance, expected_balance);
@@ -165,7 +173,7 @@ fn should_not_batch_mint_above_total_supply() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
 
     // Token total supply has not been raised to 2, batch mint request should fail
@@ -176,7 +184,7 @@ fn should_not_batch_mint_above_total_supply() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         ids.clone(),
         amounts.clone(),
     );
@@ -207,14 +215,14 @@ fn should_not_batch_mint_above_total_supply() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         ids.clone(),
         amounts,
     );
 
     batch_mint_call.expect_success().commit();
 
-    let recipients: Vec<Key> = vec![recipient, recipient];
+    let recipients: Vec<Key> = vec![minting_recipient, minting_recipient];
 
     let actual_balances =
         cep85_check_balance_of_batch(&mut builder, &cep85_test_contract_package, recipients, ids);

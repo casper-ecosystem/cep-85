@@ -398,7 +398,7 @@ fn should_not_batch_transfer_from_account_to_account_without_allowance() {
     let to = Key::from(account_user_1);
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_after: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balances_after: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
 
     let mint_call = cep85_batch_mint(
         &mut builder,
@@ -443,7 +443,7 @@ fn should_not_batch_transfer_from_account_to_account_without_allowance() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }
 
 #[test]
@@ -568,7 +568,7 @@ fn should_batch_transfer_from_account_to_account_with_allowance() {
     let to = operator; // operator will also be recipient of the transfer
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+    let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
     // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
     // request should succeed as account_user_1 is operator for owner DEFAULT_ACCOUNT_ADDR
@@ -594,7 +594,7 @@ fn should_batch_transfer_from_account_to_account_with_allowance() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }
 
 #[test]
@@ -718,7 +718,7 @@ fn should_not_batch_transfer_from_account_to_account_through_contract_without_al
     let to = Key::from(account_user_2);
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_after: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balances_after: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
 
     // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
     // request should fail as not approved
@@ -751,7 +751,7 @@ fn should_not_batch_transfer_from_account_to_account_through_contract_without_al
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }
 
 #[test]
@@ -972,7 +972,7 @@ fn should_batch_transfer_from_account_to_account_through_contract_with_allowance
     let to = Key::from(account_user_2);
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+    let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
     // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
     // request should succeed as account_user_1 is operator for owner DEFAULT_ACCOUNT_ADDR
@@ -997,7 +997,7 @@ fn should_batch_transfer_from_account_to_account_through_contract_with_allowance
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }
 
 #[test]
@@ -1052,7 +1052,7 @@ fn should_batch_transfer_from_account_to_account_through_package_with_allowance(
     let to = Key::from(account_user_2);
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+    let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
     // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
     // request should succeed as account_user_1 is operator for owner DEFAULT_ACCOUNT_ADDR
@@ -1077,7 +1077,7 @@ fn should_batch_transfer_from_account_to_account_through_package_with_allowance(
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }
 
 #[test]
@@ -1294,7 +1294,7 @@ fn should_batch_transfer_from_account_to_contract_through_contract_with_allowanc
     let to = Key::from(cep85_test_contract);
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+    let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
     // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
     // request should succeed as account_user_1 is operator for owner DEFAULT_ACCOUNT_ADDR
@@ -1319,7 +1319,7 @@ fn should_batch_transfer_from_account_to_contract_through_contract_with_allowanc
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }
 
 #[test]
@@ -1374,7 +1374,7 @@ fn should_batch_transfer_from_account_to_contract_through_package_with_allowance
     let to = Key::from(cep85_test_contract);
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+    let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
     // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
     // request should succeed as account_user_1 is operator for owner DEFAULT_ACCOUNT_ADDR
@@ -1399,5 +1399,5 @@ fn should_batch_transfer_from_account_to_contract_through_package_with_allowance
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }

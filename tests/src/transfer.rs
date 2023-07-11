@@ -103,8 +103,9 @@ fn should_batch_transfer_full_owned_amount() {
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_before: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
-    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+    let expected_balances_before: Vec<U256> =
+        [&amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
     let total_supplies = amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
@@ -135,7 +136,7 @@ fn should_batch_transfer_full_owned_amount() {
         vec![ids.clone(); 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_before, expected_balance_before);
+    assert_eq!(actual_balances_before, expected_balances_before);
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
@@ -159,7 +160,7 @@ fn should_batch_transfer_full_owned_amount() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }
 
 #[test]
@@ -262,7 +263,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance: Vec<U256> = [&mint_amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balances: Vec<U256> = [&mint_amounts[..], &[U256::zero(), U256::zero()]].concat();
 
     let total_supplies = mint_amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
@@ -293,7 +294,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
         vec![ids.clone(); 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_before, expected_balance);
+    assert_eq!(actual_balances_before, expected_balances);
 
     let failing_transfer_call = cep85_batch_transfer_from(
         &mut builder,
@@ -326,7 +327,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance);
+    assert_eq!(actual_balances_after, expected_balances);
 }
 
 #[test]
@@ -431,7 +432,7 @@ fn should_not_be_able_to_own_batch_transfer() {
     let to = from;
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance: Vec<U256> = [&mint_amounts[..], &mint_amounts[..]].concat();
+    let expected_balances: Vec<U256> = [&mint_amounts[..], &mint_amounts[..]].concat();
 
     let total_supplies = mint_amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
@@ -462,7 +463,7 @@ fn should_not_be_able_to_own_batch_transfer() {
         vec![ids.clone(); 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_before, expected_balance);
+    assert_eq!(actual_balances_before, expected_balances);
 
     let failing_transfer_call = cep85_batch_transfer_from(
         &mut builder,
@@ -495,7 +496,7 @@ fn should_not_be_able_to_own_batch_transfer() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance);
+    assert_eq!(actual_balances_after, expected_balances);
 }
 
 #[test]
@@ -599,7 +600,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance: Vec<U256> = [&mint_amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balances: Vec<U256> = [&mint_amounts[..], &[U256::zero(), U256::zero()]].concat();
 
     let total_supplies = mint_amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
@@ -630,7 +631,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
         vec![ids.clone(); 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_before, expected_balance);
+    assert_eq!(actual_balances_before, expected_balances);
 
     let failing_transfer_call = cep85_batch_transfer_from(
         &mut builder,
@@ -663,7 +664,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance);
+    assert_eq!(actual_balances_after, expected_balances);
 }
 
 #[test]
@@ -758,8 +759,9 @@ fn should_batch_transfer_account_to_account() {
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_2).unwrap());
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_before: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
-    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+    let expected_balances_before: Vec<U256> =
+        [&amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
     let total_supplies = amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
@@ -790,7 +792,7 @@ fn should_batch_transfer_account_to_account() {
         vec![ids.clone(); 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_before, expected_balance_before);
+    assert_eq!(actual_balances_before, expected_balances_before);
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
@@ -814,7 +816,7 @@ fn should_batch_transfer_account_to_account() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }
 
 #[test]
@@ -909,8 +911,9 @@ fn should_batch_transfer_account_to_contract_package() {
     let to = Key::Hash(cep85_test_contract_package.value());
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_before: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
-    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+    let expected_balances_before: Vec<U256> =
+        [&amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
     let total_supplies = amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
@@ -941,7 +944,7 @@ fn should_batch_transfer_account_to_contract_package() {
         vec![ids.clone(); 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_before, expected_balance_before);
+    assert_eq!(actual_balances_before, expected_balances_before);
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
@@ -965,7 +968,7 @@ fn should_batch_transfer_account_to_contract_package() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }
 
 #[test]
@@ -1056,8 +1059,9 @@ fn should_batch_transfer_contract_package_to_contract() {
     let to = Key::Hash([42; 32]);
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_before: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
-    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+    let expected_balances_before: Vec<U256> =
+        [&amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
     let total_supplies = amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
@@ -1088,7 +1092,7 @@ fn should_batch_transfer_contract_package_to_contract() {
         vec![ids.clone(); 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_before, expected_balance_before);
+    assert_eq!(actual_balances_before, expected_balances_before);
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
@@ -1112,7 +1116,7 @@ fn should_batch_transfer_contract_package_to_contract() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }
 
 #[test]
@@ -1209,8 +1213,9 @@ fn should_batch_transfer_account_to_contract_() {
     let to = Key::Hash(cep85_test_contract.value());
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_before: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
-    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+    let expected_balances_before: Vec<U256> =
+        [&amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
     let total_supplies = amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
@@ -1241,7 +1246,7 @@ fn should_batch_transfer_account_to_contract_() {
         vec![ids.clone(); 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_before, expected_balance_before);
+    assert_eq!(actual_balances_before, expected_balances_before);
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
@@ -1265,7 +1270,7 @@ fn should_batch_transfer_account_to_contract_() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }
 
 #[test]
@@ -1358,8 +1363,9 @@ fn should_batch_transfer_contract_to_contract() {
     let to = Key::Hash([42; 32]);
     let data: Vec<Bytes> = vec![];
     let recipients = vec![from, from, to, to];
-    let expected_balance_before: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
-    let expected_balance_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
+    let expected_balances_before: Vec<U256> =
+        [&amounts[..], &[U256::zero(), U256::zero()]].concat();
+    let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
     let total_supplies = amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
@@ -1390,7 +1396,7 @@ fn should_batch_transfer_contract_to_contract() {
         vec![ids.clone(); 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_before, expected_balance_before);
+    assert_eq!(actual_balances_before, expected_balances_before);
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
@@ -1414,5 +1420,5 @@ fn should_batch_transfer_contract_to_contract() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balance_after);
+    assert_eq!(actual_balances_after, expected_balances_after);
 }

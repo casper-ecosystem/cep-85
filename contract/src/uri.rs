@@ -12,8 +12,6 @@ pub fn write_uri_of(id: &U256, uri: &str) {
 }
 
 pub fn read_uri_of(id: &U256) -> String {
-    // TODO Check if token id exists
-
     let raw_uri: String =
         get_dictionary_value_from_key(DICT_TOKEN_URI, &id.to_string()).unwrap_or_default();
     replace_token_id_in_uri(&raw_uri, id)

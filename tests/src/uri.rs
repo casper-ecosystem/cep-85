@@ -19,7 +19,7 @@ fn should_set_global_uri() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient: Key = minting_account.into();
+    let minting_recipient: Key = minting_account.into();
     let mint_amount = U256::from(1);
     let id = U256::one();
 
@@ -27,7 +27,7 @@ fn should_set_global_uri() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
@@ -59,7 +59,7 @@ fn should_set_uri_for_id() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient: Key = minting_account.into();
+    let minting_recipient: Key = minting_account.into();
     let mint_amount = U256::from(1);
     let id = U256::one();
 
@@ -67,7 +67,7 @@ fn should_set_uri_for_id() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );

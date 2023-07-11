@@ -70,7 +70,7 @@ pub enum Cep85Error {
     InvalidRecipient = 60047,
     MissingRecipient = 60048,
     MissingContractHash = 60049,
-    MintBurnDisabled = 60050,
+    BurnDisabled = 60050,
     InvalidEnableMBFlag = 60051,
     MissingEnableMBFlag = 60052,
     InvalidTransferFilterContract = 60053,

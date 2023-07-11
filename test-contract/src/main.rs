@@ -28,8 +28,9 @@ use casper_types::{
 use cep85::{
     constants::{
         ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_DATA, ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR,
-        ARG_TO, ARG_TOKEN_CONTRACT, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH,
-        ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE,
+        ARG_OWNER, ARG_TO, ARG_TOKEN_CONTRACT, ENTRY_POINT_BALANCE_OF,
+        ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BURN, ENTRY_POINT_INIT,
+        ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE,
         ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
         ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_SUPPLY_OF_BATCH, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
         ENTRY_POINT_TOTAL_SUPPLY_OF, ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_URI,
@@ -52,19 +53,6 @@ use utils::{get_token_contract, store_result};
 pub extern "C" fn init() {
     let token_contract = get_named_arg::<Key>(ARG_TOKEN_CONTRACT);
     put_key(ARG_TOKEN_CONTRACT, token_contract);
-}
-
-#[no_mangle]
-pub extern "C" fn check_balance_of() {
-    let token_contract: ContractHash = get_token_contract();
-    let account: Key = get_named_arg(ARG_ACCOUNT);
-    let id: U256 = get_named_arg(ARG_ID);
-    let balance_args = runtime_args! {
-        ARG_ACCOUNT => account,
-        ARG_ID => id,
-    };
-    let result: U256 = call_contract(token_contract, ENTRY_POINT_BALANCE_OF, balance_args);
-    store_result(result);
 }
 
 // Update stored value for as a contract filter result value
@@ -97,6 +85,47 @@ pub extern "C" fn can_transfer() {
             .unwrap_or_revert()
             .unwrap_or_default();
     ret(CLValue::from_t(value).unwrap_or_revert());
+}
+
+#[no_mangle]
+pub extern "C" fn burn() {
+    let token_contract: ContractHash = get_token_contract();
+    let owner: Key = get_named_arg(ARG_OWNER);
+    let id: U256 = get_named_arg(ARG_ID);
+    let amount: U256 = get_named_arg(ARG_AMOUNT);
+    let burn_args = runtime_args! {
+        ARG_OWNER => owner,
+        ARG_ID => id,
+        ARG_AMOUNT => amount,
+    };
+    call_contract::<()>(token_contract, ENTRY_POINT_BURN, burn_args);
+}
+
+#[no_mangle]
+pub extern "C" fn batch_burn() {
+    let token_contract: ContractHash = get_token_contract();
+    let owner: Key = get_named_arg(ARG_OWNER);
+    let ids: Vec<U256> = get_named_arg(ARG_IDS);
+    let amounts: Vec<U256> = get_named_arg(ARG_AMOUNTS);
+    let batch_burn_args = runtime_args! {
+        ARG_OWNER => owner,
+        ARG_IDS => ids,
+        ARG_AMOUNTS => amounts,
+    };
+    call_contract::<()>(token_contract, ENTRY_POINT_BATCH_BURN, batch_burn_args);
+}
+
+#[no_mangle]
+pub extern "C" fn check_balance_of() {
+    let token_contract: ContractHash = get_token_contract();
+    let account: Key = get_named_arg(ARG_ACCOUNT);
+    let id: U256 = get_named_arg(ARG_ID);
+    let balance_args = runtime_args! {
+        ARG_ACCOUNT => account,
+        ARG_ID => id,
+    };
+    let result: U256 = call_contract(token_contract, ENTRY_POINT_BALANCE_OF, balance_args);
+    store_result(result);
 }
 
 #[no_mangle]
@@ -316,6 +345,30 @@ pub extern "C" fn call() {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     );
+    let burn = EntryPoint::new(
+        ENTRY_POINT_BURN,
+        vec![
+            Parameter::new(ARG_OWNER, CLType::Key),
+            Parameter::new(ARG_ID, CLType::U256),
+            Parameter::new(ARG_AMOUNT, CLType::U256),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    );
+
+    let batch_burn = EntryPoint::new(
+        ENTRY_POINT_BATCH_BURN,
+        vec![
+            Parameter::new(ARG_OWNER, CLType::Key),
+            Parameter::new(ARG_IDS, CLType::List(Box::new(CLType::U256))),
+            Parameter::new(ARG_AMOUNTS, CLType::List(Box::new(CLType::U256))),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    );
+
     let check_balance_of = EntryPoint::new(
         ENTRY_POINT_CHECK_BALANCE_OF,
         vec![
@@ -432,6 +485,8 @@ pub extern "C" fn call() {
     entry_points.add_entry_point(init);
     entry_points.add_entry_point(set_filter_contract_return_value);
     entry_points.add_entry_point(can_transfer);
+    entry_points.add_entry_point(burn);
+    entry_points.add_entry_point(batch_burn);
     entry_points.add_entry_point(check_balance_of);
     entry_points.add_entry_point(check_balance_of_batch);
     entry_points.add_entry_point(check_is_approved_for_all);

@@ -26,7 +26,7 @@ fn should_check_balance_of() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let mint_amount = U256::one();
     let id = U256::one();
 
@@ -34,15 +34,19 @@ fn should_check_balance_of() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
-    let actual_balance =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &recipient, &id);
+    let actual_balance = cep85_check_balance_of(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_recipient,
+        &id,
+    );
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -103,7 +107,7 @@ fn should_error_on_balance_of_batch_args_len_difference() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let mut ids: Vec<U256> = vec![U256::one()];
     let amounts: Vec<U256> = vec![U256::one()];
 
@@ -112,14 +116,14 @@ fn should_error_on_balance_of_batch_args_len_difference() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         ids.clone(),
         amounts,
     );
 
     mint_call.expect_success().commit();
 
-    let accounts: Vec<Key> = vec![recipient, recipient];
+    let accounts: Vec<Key> = vec![minting_recipient, minting_recipient];
 
     let check_balance_args = runtime_args! {
         ARG_ACCOUNTS => accounts,
@@ -146,7 +150,7 @@ fn should_error_on_balance_of_batch_args_len_difference() {
     // check again the opposite len diff
     ids.push(U256::one());
     assert!(ids.len() == 2_usize);
-    let accounts: Vec<Key> = vec![recipient];
+    let accounts: Vec<Key> = vec![minting_recipient];
 
     let check_balance_args = runtime_args! {
         ARG_ACCOUNTS => accounts,

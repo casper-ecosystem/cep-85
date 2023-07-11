@@ -251,7 +251,7 @@ pub fn cep85_batch_mint<'a>(
 
 pub fn cep85_burn<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
-    cep85_token: &'a ContractHash,
+    contract_hash: &'a ContractHash,
     burning_account: &'a AccountHash,
     owner: &Key,
     id: &U256,
@@ -261,7 +261,7 @@ pub fn cep85_burn<'a>(
 > {
     let burn_request = ExecuteRequestBuilder::contract_call_by_hash(
         *burning_account,
-        *cep85_token,
+        *contract_hash,
         ENTRY_POINT_BURN,
         runtime_args! {
             ARG_OWNER => *owner,
@@ -275,7 +275,7 @@ pub fn cep85_burn<'a>(
 
 pub fn cep85_batch_burn<'a>(
     builder: &'a mut InMemoryWasmTestBuilder,
-    cep85_token: &'a ContractHash,
+    contract_hash: &'a ContractHash,
     burning_account: &'a AccountHash,
     owner: &Key,
     ids: Vec<U256>,
@@ -283,7 +283,7 @@ pub fn cep85_batch_burn<'a>(
 ) -> &'a mut InMemoryWasmTestBuilder {
     let burn_request = ExecuteRequestBuilder::contract_call_by_hash(
         *burning_account,
-        *cep85_token,
+        *contract_hash,
         ENTRY_POINT_BATCH_BURN,
         runtime_args! {
             ARG_OWNER => *owner,

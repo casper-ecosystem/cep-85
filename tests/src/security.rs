@@ -33,7 +33,7 @@ fn should_test_security_no_rights() {
         None,
     );
     let minting_account = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
-    let recipient: Key = minting_account.into();
+    let minting_recipient: Key = minting_account.into();
 
     let mint_amount = U256::one();
     let id = U256::one();
@@ -42,7 +42,7 @@ fn should_test_security_no_rights() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
@@ -64,7 +64,7 @@ fn should_test_security_no_rights() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
@@ -122,7 +122,7 @@ fn should_test_security_meta_rights() {
     fund_account(&mut builder, account_user_1);
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient: Key = account_user_1.into();
+    let minting_recipient: Key = account_user_1.into();
     let mint_amount = U256::from(1);
     let id = U256::one();
 
@@ -130,7 +130,7 @@ fn should_test_security_meta_rights() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
@@ -214,7 +214,7 @@ fn should_test_security_minter_rights() {
     fund_account(&mut builder, account_user_1);
 
     let minting_account = account_user_1;
-    let recipient: Key = minting_account.into();
+    let minting_recipient: Key = minting_account.into();
     let mint_amount = U256::one();
     let id = U256::one();
 
@@ -223,7 +223,7 @@ fn should_test_security_minter_rights() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
@@ -232,13 +232,13 @@ fn should_test_security_minter_rights() {
 
     // account_user_2 is not in minter list, request should fail
     let minting_account = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
-    let recipient: Key = minting_account.into();
+    let minting_recipient: Key = minting_account.into();
 
     let failing_mint_call = cep85_mint(
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
@@ -282,7 +282,7 @@ fn should_test_security_burner_rights() {
     // Set total supply to 2 for the token to be minted
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient: Key = account_user_1.into();
+    let minting_recipient: Key = account_user_1.into();
     let total_supply = U256::from(2);
     let mint_amount = U256::from(2);
     let id = U256::one();
@@ -301,7 +301,7 @@ fn should_test_security_burner_rights() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
@@ -311,7 +311,7 @@ fn should_test_security_burner_rights() {
     // account_user_2 is not in burner list, request should fail
     let burning_account = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
     // owner is now last recipient
-    let owner: Key = recipient;
+    let owner: Key = minting_recipient;
     let burn_amount = U256::one();
 
     let failing_burn_call = cep85_burn(
@@ -347,7 +347,7 @@ fn should_test_security_burner_rights() {
     burn_call.expect_success().commit();
 
     // default address is in admin list, request should succeed
-    let burning_account = *DEFAULT_ACCOUNT_ADDR;
+    let burning_account = minting_account;
     let owner: Key = burning_account.into();
 
     let burn_call = cep85_burn(
@@ -383,7 +383,7 @@ fn should_test_change_security() {
     );
 
     let minting_account = account_user_1;
-    let recipient: Key = minting_account.into();
+    let minting_recipient: Key = minting_account.into();
     let total_supply = U256::from(2);
     let mint_amount = U256::one();
     let id = U256::one();
@@ -402,7 +402,7 @@ fn should_test_change_security() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
@@ -412,7 +412,7 @@ fn should_test_change_security() {
 
     let account_user_2 = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
     let minting_account = account_user_2;
-    let recipient: Key = account_user_2.into();
+    let minting_recipient: Key = account_user_2.into();
 
     let security_lists = SecurityLists {
         minter_list: Some(vec![Key::Account(account_user_2)]),
@@ -431,7 +431,7 @@ fn should_test_change_security() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
@@ -456,7 +456,7 @@ fn should_test_change_security() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );

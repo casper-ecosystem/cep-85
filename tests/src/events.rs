@@ -85,7 +85,7 @@ fn should_record_events_in_events_mode() {
     );
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let mint_amount = U256::one();
     let id = U256::one();
 
@@ -93,21 +93,25 @@ fn should_record_events_in_events_mode() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
-    let actual_balance =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &recipient, &id);
+    let actual_balance = cep85_check_balance_of(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_recipient,
+        &id,
+    );
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
 
     // Expect Mint event
-    let expected_event = Mint::new(id, recipient, mint_amount);
+    let expected_event = Mint::new(id, minting_recipient, mint_amount);
     let actual_event: Mint = get_event(&builder, &cep85_token.into(), 0);
     assert_eq!(actual_event, expected_event, "Expected Mint event.");
 
@@ -131,7 +135,7 @@ fn should_not_record_events_in_no_events_mode() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let mint_amount = U256::one();
     let id = U256::one();
 
@@ -139,15 +143,19 @@ fn should_not_record_events_in_no_events_mode() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
 
     mint_call.expect_success().commit();
 
-    let actual_balance =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &recipient, &id);
+    let actual_balance = cep85_check_balance_of(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_recipient,
+        &id,
+    );
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);

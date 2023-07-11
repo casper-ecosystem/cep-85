@@ -526,7 +526,7 @@ pub extern "C" fn burn() {
             Cep85Error::InvalidEnableMBFlag,
         )
     {
-        revert(Cep85Error::MintBurnDisabled);
+        revert(Cep85Error::BurnDisabled);
     };
 
     sec_check(vec![SecurityBadge::Admin, SecurityBadge::Burner]);
@@ -584,7 +584,7 @@ pub extern "C" fn batch_burn() {
             Cep85Error::InvalidEnableMBFlag,
         )
     {
-        revert(Cep85Error::MintBurnDisabled);
+        revert(Cep85Error::BurnDisabled);
     };
 
     sec_check(vec![SecurityBadge::Admin, SecurityBadge::Burner]);

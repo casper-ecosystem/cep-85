@@ -230,7 +230,7 @@ fn should_get_supply_of_id() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient: Key = minting_account.into();
+    let minting_recipient: Key = minting_account.into();
     let total_supply = U256::from(2);
     let mint_amount = U256::from(2);
     let id = U256::one();
@@ -250,7 +250,7 @@ fn should_get_supply_of_id() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         &id,
         &mint_amount,
     );
@@ -279,7 +279,7 @@ fn should_get_supply_of_batch_for_ids() {
     );
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let ids = vec![U256::one(), U256::from(2)];
-    let recipient: Key = minting_account.into();
+    let minting_recipient: Key = minting_account.into();
     let mint_amount = U256::from(2);
     let total_supplies = vec![U256::from(2), U256::from(3)];
 
@@ -300,7 +300,7 @@ fn should_get_supply_of_batch_for_ids() {
         &mut builder,
         &cep85_token,
         &minting_account,
-        &recipient,
+        &minting_recipient,
         ids.clone(),
         mint_amounts,
     );
@@ -316,9 +316,9 @@ fn should_get_supply_of_batch_for_ids() {
         assert_eq!(actual_supplies[index], mint_amount);
     }
 
-    let burning_account = *DEFAULT_ACCOUNT_ADDR;
+    let burning_account = minting_account;
     // Owner is now last recipient
-    let owner = recipient;
+    let owner = minting_recipient;
 
     // Perform a batch burn call
     let batch_burn_call = cep85_batch_burn(
