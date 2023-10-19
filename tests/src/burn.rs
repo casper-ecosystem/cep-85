@@ -943,6 +943,272 @@ fn should_allow_contract_to_burn_token() {
 }
 
 #[test]
+fn should_allow_contract_to_batch_burn_token() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            ..
+        },
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_ENABLE_BURN => true,
+        },
+        None,
+    );
+
+    let security_lists = SecurityLists {
+        burner_list: Some(vec![Key::from(cep85_test_contract)]),
+        minter_list: None,
+        meta_list: None,
+        admin_list: None,
+        none_list: None,
+    };
+
+    let change_security = cep85_change_security(
+        &mut builder,
+        &cep85_token,
+        &DEFAULT_ACCOUNT_ADDR,
+        security_lists,
+    );
+
+    // Add test contract to burner list
+    change_security.expect_success().commit();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let minting_recipient = Key::Hash(cep85_test_contract.value());
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::one()];
+
+    // batch_mint is only one recipient
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        ids.clone(),
+        amounts.clone(),
+    );
+
+    mint_call.expect_success().commit();
+
+    let burning_account = minting_account;
+    // owner is now last recipient account_user_1
+    let owner: Key = minting_recipient;
+
+    let burn_call = cep85_batch_burn(
+        &mut builder,
+        &cep85_test_contract,
+        &burning_account,
+        &owner,
+        ids,
+        amounts,
+    );
+    burn_call.expect_success().commit();
+}
+
+#[test]
+fn should_allow_contract_package_to_burn_token() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_ENABLE_BURN => true,
+        },
+        None,
+    );
+
+    let security_lists = SecurityLists {
+        burner_list: Some(vec![Key::from(cep85_test_contract)]),
+        minter_list: None,
+        meta_list: None,
+        admin_list: None,
+        none_list: None,
+    };
+
+    let change_security = cep85_change_security(
+        &mut builder,
+        &cep85_token,
+        &DEFAULT_ACCOUNT_ADDR,
+        security_lists,
+    );
+
+    // Add test contract to burner list
+    change_security.expect_success().commit();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let minting_recipient = Key::Hash(cep85_test_contract_package.value());
+    let mint_amount = U256::one();
+    let id = U256::one();
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+    );
+
+    mint_call.expect_success().commit();
+
+    let burning_account = minting_account;
+    // owner is now last recipient account_user_1
+    let owner: Key = minting_recipient;
+    let burn_amount = U256::one();
+
+    let burn_call = cep85_burn(
+        &mut builder,
+        &cep85_test_contract,
+        &burning_account,
+        &owner,
+        &id,
+        &burn_amount,
+    );
+    burn_call.expect_success().commit();
+}
+
+#[test]
+fn should_allow_contract_package_to_bacth_burn_token() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_ENABLE_BURN => true,
+        },
+        None,
+    );
+
+    let security_lists = SecurityLists {
+        burner_list: Some(vec![Key::from(cep85_test_contract)]),
+        minter_list: None,
+        meta_list: None,
+        admin_list: None,
+        none_list: None,
+    };
+
+    let change_security = cep85_change_security(
+        &mut builder,
+        &cep85_token,
+        &DEFAULT_ACCOUNT_ADDR,
+        security_lists,
+    );
+
+    // Add test contract to burner list
+    change_security.expect_success().commit();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let minting_recipient = Key::Hash(cep85_test_contract_package.value());
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::one()];
+
+    // batch_mint is only one recipient
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        ids.clone(),
+        amounts.clone(),
+    );
+
+    mint_call.expect_success().commit();
+
+    let burning_account = minting_account;
+    // owner is now last recipient account_user_1
+    let owner: Key = minting_recipient;
+
+    let burn_call = cep85_batch_burn(
+        &mut builder,
+        &cep85_test_contract,
+        &burning_account,
+        &owner,
+        ids,
+        amounts,
+    );
+    burn_call.expect_success().commit();
+}
+
+#[test]
+fn should_allow_operator_to_burn_token() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract,
+            ..
+        },
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_ENABLE_BURN => true,
+        },
+        None,
+    );
+
+    let security_lists = SecurityLists {
+        burner_list: Some(vec![Key::from(cep85_test_contract)]),
+        minter_list: None,
+        meta_list: None,
+        admin_list: None,
+        none_list: None,
+    };
+
+    let change_security = cep85_change_security(
+        &mut builder,
+        &cep85_token,
+        &DEFAULT_ACCOUNT_ADDR,
+        security_lists,
+    );
+
+    // Add test contract to burner list
+    change_security.expect_success().commit();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let minting_recipient = Key::Hash(cep85_test_contract.value());
+    let mint_amount = U256::one();
+    let id = U256::one();
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+    );
+
+    mint_call.expect_success().commit();
+
+    let burning_account = minting_account;
+    // owner is now last recipient account_user_1
+    let owner: Key = minting_recipient;
+    let burn_amount = U256::one();
+
+    let burn_call = cep85_burn(
+        &mut builder,
+        &cep85_test_contract,
+        &burning_account,
+        &owner,
+        &id,
+        &burn_amount,
+    );
+    burn_call.expect_success().commit();
+}
+
+#[test]
 fn should_not_burn_in_non_burn_mode() {
     let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
         runtime_args! {
