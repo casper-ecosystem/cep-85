@@ -540,10 +540,15 @@ pub extern "C" fn burn() {
 
     let (caller, caller_package) = get_verified_caller();
 
-    // Check if the caller is the owner
+    // Check if the caller is the owner or operator
     let is_approved: bool = match caller_package {
-        Some(caller_package) => owner == caller_package || owner == caller,
-        None => owner == caller,
+        Some(caller_package) => {
+            owner == caller_package
+                || owner == caller
+                || read_operator(&owner, &caller_package)
+                || read_operator(&owner, &caller)
+        }
+        None => owner == caller || read_operator(&owner, &caller),
     };
 
     if !is_approved {
@@ -598,10 +603,15 @@ pub extern "C" fn batch_burn() {
 
     let (caller, caller_package) = get_verified_caller();
 
-    // Check if the caller is the owner
+    // Check if the caller is the owner or operator
     let is_approved: bool = match caller_package {
-        Some(caller_package) => owner == caller_package || owner == caller,
-        None => owner == caller,
+        Some(caller_package) => {
+            owner == caller_package
+                || owner == caller
+                || read_operator(&owner, &caller_package)
+                || read_operator(&owner, &caller)
+        }
+        None => owner == caller || read_operator(&owner, &caller),
     };
 
     if !is_approved {
@@ -848,6 +858,7 @@ pub extern "C" fn change_security() {
     {
         let burner_list: Option<Vec<Key>> =
             get_optional_named_arg_with_user_errors(BURNER_LIST, Cep85Error::InvalidBurnerList);
+
         if let Some(burner_list) = burner_list {
             for account_key in burner_list {
                 badge_map.insert(account_key, SecurityBadge::Burner);

@@ -54,17 +54,26 @@ impl FromBytes for SecurityBadge {
 }
 
 pub fn sec_check(allowed_badge_list: Vec<SecurityBadge>) {
-    let caller = get_verified_caller().0;
-    let user_badge: Option<SecurityBadge> = get_dictionary_value_from_key(
-        DICT_SECURITY_BADGES,
-        &hex::encode(caller.to_bytes().unwrap_or_revert()),
-    );
+    let (caller, caller_package) = get_verified_caller();
+    let caller_badge = get_security_badge(&caller);
+    let package_badge = caller_package.and_then(|package| get_security_badge(&package));
 
-    if !allowed_badge_list
-        .contains(&user_badge.unwrap_or_revert_with(Cep85Error::InsufficientRights))
-    {
-        revert(Cep85Error::InsufficientRights)
+    if let Some(badge) = caller_badge.or(package_badge) {
+        if allowed_badge_list.contains(&badge)
+            || (allowed_badge_list.contains(&SecurityBadge::Burner)
+                && badge == SecurityBadge::Burner)
+        {
+            return;
+        }
     }
+    revert(Cep85Error::InsufficientRights);
+}
+
+fn get_security_badge(entity: &Key) -> Option<SecurityBadge> {
+    get_dictionary_value_from_key(
+        DICT_SECURITY_BADGES,
+        &hex::encode(entity.to_bytes().unwrap_or_revert()),
+    )
 }
 
 pub fn change_sec_badge(badge_map: &BTreeMap<Key, SecurityBadge>) {
