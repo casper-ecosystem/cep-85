@@ -928,7 +928,7 @@ fn should_allow_contract_to_burn_token() {
     mint_call.expect_success().commit();
 
     let burning_account = minting_account;
-    // owner is now last recipient account_user_1
+    // owner is now last recipient cep85_test_contract
     let owner: Key = minting_recipient;
     let burn_amount = U256::one();
 
@@ -995,7 +995,7 @@ fn should_allow_contract_to_batch_burn_token() {
     mint_call.expect_success().commit();
 
     let burning_account = minting_account;
-    // owner is now last recipient account_user_1
+    // owner is now last recipient cep85_test_contract
     let owner: Key = minting_recipient;
 
     let burn_call = cep85_batch_burn(
@@ -1041,7 +1041,7 @@ fn should_allow_contract_package_to_burn_token() {
         security_lists,
     );
 
-    // Add test contract to burner list
+    // Add test contract package to burner list
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
@@ -1061,7 +1061,7 @@ fn should_allow_contract_package_to_burn_token() {
     mint_call.expect_success().commit();
 
     let burning_account = minting_account;
-    // owner is now last recipient account_user_1
+    // owner is now last recipient cep85_test_contract_package
     let owner: Key = minting_recipient;
     let burn_amount = U256::one();
 
@@ -1108,7 +1108,7 @@ fn should_allow_contract_package_to_batch_burn_token() {
         security_lists,
     );
 
-    // Add test contract to burner list
+    // Add test contract package to burner list
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
@@ -1129,7 +1129,7 @@ fn should_allow_contract_package_to_batch_burn_token() {
     mint_call.expect_success().commit();
 
     let burning_account = minting_account;
-    // owner is now last recipient account_user_1
+    // owner is now last recipient cep85_test_contract_package
     let owner: Key = minting_recipient;
 
     let burn_call = cep85_batch_burn(
@@ -1584,7 +1584,7 @@ fn should_allow_contract_package_as_operator_to_burn_token() {
         security_lists,
     );
 
-    // Add test contract to burner list
+    // Add test contract package to burner list
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
@@ -1692,7 +1692,7 @@ fn should_allow_contract_package_as_operator_to_batch_burn_token() {
         security_lists,
     );
 
-    // Add test contract to burner list
+    // Add test contract package to burner list
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
@@ -1793,7 +1793,7 @@ fn should_not_burn_in_non_burn_mode() {
     mint_call.expect_success().commit();
 
     let burning_account = minting_account;
-    // owner is now last recipient account_user_1
+    // owner is now last recipient DEFAULT_ACCOUNT_ADDR
     let owner: Key = minting_recipient;
     let burn_amount = U256::one();
 

@@ -858,7 +858,6 @@ pub extern "C" fn change_security() {
     {
         let burner_list: Option<Vec<Key>> =
             get_optional_named_arg_with_user_errors(BURNER_LIST, Cep85Error::InvalidBurnerList);
-
         if let Some(burner_list) = burner_list {
             for account_key in burner_list {
                 badge_map.insert(account_key, SecurityBadge::Burner);
