@@ -4,11 +4,11 @@ This documentation will guide you through the process of installing and interact
 
 ## Installing the Contract
 
-Installing the multi-token contract to global state requires the use of a [Deploy](https://docs.casper.network/developers/dapps/sending-deploys/). In this case, the session code can be compiled to Wasm by running the `make test` command provided in the Makefile at the top level. The Wasm will be found in the `contract/target/wasm32-unknown-unknown/release` directory as `contract.wasm`.
+Installing the multi-token contract to global state requires the use of a [Deploy](https://docs.casper.network/developers/dapps/sending-deploys/). In this case, the session code can be compiled to Wasm by running the `make test` command provided in the Makefile at the top level. The Wasm will be found in the `target/wasm32-unknown-unknown/release` directory as `cep-85.wasm`.
 
 Below is an example of a `casper-client` command that provides all required session arguments to install a valid instance of the CEP-85 contract on global state.
 
-- `casper-client put-deploy -n http://localhost:11101/rpc --chain-name "casper-net-1" --payment-amount 500000000000 -k ~/casper/casper-node/utils/nctl/assets/net-1/nodes/node-1/keys/secret_key.pem --session-path ~/casper/enhanced-nft/contract/target/wasm32-unknown-unknown/release/contract.wasm`
+- `casper-client put-deploy -n http://localhost:11101/rpc --chain-name "casper-net-1" --payment-amount 500000000000 -k ~/casper/casper-node/utils/nctl/assets/net-1/nodes/node-1/keys/secret_key.pem --session-path ~/casper/cep-85/target/wasm32-unknown-unknown/release/cep-85.wasm`
 
 1. `--session-arg "name:string='multi-token-1'"`
 
@@ -30,7 +30,7 @@ Below is an example of a `casper-client` command that provides all required sess
 <summary><b>Casper client command without comments</b></summary>
 
 ```bash
-`casper-client put-deploy -n http://localhost:11101/rpc --chain-name "casper-net-1" --payment-amount 500000000000 -k ~/casper/casper-node/utils/nctl/assets/net-1/nodes/node-1/keys/secret_key.pem --session-path ~/casper/enhanced-nft/contract/target/wasm32-unknown-unknown/release/contract.wasm` \
+`casper-client put-deploy -n http://localhost:11101/rpc --chain-name "casper-net-1" --payment-amount 500000000000 -k ~/casper/casper-node/utils/nctl/assets/net-1/nodes/node-1/keys/secret_key.pem --session-path ~/casper/cep-85/target/wasm32-unknown-unknown/release/cep-85.wasm` \
 --session-arg "name:string='multi-token-1'" \
 --session-arg "uri:string='https://docs.casper.network/'" \
 --session-arg "events_mode:u8='0'" \
