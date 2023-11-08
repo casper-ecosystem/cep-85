@@ -99,7 +99,7 @@ The modality provides two options:
 1. `False`: Tokens may not be burned. This is the default mode.
 2. `True`: Tokens may be burned by approved users on the `burner_list`.
 
-| EventsMode | u8  |
+| EnableBurn | u8  |
 | ---------- | --- |
 | False      | 0   |
 | True       | 1   |
