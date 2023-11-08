@@ -106,19 +106,19 @@ The modality provides two options:
 
 #### Transfer Filter Hook
 
-The transfer filter modality, if enabled, specifies a contract package hash pointing to a contract that will be called when the `transfer` method is invoked on the contract. CEP-85 will call the `can_transfer` method on the specified callback contract, which is expected to return a value of `TransferFilterContractResult`, represented as a u8.
+The transfer filter modality, if enabled, specifies a contract package hash pointing to a contract that will be called when the `safe_transfer_from` or `safe_batch_transfer_from` methods are invoked on the contract. CEP-85 will call the transfer filter method on the specified callback contract, which is expected to return a value of `TransferFilterContractResult`, represented as a u8.
 
 - `TransferFilterContractResult::DenyTransfer` will block the transfer regardless of the outcome of other checks
 - `TransferFilterContractResult::ProceedTransfer` will allow the transfer to proceed if other checks also pass
 
-The transfer filter can be enabled by passing a `ARG_TRANSFER_FILTER_CONTRACT` argument to the install method, with a value of type `Option<Key>`
+The transfer filter can be enabled by passing a `ARG_TRANSFER_FILTER_CONTRACT` argument to the install method, with a value of type `Option<Key>` The transfer filter method can be defined with the `ARG_TRANSFER_FILTER_METHOD` argument.
 
 ### Example deploy
 
 The following is an example of installing the CEP-85 contract via a deploy using the Rust CLI Casper client. You can find more examples [here](/docs/using-casper-client.md).
 
 ```bash
-casper-client put-deploy -n http://65.108.0.148:7777/rpc --chain-name "casper-test" --payment-amount 500000000000 -k keys/secret_key.pem --session-path contract/target/wasm32-unknown-unknown/release/contract.wasm \
+casper-client put-deploy -n http://65.108.0.148:7777/rpc --chain-name "casper-test" --payment-amount 500000000000 -k keys/secret_key.pem --session-path target/wasm32-unknown-unknown/release/cep85.wasm \
 --session-arg "name:string='multi-token-1'" \
 --session-arg "uri:string='https://docs.casper.network/'" \
 --session-arg "events_mode:u8='0'" \
