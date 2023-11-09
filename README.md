@@ -45,7 +45,7 @@ The following are the optional parameters that can be passed in at the time of i
 - `"events_mode"`: The [`EventsMode`](#eventsmode) modality that selects the event schema used to record any changes that occur to tokens issued by the contract instance. This argument is passed in as a `u8` value.
 - `"enable_burn"`: The [`EnableBurn`](#enableburn) modality dictates whether the contract instance will allow approved entities to permanently burn tokens. This argument is passed in as a `u8` value.
 - `"transfer_filter_contract"`: This argument dictates a secondary contract instance that will serve as a transfer filter for the installing instance of CEP-85. Passing an argument with a value of type `Option<Key>` will enable this feature.
-- `"transfer_filter_method"`: This argument outlines the name of the entry point on the transfer filter contract that is used to access the filter. It is passed as an `Option<String>`.
+- `"transfer_filter_method"`: This argument outlines the name of the entrypoint on the transfer filter contract that is used to access the filter. It is passed as an `Option<String>`.
 
 In addition, the following arguments may be passed to establish their associated user lists.
 
