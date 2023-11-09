@@ -3,10 +3,10 @@
 ## Design Goals
 
 - DApp developers attempting to create a multi-token contract should be able to install the contract as is, with modalities as required for their needs.
-- Reference implementation should showcase modalities and options for install and entrypoints for use after installation.
+- Reference implementation should showcase modalities and options for installation and entrypoints for use after installation.
 - CEP-85 reference implementation should be self-contained within a single repo, including all tests and documentation for Casper Labs provided SDKs.
-- Should adhere to publicly perceived expected behavior of a multi-token standard.
-- Standard session code should be provided to interact with the installed contract, allowing DApp developers to access normal functions without writing new Wasm producing logic.
+- Should adhere to the publicly perceived expected behavior of a multi-token standard.
+- Standard session code should be provided to interact with the installed contract, allowing DApp developers to access normal functions without writing new Wasm-producing logic.
 
 ## Table of Contents
 
@@ -49,11 +49,11 @@ The following are the optional parameters that can be passed in at the time of i
 
 In addition, the following arguments may be passed to establish their associated user lists.
 
-- `"admin_list"` : A list of users that will have `admin` access to this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
-- `"minter_list"` : A list of users that will have the ability to mint tokens using this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
-- `"burner_list"` : A list of users that will have the ability to burn tokens using this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
+- `"admin_list"` : A list of users with `admin` access to this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
+- `"minter_list"` : A list of users that can mint tokens using this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
+- `"burner_list"` : A list of users that can burn tokens using this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
 - `"meta_list"` : A list of users that have access to the `set_uri` entrypoint. Passed in as a string consisting of a list of `PublicKeys`.
-- `"none_list"` :  A list of users that have no special access to the contract instance. Passed in as a string consisting of a list of `PublicKeys`.
+- `"none_list"` :  A list of users without special access to the contract instance. Passed in as a string consisting of a list of `PublicKeys`.
 
 ### Modalities
 
@@ -63,7 +63,7 @@ The `EventsMode` modality determines how the installed instance of CEP-85 will h
 
 The modality provides two options:
 
-1. `NoEvents`: This modality will signal the contract to not record events at all. This is the default mode.
+1. `NoEvents`: This modality will signal the contract not to record any events. This is the default mode.
 2. `CES`: This modality will signal the contract to record events using the [Casper Event Standard](#casper-event-standard).
 
 | EventsMode | u8  |
@@ -111,14 +111,14 @@ The transfer filter modality, if enabled, specifies a contract package hash poin
 - `TransferFilterContractResult::DenyTransfer` will block the transfer regardless of the outcome of other checks
 - `TransferFilterContractResult::ProceedTransfer` will allow the transfer to proceed if other checks also pass
 
-The transfer filter can be enabled by passing a `ARG_TRANSFER_FILTER_CONTRACT` argument to the install method, with a value of type `Option<Key>` The transfer filter method can be defined with the `ARG_TRANSFER_FILTER_METHOD` argument.
+The transfer filter can be enabled by passing an `ARG_TRANSFER_FILTER_CONTRACT` argument to the install method, with a value of type `Option<Key>`. The transfer filter method can be defined with the `ARG_TRANSFER_FILTER_METHOD` argument.
 
 ### Example deploy
 
 The following is an example of installing the CEP-85 contract via a deploy using the Rust CLI Casper client. You can find more examples [here](/docs/using-casper-client.md).
 
 ```bash
-casper-client put-deploy -n http://65.108.0.148:7777/rpc --chain-name "casper-test" --payment-amount 500000000000 -k keys/secret_key.pem --session-path target/wasm32-unknown-unknown/release/cep85.wasm \
+casper-client put-deploy -n https://rpc.testnet.casperlabs.io/ --chain-name "casper-test" --payment-amount 500000000000 -k keys/secret_key.pem --session-path target/wasm32-unknown-unknown/release/cep85.wasm \
 --session-arg "name:string='multi-token-1'" \
 --session-arg "uri:string='https://docs.casper.network/'" \
 --session-arg "events_mode:u8='0'" \
@@ -127,7 +127,7 @@ casper-client put-deploy -n http://65.108.0.148:7777/rpc --chain-name "casper-te
 
 ## Installing and Interacting with the Contract using the Rust Casper Client
 
-You can find instructions on installing an instance of the CEP-78 contract using the Rust CLI Casper client [here](/docs/using-casper-client.md).
+You can find instructions on installing an instance of the CEP-85 contract using the Rust CLI Casper client [here](/docs/using-casper-client.md).
 
 ## Test Suite and Specification
 

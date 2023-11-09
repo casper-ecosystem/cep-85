@@ -1,6 +1,6 @@
 # Installing and Interacting with the Contract using the Rust Casper Client
 
-This documentation will guide you through the process of installing and interacting with an instance of the CEP-85 multi-token standard contract through Casper's Rust CLI client. The contract code installs an instance of CEP-85 as per session arguments provided at the time of installation. It requires a minimum Rust version of `1.63.0`.
+This documentation will guide you through installing and interacting with an instance of the CEP-85 multi-token standard contract through Casper's Rust CLI client. The contract code installs an instance of CEP-85 as per session arguments provided at the time of installation. It requires a minimum Rust version of `1.63.0`.
 
 ## Installing the Contract
 
@@ -94,7 +94,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 // The name of the entry point you are invoking.
 --session-entry-point "mint" \
-// The account hash of the account that you are minting CEP-85 tokens to.
+// The account hash of the account to which you are minting CEP-85 tokens.
 --session-arg "recipient:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
 // The ID of the CEP-85 token you are sending to the receiving account.
 --session-arg "id:u256='2'" \
@@ -139,7 +139,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 // The name of the entry point you are invoking.
 --session-entry-point "batch_mint" \
-// The account hash of the account that you are minting CEP-85 tokens to.
+// The account hash of the account to which you are minting CEP-85 tokens.
 --session-arg "recipient:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
 // The IDs of the CEP-85 tokens you are sending to the receiving account.
 --session-arg "ids:string='2, 5'" \
@@ -307,7 +307,7 @@ You can use the following command to query global state for the `balance` URef.
 
 ```json
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
-// This is the `balance` URef location from your CEP-85 contract's `NamedKeys`
+// This is the `balance` URef location from your CEP-85 contract's `NamedKeys`.
 --key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
 // This is the current state-root-hash for the Casper network your contract is installed on.
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
@@ -372,7 +372,7 @@ You can use the following command to query global state for the `batch_balances`
 
 ```json
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
-// This is the `batch_balances` URef location from your CEP-85 contract's `NamedKeys`
+// This is the `batch_balances` URef location from your CEP-85 contract's `NamedKeys`.
 --key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
 // This is the current state-root-hash for the Casper network your contract is installed on.
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
@@ -479,7 +479,7 @@ You can use the following command to query global state for the `is_approved_for
 
 ```json
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
-// This is the `is_approved_for_all` URef location from your CEP-85 contract's `NamedKeys`
+// This is the `is_approved_for_all` URef location from your CEP-85 contract's `NamedKeys`.
 --key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
 // This is the current state-root-hash for the Casper network your contract is installed on.
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
@@ -519,7 +519,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "id:u256='2'" \
 // The amount of the specified CEP-85 token you are sending to the receiving account.
 --session-arg "amount:u256='10'" \
-// "DATA is an optional argument passed as a string that allows inclusion of custom bytes. These are sent to `before_token_transfer` and can be used to pass values to a transfer filter contract."
+// "DATA is an optional argument passed as a string that allows the inclusion of custom bytes. These are sent to `before_token_transfer` and can be used to pass values to a transfer filter contract."
 --session-arg "data:string=''" \
 // The gas payment you are allotting, in motes.
 --payment-amount "10000000000"
@@ -570,7 +570,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "ids:string='2, 5'" \
 // The amounts of the specified CEP-85 tokens you are sending to the receiving account.
 --session-arg "amounts:string='10, 25'" \
-// "DATA is an optional argument passed as a string that allows inclusion of custom bytes. These are sent to `before_token_transfer` and can be used to pass values to a transfer filter contract."
+// "DATA is an optional argument passed as a string that allows the inclusion of custom bytes. These are sent to `before_token_transfer` and can be used to pass values to a transfer filter contract."
 --session-arg "data:string=''" \
 // The gas payment you are allotting, in motes.
 --payment-amount "10000000000"
@@ -643,7 +643,7 @@ You can use the following command to query global state for the `supply` URef.
 
 ```json
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
-// This is the `supply` URef location from your CEP-85 contract's `NamedKeys`
+// This is the `supply` URef location from your CEP-85 contract's `NamedKeys`.
 --key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
 // This is the current state-root-hash for the Casper network your contract is installed on.
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
@@ -705,7 +705,7 @@ You can use the following command to query global state for the `batch_supplies`
 
 ```json
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
-// This is the `batch_supplies` URef location from your CEP-85 contract's `NamedKeys`
+// This is the `batch_supplies` URef location from your CEP-85 contract's `NamedKeys`.
 --key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
 // This is the current state-root-hash for the Casper network your contract is installed on.
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
@@ -829,7 +829,7 @@ You can use the following command to query global state for the `batch_total_sup
 
 ```json
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
-// This is the `batch_total_supplies` URef location from your CEP-85 contract's `NamedKeys`
+// This is the `batch_total_supplies` URef location from your CEP-85 contract's `NamedKeys`.
 --key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
 // This is the current state-root-hash for the Casper network your contract is installed on.
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
@@ -1009,7 +1009,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-entry-point "set_uri" \
 // The ID of the CEP-85 token you are setting the URI of.
 --session-arg "id:u256='2'" \
-// The new total supply number.
+// The new URI for the token.
 --session-arg "uri:string='http://docs.casper.network/'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "10000000000"
@@ -1079,7 +1079,7 @@ You can use the following command to query global state for the `is_non_fungible
 
 ```json
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
-// This is the `is_non_fungible` URef location from your CEP-85 contract's `NamedKeys`
+// This is the `is_non_fungible` URef location from your CEP-85 contract's `NamedKeys`.
 --key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
 // This is the current state-root-hash for the Casper network your contract is installed on.
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
@@ -1141,7 +1141,7 @@ You can use the following command to query global state for the `total_fungible_
 
 ```json
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
-// This is the `total_fungible_supply` URef location from your CEP-85 contract's `NamedKeys`
+// This is the `total_fungible_supply` URef location from your CEP-85 contract's `NamedKeys`.
 --key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
 // This is the current state-root-hash for the Casper network your contract is installed on.
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
@@ -1166,7 +1166,7 @@ There are five security levels, with the strongest level taking precedence over 
 
 1. `None` - `None` overrides other security levels and removes all admin, minting and burning access of an account.
 
-2. `Admin` - Allows the account full access and control over the CEP-18 contract.
+2. `Admin` - Allows the account full access and control over the CEP-85 contract.
 
 3. `Minter` - The account can mint new tokens.
 
