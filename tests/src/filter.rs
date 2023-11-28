@@ -186,7 +186,7 @@ fn check_transfers_with_transfer_filter_contract() {
     let from = recipient_user_1;
     let to = Key::from(account_user_2);
     let transfer_amount = U256::one();
-    let data: Vec<Bytes> = vec![];
+    let data: Bytes = Bytes::default();
 
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
