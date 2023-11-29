@@ -319,11 +319,11 @@ pub extern "C" fn safe_transfer_from() {
     )
     .unwrap_or_revert();
 
-    let data: Bytes =
+    let data: Option<Bytes> =
         get_named_arg_with_user_errors(ARG_DATA, Cep85Error::MissingData, Cep85Error::InvalidData)
             .unwrap_or_revert();
 
-    before_token_transfer(&caller, &from, &to, &[id], &[amount], &data);
+    before_token_transfer(&caller, &from, &to, &[id], &[amount], data.into());
 
     transfer_balance(&from, &to, &id, &amount)
         .unwrap_or_revert_with(Cep85Error::FailToTransferBalance);
@@ -381,11 +381,11 @@ pub extern "C" fn safe_batch_transfer_from() {
         get_named_arg_with_user_errors(ARG_TO, Cep85Error::MissingTo, Cep85Error::InvalidTo)
             .unwrap_or_revert();
 
-    let data: Bytes =
+    let data: Option<Bytes> =
         get_named_arg_with_user_errors(ARG_DATA, Cep85Error::MissingData, Cep85Error::InvalidData)
             .unwrap_or_revert();
 
-    before_token_transfer(&caller, &from, &to, &ids, &amounts, &data);
+    before_token_transfer(&caller, &from, &to, &ids, &amounts, data.into());
 
     batch_transfer_balance(&from, &to, &ids, &amounts)
         .unwrap_or_revert_with(Cep85Error::FailToBatchTransferBalance);
@@ -1011,7 +1011,7 @@ fn before_token_transfer(
     to: &Key,
     ids: &[U256],
     amounts: &[U256],
-    data: &Bytes,
+    data: Option<Bytes>,
 ) {
     if amounts.len() != ids.len() {
         runtime::revert(Cep85Error::MismatchParamsLength);

@@ -508,7 +508,7 @@ pub struct TransferData<'a> {
     pub to: &'a Key,
     pub ids: Vec<U256>,
     pub amounts: Vec<U256>,
-    pub data: Bytes,
+    pub data: Option<Bytes>,
 }
 
 pub fn cep85_transfer_from<'a>(

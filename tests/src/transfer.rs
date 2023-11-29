@@ -53,7 +53,7 @@ fn should_transfer_full_owned_amount() {
     let from = Key::from(minting_account);
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
@@ -101,7 +101,7 @@ fn should_batch_transfer_full_owned_amount() {
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
     let from = minting_recipient;
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();
@@ -204,7 +204,7 @@ fn should_not_transfer_more_than_owned_balance() {
     let from = Key::from(minting_account);
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let transfer_amount = U256::from(2);
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
@@ -261,7 +261,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
     let transfer_amounts: Vec<U256> = vec![U256::from(2), U256::from(3)];
     let from = minting_recipient;
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances: Vec<U256> = [&mint_amounts[..], &[U256::zero(), U256::zero()]].concat();
 
@@ -372,7 +372,7 @@ fn should_not_be_able_to_own_transfer() {
     let to = from;
 
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
@@ -430,7 +430,7 @@ fn should_not_be_able_to_own_batch_transfer() {
     let from = minting_recipient;
     // let's try to self transfer
     let to = from;
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances: Vec<U256> = [&mint_amounts[..], &mint_amounts[..]].concat();
 
@@ -540,7 +540,7 @@ fn should_verify_zero_amount_transfer_is_noop() {
     let from = Key::from(minting_account);
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let transfer_amount = U256::zero();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
@@ -598,7 +598,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
     let transfer_amounts: Vec<U256> = vec![U256::from(2), U256::zero()];
     let from = minting_recipient;
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances: Vec<U256> = [&mint_amounts[..], &[U256::zero(), U256::zero()]].concat();
 
@@ -687,7 +687,7 @@ fn should_transfer_account_to_account() {
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let mint_call = cep85_mint(
         &mut builder,
@@ -757,7 +757,7 @@ fn should_batch_transfer_account_to_account() {
     let from = Key::from(account_user_1);
     let minting_recipient = from;
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_2).unwrap());
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();
@@ -839,7 +839,7 @@ fn should_transfer_account_to_contract_package() {
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let mint_call = cep85_mint(
         &mut builder,
@@ -909,7 +909,7 @@ fn should_batch_transfer_account_to_contract_package() {
     let from = Key::from(account_user_1);
     let minting_recipient = from;
     let to = Key::Hash(cep85_test_contract_package.value());
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();
@@ -989,7 +989,7 @@ fn should_transfer_contract_package_to_contract() {
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let mint_call = cep85_mint(
         &mut builder,
@@ -1057,7 +1057,7 @@ fn should_batch_transfer_contract_package_to_contract() {
     let from = Key::Hash(cep85_test_contract_package.value());
     let minting_recipient = from;
     let to = Key::Hash([42; 32]);
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();
@@ -1140,7 +1140,7 @@ fn should_transfer_account_to_contract() {
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let mint_call = cep85_mint(
         &mut builder,
@@ -1211,7 +1211,7 @@ fn should_batch_transfer_account_to_contract_() {
     let from = Key::from(account_user_1);
     let minting_recipient = from;
     let to = Key::Hash(cep85_test_contract.value());
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();
@@ -1292,7 +1292,7 @@ fn should_transfer_contract_to_contract() {
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let mint_call = cep85_mint(
         &mut builder,
@@ -1361,7 +1361,7 @@ fn should_batch_transfer_contract_to_contract() {
     let from = Key::Hash(cep85_test_contract.value());
     let minting_recipient = from;
     let to = Key::Hash([42; 32]);
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();

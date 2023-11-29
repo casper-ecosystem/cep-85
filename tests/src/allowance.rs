@@ -337,7 +337,7 @@ fn should_not_transfer_from_account_to_account_without_allowance() {
     let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
     let to = Key::from(account_user_1);
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     // Let's try to send as account_user_1 a transfer request from owner to account_user_1, this
     // request should fail
@@ -396,7 +396,7 @@ fn should_not_batch_transfer_from_account_to_account_without_allowance() {
     let from = minting_recipient;
     let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
     let to = Key::from(account_user_1);
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_after: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
 
@@ -493,7 +493,7 @@ fn should_transfer_from_account_to_account_with_allowance() {
     let from = minting_recipient;
     let to = operator; // operator will also be recipient of the transfer
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let transfer_call = cep85_transfer_from(
         &mut builder,
         &cep85_token,
@@ -566,7 +566,7 @@ fn should_batch_transfer_from_account_to_account_with_allowance() {
 
     let from = minting_recipient;
     let to = operator; // operator will also be recipient of the transfer
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
@@ -630,7 +630,7 @@ fn should_not_transfer_from_account_to_account_through_contract_without_allowanc
     let from = minting_recipient;
     let to = Key::from(account_user_2);
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     // Let's try to send as a contract a transfer request from owner account_user_1 to
     // account_user_2, this request should fail
@@ -716,7 +716,7 @@ fn should_not_batch_transfer_from_account_to_account_through_contract_without_al
 
     let from = minting_recipient;
     let to = Key::from(account_user_2);
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_after: Vec<U256> = [&amounts[..], &[U256::zero(), U256::zero()]].concat();
 
@@ -787,7 +787,7 @@ fn should_transfer_from_account_to_account_through_contract_with_allowance() {
     let from = minting_recipient;
     let to = Key::from(account_user_2);
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let owner = account_user_1;
     let approving_account = Key::from(owner);
@@ -868,7 +868,7 @@ fn should_transfer_from_account_to_account_through_package_with_allowance() {
     let from = minting_recipient;
     let to = Key::from(account_user_2);
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let owner = account_user_1;
     let approving_account = Key::from(owner);
@@ -970,7 +970,7 @@ fn should_batch_transfer_from_account_to_account_through_contract_with_allowance
 
     let from = minting_recipient;
     let to = Key::from(account_user_2);
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
@@ -1050,7 +1050,7 @@ fn should_batch_transfer_from_account_to_account_through_package_with_allowance(
 
     let from = minting_recipient;
     let to = Key::from(account_user_2);
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
@@ -1112,7 +1112,7 @@ fn should_transfer_from_account_to_contract_through_contract_with_allowance() {
     let from = minting_recipient;
     let to = Key::from(cep85_test_contract);
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let owner = account_user_1;
     let approving_account = Key::from(owner);
@@ -1193,7 +1193,7 @@ fn should_transfer_from_account_to_contract_through_package_with_allowance() {
     let from = minting_recipient;
     let to = Key::from(cep85_test_contract);
     let transfer_amount = U256::one();
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
 
     let owner = account_user_1;
     let approving_account = Key::from(owner);
@@ -1292,7 +1292,7 @@ fn should_batch_transfer_from_account_to_contract_through_contract_with_allowanc
 
     let from = minting_recipient;
     let to = Key::from(cep85_test_contract);
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
@@ -1372,7 +1372,7 @@ fn should_batch_transfer_from_account_to_contract_through_package_with_allowance
 
     let from = minting_recipient;
     let to = Key::from(cep85_test_contract);
-    let data: Bytes = Bytes::default();
+    let data = Some(Bytes::default());
     let recipients = vec![from, from, to, to];
     let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
 
