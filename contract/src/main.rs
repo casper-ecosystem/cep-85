@@ -323,7 +323,7 @@ pub extern "C" fn safe_transfer_from() {
         get_named_arg_with_user_errors(ARG_DATA, Cep85Error::MissingData, Cep85Error::InvalidData)
             .unwrap_or_revert();
 
-    before_token_transfer(&caller, &from, &to, &[id], &[amount], data.into());
+    before_token_transfer(&caller, &from, &to, &[id], &[amount], data);
 
     transfer_balance(&from, &to, &id, &amount)
         .unwrap_or_revert_with(Cep85Error::FailToTransferBalance);
@@ -385,7 +385,7 @@ pub extern "C" fn safe_batch_transfer_from() {
         get_named_arg_with_user_errors(ARG_DATA, Cep85Error::MissingData, Cep85Error::InvalidData)
             .unwrap_or_revert();
 
-    before_token_transfer(&caller, &from, &to, &ids, &amounts, data.into());
+    before_token_transfer(&caller, &from, &to, &ids, &amounts, data);
 
     batch_transfer_balance(&from, &to, &ids, &amounts)
         .unwrap_or_revert_with(Cep85Error::FailToBatchTransferBalance);
@@ -429,8 +429,13 @@ pub extern "C" fn mint() {
         .checked_add(amount)
         .unwrap_or_revert_with(Cep85Error::OverflowMint);
     let total_max_supply = read_total_supply_of(&id);
-    if new_supply > total_max_supply {
-        revert(Cep85Error::ExceededMaxTotalSupply);
+
+    if total_max_supply != U256::zero() {
+        if new_supply > total_max_supply {
+            revert(Cep85Error::ExceededMaxTotalSupply);
+        }
+    } else {
+        write_total_supply_of(&id, &new_supply);
     }
 
     write_supply_of(&id, &new_supply);
@@ -490,8 +495,13 @@ pub extern "C" fn batch_mint() {
         let new_supply = supply
             .checked_add(amount)
             .unwrap_or_revert_with(Cep85Error::OverflowBatchMint);
-        if new_supply > total_max_supply {
-            revert(Cep85Error::ExceededMaxTotalSupply);
+
+        if total_max_supply != U256::zero() {
+            if new_supply > total_max_supply {
+                revert(Cep85Error::ExceededMaxTotalSupply);
+            }
+        } else {
+            write_total_supply_of(&id, &new_supply);
         }
 
         write_supply_of(&id, &new_supply);
@@ -1036,7 +1046,7 @@ fn before_token_transfer(
                 .unwrap_or_revert_with(Cep85Error::FailedToCreateArg);
             args.insert(ARG_AMOUNTS, amounts.to_owned())
                 .unwrap_or_revert_with(Cep85Error::FailedToCreateArg);
-            args.insert(ARG_DATA, data.to_owned())
+            args.insert(ARG_DATA, data)
                 .unwrap_or_revert_with(Cep85Error::FailedToCreateArg);
 
             let result: TransferFilterContractResult =
