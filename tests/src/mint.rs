@@ -194,7 +194,6 @@ fn should_not_mint_above_total_supply() {
     failing_mint_call.expect_failure();
 
     let error = builder.get_error().expect("must have error");
-
     assert_expected_error(
         error,
         Cep85Error::ExceededMaxTotalSupply as u16,

@@ -28,6 +28,9 @@ export const USER2_KEYS = Keys.Ed25519.parseKeyFiles(
   `${USER2_KEY_PAIR_PATH}/secret_key.pem`
 );
 
+export const name = "casper_test";
+export const uri = "https://test-cdn-domain/{id}.json";
+
 export const getBinary = (pathToBinary: string) => {
   return new Uint8Array(fs.readFileSync(pathToBinary, null).buffer);
 };
@@ -38,22 +41,14 @@ export const sleep = (ms: number) => {
 
 export const getDeploy = async (nodeURL: string, deployHash: string) => {
   const client = new CasperClient(nodeURL);
-
-  // TODO use event stream ?
   let i = 50;
-  while (i !== 0) {
+  while (i) {
     const [deploy, raw] = await client.getDeploy(deployHash);
-    if (raw.execution_results.length !== 0) {
-      // @ts-ignore
+    if (raw.execution_results.length) {
       if (raw.execution_results[0].result.Success) {
         return deploy;
       } else {
-        // @ts-ignore
-        throw Error(
-          "Contract execution: " +
-          // @ts-ignore
-          raw.execution_results[0].result.Failure.error_message
-        );
+        throw new Error(`Contract execution failed: ${raw?.execution_results[0]?.result?.Failure?.error_message}`);
       }
     } else {
       i--;
@@ -61,7 +56,7 @@ export const getDeploy = async (nodeURL: string, deployHash: string) => {
       continue;
     }
   }
-  throw Error("Timeout after " + i + "s. Something's wrong");
+  throw new Error("Timeout after " + i + "s. Something's wrong");
 };
 
 export const getAccountInfo: any = async (

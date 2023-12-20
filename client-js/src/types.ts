@@ -20,22 +20,14 @@ export interface JSONSchemaObject {
 }
 
 export type ConfigurableVariables = {
-  allowMinting?: boolean;
-  contractWhitelist?: string[];
+  burner_list?: CLKeyParameters[];
+  eventsMode?: EventsMode;
 };
 
 export type InstallArgs = {
   name: string;
   uri: string;
-  burner_list?: CLKeyParameters[];
-  // accessKeyName?: string;
-  // hashKeyName?: string;
-  eventsMode?: EventsMode;
 } & ConfigurableVariables;
-
-export interface RegisterArgs {
-  tokenOwner: CLKeyParameters;
-}
 
 export interface MintArgs {
   recipient: CLKeyParameters;
@@ -43,9 +35,12 @@ export interface MintArgs {
   amount: string;
 }
 
-export interface TokenArgs {
+export type TransferArgs = {
+  from: CLKeyParameters;
+  to: CLKeyParameters;
   id: string;
-}
+  amount: string;
+};
 
 export type BurnArgs = {
   id: string;
@@ -53,12 +48,13 @@ export type BurnArgs = {
   amount: string;
 };
 
-export type TransferArgs = {
-  from: CLKeyParameters;
-  to: CLKeyParameters;
+export interface RegisterArgs {
+  tokenOwner: CLKeyParameters;
+}
+
+export interface TokenArgs {
   id: string;
-  amount: string;
-};
+}
 
 export type TokenMetadataArgs = {
   tokenMetaData: Record<string, string>;

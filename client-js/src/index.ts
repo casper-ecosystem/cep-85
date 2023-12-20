@@ -1,4 +1,3 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import {
   CLMap,
   CLString,
@@ -14,8 +13,15 @@ import {
   CLValue,
   CLKeyType,
   CLByteArrayType,
+  CLType,
+  encodeBase16,
+  CLAccountHash,
+  CLU256,
+  CLValueBytesParsers,
+  CLValueParsers
 } from "casper-js-sdk";
-
+import { BigNumber } from "@ethersproject/bignumber";
+import { blake2b } from '@noble/hashes/blake2b';
 import { None } from "ts-results";
 
 import {
@@ -105,64 +111,68 @@ export class CEP85Client {
   }
 
   public async collectionName() {
-    return this.contractClient.queryContractData(["collection_name"]);
+    return this.contractClient.queryContractData(["name"]);
   }
 
-  public async collectionSymbol() {
-    return this.contractClient.queryContractData(["collection_symbol"]);
+  public async collectionUri() {
+    return this.contractClient.queryContractData(["uri"]);
   }
 
-  public async tokenTotalSupply() {
-    return this.contractClient.queryContractData(["total_token_supply"]);
-  }
+  // public async collectionSymbol() {
+  //   return this.contractClient.queryContractData(["collection_symbol"]);
+  // }
 
-  public setVariables(
-    args: ConfigurableVariables,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[]
-  ) {
-    const runtimeArgs = RuntimeArgs.fromMap({});
+  // public async tokenTotalSupply() {
+  //   return this.contractClient.queryContractData(["total_token_supply"]);
+  // }
 
-    if (args.allowMinting !== undefined) {
-      runtimeArgs.insert(
-        "allow_minting",
-        CLValueBuilder.bool(args.allowMinting)
-      );
-    }
+  // public setVariables(
+  //   args: ConfigurableVariables,
+  //   paymentAmount: string,
+  //   deploySender: CLPublicKey,
+  //   keys?: Keys.AsymmetricKey[]
+  // ) {
+  //   const runtimeArgs = RuntimeArgs.fromMap({});
 
-    if (args.contractWhitelist !== undefined) {
-      const list = buildHashList(args.contractWhitelist);
-      runtimeArgs.insert("contract_whitelist", CLValueBuilder.list(list));
-    }
+  //   if (args.allowMinting !== undefined) {
+  //     runtimeArgs.insert(
+  //       "allow_minting",
+  //       CLValueBuilder.bool(args.allowMinting)
+  //     );
+  //   }
 
-    const preparedDeploy = this.contractClient.callEntrypoint(
-      "set_variables",
-      runtimeArgs,
-      deploySender,
-      this.networkName,
-      paymentAmount,
-      keys
-    );
+  //   if (args.contractWhitelist !== undefined) {
+  //     const list = buildHashList(args.contractWhitelist);
+  //     runtimeArgs.insert("contract_whitelist", CLValueBuilder.list(list));
+  //   }
 
-    return preparedDeploy;
-  }
+  //   const preparedDeploy = this.contractClient.callEntrypoint(
+  //     "set_variables",
+  //     runtimeArgs,
+  //     deploySender,
+  //     this.networkName,
+  //     paymentAmount,
+  //     keys
+  //   );
 
-  public revoke(
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[]
-  ) {
-    const preparedDeploy = this.contractClient.callEntrypoint(
-      "revoke",
-      RuntimeArgs.fromMap({}),
-      deploySender,
-      this.networkName,
-      paymentAmount,
-      keys
-    );
+  //   return preparedDeploy;
+  // }
 
-    return preparedDeploy;
+  // eslint-disable-next-line class-methods-use-this
+  public makeDictionaryItemKey(key: CLKey, value: CLU256): string {
+    const bytesA = new Uint8Array(CLValueParsers.toBytes(key));
+    const bytesB = new Uint8Array(CLValueParsers.toBytes(value));
+
+    const concatenatedBytes: Uint8Array = new Uint8Array(bytesA.length + bytesB.length);
+    concatenatedBytes.set(bytesA);
+    concatenatedBytes.set(bytesB, bytesA.length);
+
+    const hashedBytes: Uint8Array = blake2b(concatenatedBytes, {
+      dkLen: 32
+    });
+    const result: string = encodeBase16(hashedBytes);
+
+    return result;
   }
 
   public mint(
@@ -184,30 +194,6 @@ export class CEP85Client {
 
     const preparedDeploy = this.contractClient.callEntrypoint(
       "mint",
-      runtimeArgs,
-      deploySender,
-      this.networkName,
-      paymentAmount,
-      keys
-    );
-
-    return preparedDeploy;
-  }
-
-  public burn(
-    args: BurnArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[]
-  ) {
-    const runtimeArgs = RuntimeArgs.fromMap({
-      owner: CLValueBuilder.key(args.owner),
-      id: CLValueBuilder.u256(args.id),
-      amount: CLValueBuilder.u256(args.amount),
-    });
-
-    const preparedDeploy = this.contractClient.callEntrypoint(
-      "burn",
       runtimeArgs,
       deploySender,
       this.networkName,
@@ -250,6 +236,47 @@ export class CEP85Client {
     return preparedDeploy;
   }
 
+  public burn(
+    args: BurnArgs,
+    paymentAmount: string,
+    deploySender: CLPublicKey,
+    keys?: Keys.AsymmetricKey[]
+  ) {
+    const runtimeArgs = RuntimeArgs.fromMap({
+      owner: CLValueBuilder.key(args.owner),
+      id: CLValueBuilder.u256(args.id),
+      amount: CLValueBuilder.u256(args.amount),
+    });
+
+    const preparedDeploy = this.contractClient.callEntrypoint(
+      "burn",
+      runtimeArgs,
+      deploySender,
+      this.networkName,
+      paymentAmount,
+      keys
+    );
+
+    return preparedDeploy;
+  }
+
+  public revoke(
+    paymentAmount: string,
+    deploySender: CLPublicKey,
+    keys?: Keys.AsymmetricKey[]
+  ) {
+    const preparedDeploy = this.contractClient.callEntrypoint(
+      "revoke",
+      RuntimeArgs.fromMap({}),
+      deploySender,
+      this.networkName,
+      paymentAmount,
+      keys
+    );
+
+    return preparedDeploy;
+  }
+
   public setTokenMetadata(
     args: TokenMetadataArgs,
     paymentAmount: string,
@@ -283,34 +310,23 @@ export class CEP85Client {
     return `account-hash-${(result as CLKey).toJSON()}`;
   }
 
-  // public async getMetadataOf(tokenId: string) {
-  // const metadataToCheck: NFTMetadataKind =
-  //   metadataType || NFTMetadataKind[await this.getMetadataKindConfig()];
+  public async getURI(id: string) {
+    const result = await this.contractClient.queryContractDictionary(
+      'token_uri',
+      id
+    );
+    const ret = result.toJSON() as string;
+    return ret && ret.replace('{id}', id);
+  }
 
-  // const mapMetadata = {
-  //   [NFTMetadataKind.CEP85]: "metadata_cep85",
-  //   [NFTMetadataKind.NFT721]: "metadata_nft721",
-  //   [NFTMetadataKind.Raw]: "metadata_raw",
-  //   [NFTMetadataKind.CustomValidated]: "metadata_custom_validated",
-  // };
-
-  // const result = await this.contractClient.queryContractDictionary(
-  //   mapMetadata[metadataToCheck],
-  //   tokenId
-  // );
-
-  // const clMap = result as CLMap<CLString, CLString>;
-
-  // return clMap.toJSON() as { [key: string]: string; };
-  // }
-
-  public async getBalanceOf(account: CLPublicKey) {
-    console.log(account.toAccountHashStr().slice(13));
+  public async getBalanceOf(account: CLPublicKey, id: string) {
+    const accountHash = new CLAccountHash(account.toAccountHash());
+    const key = new CLKey(accountHash);
+    const dictionaryItemKey = this.makeDictionaryItemKey(key, new CLU256(id));
     const result = await this.contractClient.queryContractDictionary(
       "balances",
-      account.toAccountHashStr().slice(13)
+      dictionaryItemKey
     );
-
     return (result as CLU8).toJSON();
   }
 

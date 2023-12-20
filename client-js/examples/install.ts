@@ -9,10 +9,9 @@ import {
   getAccountInfo,
   getAccountNamedKeyValue,
   USER1_KEYS,
+  name,
+  uri
 } from "./common";
-
-export const name = "casper_test";
-export const uri = "https://test-cdn-domain/{id}.json";
 
 const install = async () => {
   const cc = new CEP85Client(process.env.NODE_URL!, process.env.NETWORK_NAME!);
@@ -59,4 +58,8 @@ const install = async () => {
   console.log(`... Contract Package Hash: ${contractPackageHash}`);
 };
 
-install();
+if (require.main === module) {
+  install().catch((error) => console.error(error));
+}
+
+export { install };

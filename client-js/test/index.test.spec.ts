@@ -141,7 +141,6 @@ describe("CEP85Client", () => {
     );
   });
 
-
   it("Should correctly construct deploy for 'burn'", async () => {
     const burnDeploy = cc.burn(
       {

@@ -124,7 +124,6 @@ pub fn stringify_key<T: CLTyped>(key: Key) -> String {
     }
 }
 
-#[inline]
 pub fn make_dictionary_item_key<T: CLTyped + ToBytes, V: CLTyped + ToBytes>(
     key: &T,
     value: &V,
