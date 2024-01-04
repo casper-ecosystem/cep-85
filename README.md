@@ -13,17 +13,16 @@
 1. [Building the Contract](#building-the-contract)
 
 2. [Required Runtime Arguments](#required-runtime-arguments)
-   
+
    - [Modalities](#modalities)
 
-   - [Example Deploy](#example-deploy) 
+   - [Example Deploy](#example-deploy)
 
 3. [Installing and Interacting with CEP-85 Contracts using the Rust Casper Client](#installing-and-interacting-with-the-contract-using-the-rust-casper-client)
 
 4. [Test Suite and Specification](#test-suite-and-specification)
 
 5. [Error Codes](#error-codes)
-
 
 ## Building the Contract
 
@@ -53,7 +52,7 @@ In addition, the following arguments may be passed to establish their associated
 - `"minter_list"` : A list of users that can mint tokens using this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
 - `"burner_list"` : A list of users that can burn tokens using this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
 - `"meta_list"` : A list of users that have access to the `set_uri` entrypoint. Passed in as a string consisting of a list of `PublicKeys`.
-- `"none_list"` :  A list of users without special access to the contract instance. Passed in as a string consisting of a list of `PublicKeys`.
+- `"none_list"` : A list of users without special access to the contract instance. Passed in as a string consisting of a list of `PublicKeys`.
 
 ### Modalities
 
@@ -79,16 +78,16 @@ The emitted events are encoded according to the [Casper Event Standard](https://
 
 For this CEP-85 reference implementation, the events schema is as follows:
 
-| Event name      | Included values and type                                                 |
-| --------------- | ------------------------------------------------------------------------ |
-| Mint            | id (U256), recipient (Key), amount (U256)                                | 
-| Burn            | id (U256), owner (Key), amount (U256)                                    |
-| ApprovalForAll  | owner (Key), operator (Key), approved (bool)                             |
-| TransferSingle  | operator (Key), from (Key), to (Key), id (U256), value (U256)            |
-| TransferBatch   | operator (Key), from (Key), to (Key), ids (Vec<U256>), values (Vec<U256>)|
-| Uri             | value (String), id (Option<U256>)                                        |
-| SetTotalSupply  | id (U256), total_supply (U256)                                           |
-| ChangeSecurity  | admin (Key), sec_change_map (BTreeMap<Key, SecurityBadge>)               |
+| Event name     | Included values and type                                                  |
+| -------------- | ------------------------------------------------------------------------- |
+| Mint           | id (U256), recipient (Key), amount (U256)                                 |
+| Burn           | id (U256), owner (Key), amount (U256)                                     |
+| ApprovalForAll | owner (Key), operator (Key), approved (bool)                              |
+| TransferSingle | operator (Key), from (Key), to (Key), id (U256), value (U256)             |
+| TransferBatch  | operator (Key), from (Key), to (Key), ids (Vec<U256>), values (Vec<U256>) |
+| Uri            | value (String), id (Option<U256>)                                         |
+| SetTotalSupply | id (U256), total_supply (U256)                                            |
+| ChangeSecurity | admin (Key), sec_change_map (BTreeMap<Key, SecurityBadge>)                |
 
 #### EnableBurn
 
@@ -135,82 +134,81 @@ The expected behavior of the multi-token contract implementation is asserted by 
 
 ## Error Codes
 
-| Code | Error                                       |
-| ---- | ------------------------------------------- |
-| 1    | BurnDisabled                                |
-| 2    | ContractAlreadyInitialized                  |
-| 3    | ExceededMaxTotalSupply                      |
-| 4    | FailedToBatchTransferBalance                |
-| 5    | FailedToCreateArg                           |
-| 6    | FailedToCreateDictionary                    |
-| 7    | FailedToGetArgBytes                         |
-| 8    | FailToBatchTransferBalance                  |
-| 9    | FailToTransferBalance                       |
-| 10   | InsufficientBalance                         |
-| 11   | InsufficientRights                          |
-| 12   | InvalidAccount                              |
-| 13   | InvalidAccounts                             |
-| 14   | InvalidAdminList                            |
-| 15   | InvalidAmount                               |
-| 16   | InvalidAmounts                              |
-| 17   | InvalidBurnTarget                           |
-| 18   | InvalidBurnerList                           |
-| 19   | InvalidCollectionName                       |
-| 20   | InvalidContractHash                         |
-| 21   | InvalidData                                 |
-| 22   | InvalidEnableMBFlag                         |
-| 23   | InvalidEventsMode                           |
-| 24   | InvalidFrom                                 |
-| 25   | InvalidId                                   |
-| 26   | InvalidIds                                  |
-| 27   | InvalidKey                                  |
-| 28   | InvalidMetaList                             |
-| 29   | InvalidMinterList                           |
-| 30   | InvalidNoneList                             |
-| 31   | InvalidOperator                             |
-| 32   | InvalidOwner                                |
-| 33   | InvalidPackageHash                          |
-| 34   | InvalidRecipient                            |
-| 35   | InvalidStorageUref                          |
-| 36   | InvalidTo                                   |
-| 37   | InvalidTotalSupply                          |
-| 38   | InvalidTotalSupplies                        |
-| 39   | InvalidTransferFilterContract               |
-| 40   | InvalidTransferFilterMethod                 |
-| 41   | InvalidUri                                  |
-| 42   | MissingAccount                              |
-| 43   | MissingAccounts                             |
-| 44   | MissingAmount                               |
-| 45   | MissingAmounts                              |
-| 46   | MissingCollectionName                       |
-| 47   | MissingContractHash                         |
-| 48   | MissingData                                 |
-| 49   | MissingEnableMBFlag                         |
-| 50   | MissingEventsMode                           |
-| 51   | MissingFrom                                 |
-| 52   | MissingId                                   |
-| 53   | MissingIds                                  |
-| 54   | MissingOperator                             |
-| 55   | MissingOwner                                |
-| 56   | MissingPackageHash                          |
-| 57   | MissingRecipient                            |
-| 58   | MissingStorageUref                          |
-| 59   | MissingTo                                   |
-| 60   | MissingTotalSupply                          |
-| 61   | MissingTotalSupplies                        |
-| 62   | MissingTransferFilterContract               |
-| 63   | MissingTransferFilterMethod                 |
-| 64   | MissingUri                                  |
-| 65   | MismatchParamsLength                        |
-| 66   | NotApproved                                 |
-| 67   | Overflow                                    |
-| 68   | OverflowBatchBurn                           |
-| 69   | OverflowBatchMint                           |
-| 70   | OverflowBurn                                |
-| 71   | OverflowMint                                |
-| 72   | Phantom                                     |
-| 73   | SelfOperatorApproval                        |
-| 74   | SelfTransfer                                |
-| 75   | TokenSupplyDepleted                         |
-| 76   | TransferFilterContractDenied                |
-| 77   | UnexpectedKeyVariant                        |
+| Code | Error                         |
+| ---- | ----------------------------- |
+| 1    | BurnDisabled                  |
+| 2    | ContractAlreadyInitialized    |
+| 3    | ExceededMaxTotalSupply        |
+| 4    | FailedToBatchTransferBalance  |
+| 5    | FailedToCreateArg             |
+| 6    | FailedToCreateDictionary      |
+| 7    | FailedToGetArgBytes           |
+| 8    | FailToBatchTransferBalance    |
+| 9    | FailToTransferBalance         |
+| 10   | InsufficientBalance           |
+| 11   | InsufficientRights            |
+| 12   | InvalidAccount                |
+| 13   | InvalidAccounts               |
+| 14   | InvalidAdminList              |
+| 15   | InvalidAmount                 |
+| 16   | InvalidAmounts                |
+| 17   | InvalidBurnTarget             |
+| 18   | InvalidBurnerList             |
+| 19   | InvalidCollectionName         |
+| 20   | InvalidContractHash           |
+| 21   | InvalidData                   |
+| 22   | InvalidEnableMBFlag           |
+| 23   | InvalidEventsMode             |
+| 24   | InvalidFrom                   |
+| 25   | InvalidId                     |
+| 26   | InvalidIds                    |
+| 27   | InvalidKey                    |
+| 28   | InvalidMetaList               |
+| 29   | InvalidMinterList             |
+| 30   | InvalidNoneList               |
+| 31   | InvalidOperator               |
+| 32   | InvalidOwner                  |
+| 33   | InvalidPackageHash            |
+| 34   | InvalidRecipient              |
+| 35   | InvalidStorageUref            |
+| 36   | InvalidTo                     |
+| 37   | InvalidTotalSupply            |
+| 38   | InvalidTotalSupplies          |
+| 39   | InvalidTransferFilterContract |
+| 40   | InvalidTransferFilterMethod   |
+| 41   | InvalidUri                    |
+| 42   | MissingAccount                |
+| 43   | MissingAccounts               |
+| 44   | MissingAmount                 |
+| 45   | MissingAmounts                |
+| 46   | MissingCollectionName         |
+| 47   | MissingContractHash           |
+| 48   | MissingEnableMBFlag           |
+| 49   | MissingEventsMode             |
+| 50   | MissingFrom                   |
+| 51   | MissingId                     |
+| 52   | MissingIds                    |
+| 53   | MissingOperator               |
+| 54   | MissingOwner                  |
+| 55   | MissingPackageHash            |
+| 56   | MissingRecipient              |
+| 57   | MissingStorageUref            |
+| 58   | MissingTo                     |
+| 59   | MissingTotalSupply            |
+| 60   | MissingTotalSupplies          |
+| 61   | MissingTransferFilterContract |
+| 62   | MissingTransferFilterMethod   |
+| 63   | MissingUri                    |
+| 64   | MismatchParamsLength          |
+| 65   | NotApproved                   |
+| 66   | Overflow                      |
+| 67   | OverflowBatchBurn             |
+| 68   | OverflowBatchMint             |
+| 69   | OverflowBurn                  |
+| 70   | OverflowMint                  |
+| 71   | Phantom                       |
+| 72   | SelfOperatorApproval          |
+| 73   | SelfTransfer                  |
+| 74   | TokenSupplyDepleted           |
+| 75   | TransferFilterContractDenied  |
+| 76   | UnexpectedKeyVariant          |

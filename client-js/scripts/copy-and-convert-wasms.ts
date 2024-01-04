@@ -2,8 +2,7 @@ import * as path from "node:path";
 import * as fs from "fs";
 
 const LIST_OF_WASMS = [
-  "cep85.wasm",
-  "cep85_test_contract.wasm",
+  "cep85.wasm"
 ];
 
 const PATH_FROM = path.resolve(__dirname, '../../tests/wasm');

@@ -1,7 +1,7 @@
 {
   "StoredContractByHash": {
     "hash": "0c0f9056626a55273bd8238f595908f2e4d78acc2546bf1f78f39f814bc60fe4",
-    "entry_point": "safe_transfer_from",
+    "entry_point": "safe_batch_transfer_from",
     "args": [
       [
         "from",
@@ -18,17 +18,21 @@
         }
       ],
       [
-        "id",
+        "ids",
         {
-          "bytes": "0101",
-          "cl_type": "U256"
+          "bytes": "0200000001030104",
+          "cl_type": {
+            "List": "U256"
+          }
         }
       ],
       [
-        "amount",
+        "amounts",
         {
-          "bytes": "0101",
-          "cl_type": "U256"
+          "bytes": "02000000010a010a",
+          "cl_type": {
+            "List": "U256"
+          }
         }
       ]
     ]

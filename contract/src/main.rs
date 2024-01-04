@@ -320,8 +320,7 @@ pub extern "C" fn safe_transfer_from() {
     .unwrap_or_revert();
 
     let data: Option<Bytes> =
-        get_named_arg_with_user_errors(ARG_DATA, Cep85Error::MissingData, Cep85Error::InvalidData)
-            .unwrap_or_revert();
+        get_optional_named_arg_with_user_errors(ARG_DATA, Cep85Error::InvalidData);
 
     before_token_transfer(&caller, &from, &to, &[id], &[amount], data);
 
@@ -382,8 +381,7 @@ pub extern "C" fn safe_batch_transfer_from() {
             .unwrap_or_revert();
 
     let data: Option<Bytes> =
-        get_named_arg_with_user_errors(ARG_DATA, Cep85Error::MissingData, Cep85Error::InvalidData)
-            .unwrap_or_revert();
+        get_optional_named_arg_with_user_errors(ARG_DATA, Cep85Error::InvalidData);
 
     before_token_transfer(&caller, &from, &to, &ids, &amounts, data);
 

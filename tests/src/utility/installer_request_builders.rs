@@ -527,54 +527,66 @@ pub fn cep85_transfer_from<'a>(
     } = transfer_data;
 
     let transfer_request = match from {
-        Key::Account(_hash) => ExecuteRequestBuilder::contract_call_by_hash(
-            *sender, // We do not use above _hash here because from and sender could be different
-            *cep85_token,
-            ENTRY_POINT_SAFE_TRANSFER_FROM,
-            runtime_args! {
+        Key::Account(_hash) => {
+            let mut args = runtime_args! {
                 ARG_FROM => *from,
                 ARG_TO => *to,
                 ARG_ID => ids[0],
                 ARG_AMOUNT => amounts[0],
-                ARG_DATA => data,
-            },
-        )
-        .build(),
+            };
+
+            if let Some(data) = data {
+                let _ = args.insert(ARG_DATA, data);
+            }
+
+            ExecuteRequestBuilder::contract_call_by_hash(
+                *sender, /* We do not use above _hash here because from and sender could be
+                          * different */
+                *cep85_token,
+                ENTRY_POINT_SAFE_TRANSFER_FROM,
+                args,
+            )
+            .build()
+        }
         Key::Hash(hash) => {
             let hash_bytes: &[u8; 32] = hash.as_slice().try_into().expect("Hash must be 32 bytes");
             let call_package =
                 direct_call_test_contract.is_none() || direct_call_test_contract == Some(false);
             if call_package {
                 if let Ok(contract_package_hash) = ContractPackageHash::try_from(*hash_bytes) {
+                    let args = runtime_args! {
+                        ARG_FROM => *from,
+                        ARG_TO => *to,
+                        ARG_ID => ids[0],
+                        ARG_AMOUNT => amounts[0],
+                        ARG_DATA => data,
+                    };
+
                     ExecuteRequestBuilder::versioned_contract_call_by_hash(
                         *sender,
                         contract_package_hash,
                         None,
                         ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
-                        runtime_args! {
-                            ARG_FROM => *from,
-                            ARG_TO => *to,
-                            ARG_ID => ids[0],
-                            ARG_AMOUNT => amounts[0],
-                            ARG_DATA => data,
-                        },
+                        args,
                     )
                     .build()
                 } else {
                     panic!("Unknown variant");
                 }
             } else if let Ok(contract_hash) = ContractHash::try_from(*hash_bytes) {
+                let args = runtime_args! {
+                    ARG_FROM => *from,
+                    ARG_TO => *to,
+                    ARG_ID => ids[0],
+                    ARG_AMOUNT => amounts[0],
+                    ARG_DATA => data,
+                };
+
                 ExecuteRequestBuilder::contract_call_by_hash(
                     *sender,
                     contract_hash,
                     ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
-                    runtime_args! {
-                        ARG_FROM => *from,
-                        ARG_TO => *to,
-                        ARG_ID => ids[0],
-                        ARG_AMOUNT => amounts[0],
-                        ARG_DATA => data,
-                    },
+                    args,
                 )
                 .build()
             } else {
@@ -634,19 +646,26 @@ pub fn cep85_batch_transfer_from<'a>(
     } = transfer_data;
 
     let transfer_request = match from {
-        Key::Account(_hash) => ExecuteRequestBuilder::contract_call_by_hash(
-            *sender, // We do not use above _hash here because from and sender could be different
-            *cep85_token,
-            ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
-            runtime_args! {
+        Key::Account(_hash) => {
+            let mut args = runtime_args! {
                 ARG_FROM => *from,
                 ARG_TO => *to,
                 ARG_IDS => ids,
                 ARG_AMOUNTS => amounts,
-                ARG_DATA => data,
-            },
-        )
-        .build(),
+            };
+
+            if let Some(data) = data {
+                let _ = args.insert(ARG_DATA, data);
+            }
+            ExecuteRequestBuilder::contract_call_by_hash(
+                *sender, /* We do not use above _hash here because from and sender could be
+                          * different */
+                *cep85_token,
+                ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
+                args,
+            )
+            .build()
+        }
         Key::Hash(hash) => {
             let hash_bytes: &[u8; 32] = hash.as_slice().try_into().expect("Hash must be 32 bytes");
             let call_package =

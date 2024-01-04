@@ -1,4 +1,4 @@
-import { CLType, CLValue, CLKeyParameters, CLByteArray, CLPublicKey } from "casper-js-sdk";
+import { CLType, CLValue, CLKeyParameters } from "casper-js-sdk";
 
 export interface CallConfig {
   useSessionCode: boolean;
@@ -35,44 +35,71 @@ export interface MintArgs {
   amount: string;
 }
 
+export interface BatchMintArgs {
+  recipient: CLKeyParameters;
+  ids: string[];
+  amounts: string[];
+}
+
 export type TransferArgs = {
   from: CLKeyParameters;
   to: CLKeyParameters;
   id: string;
   amount: string;
+  data?: Uint8Array;
+};
+
+export type BatchTransferArgs = {
+  from: CLKeyParameters;
+  to: CLKeyParameters;
+  ids: string[];
+  amounts: string[];
+  data?: Uint8Array;
 };
 
 export type BurnArgs = {
-  id: string;
   owner: CLKeyParameters;
+  id: string;
   amount: string;
 };
 
-export interface RegisterArgs {
-  tokenOwner: CLKeyParameters;
-}
+export type BatchBurnArgs = {
+  owner: CLKeyParameters;
+  ids: string[];
+  amounts: string[];
+};
 
-export interface TokenArgs {
+export type BalanceOfArgs = {
+  account: CLKeyParameters;
   id: string;
-}
-
-export type TokenMetadataArgs = {
-  tokenMetaData: Record<string, string>;
 };
 
-export type StoreBalanceOfArgs = {
-  tokenOwner: CLKeyParameters;
-  keyName: string;
+export type SetUriArgs = {
+  id?: string;
+  uri: string;
 };
 
-export type ApproveArgs = {
-  operator: CLKeyParameters;
-} & TokenArgs;
+export type ChangeSecurityArgs = {
+  admin_list?: CLKeyParameters[];
+  minter_list?: CLKeyParameters[];
+  burner_list?: CLKeyParameters[];
+  meta_list?: CLKeyParameters[];
+  none_list?: CLKeyParameters[];
+};
 
-export type ApproveAllArgs = {
+export type TotalSupplyOfArgs = {
+  id: string;
+  total_supply: string;
+};
+
+export type TotalSupplyOfArgsBatch = {
+  ids: string[];
+  total_supplies: string[];
+};
+
+export type SetApprovallForAllArgs = {
   operator: CLKeyParameters;
-  approveAll: boolean;
-  tokenOwner: CLKeyParameters;
+  approved: boolean;
 };
 
 type WriteCLValue = {
