@@ -22,9 +22,9 @@ import {
   CasperServiceByJsonRPC,
 } from "casper-js-sdk";
 import { install } from "./install";
+import { utf8ToBytes } from "@noble/hashes/utils";
 
 const { NODE_URL, EVENT_STREAM_ADDRESS } = process.env;
-const utf8Encoder = new TextEncoder();
 
 const id = '1';
 const ids = ['3', '4'];
@@ -33,7 +33,7 @@ const transferAmount = '10';
 const burnAmount = '1';
 const totalSupply = '40';
 const text = "hello Casper";
-const data = utf8Encoder.encode(text);
+const data = utf8ToBytes(text);
 
 const runDeployFlow = async (deploy: DeployUtil.Deploy) => {
   const deployHash = await deploy.send(NODE_URL!);
