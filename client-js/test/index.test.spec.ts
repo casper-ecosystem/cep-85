@@ -27,6 +27,7 @@ import SET_TOTAL_SUPPLY_OF_JSON from "./jsons/set_total_supply_of-args.json";
 import SET_TOTAL_SUPPLY_OF_BATCH_JSON from "./jsons/set_total_supply_of_batch-args.json";
 import SET_URI_JSON from "./jsons/set_uri-args.json";
 import CHANGE_SECURITY_JSON from "./jsons/change_security-args.json";
+import { utf8ToBytes } from "@noble/hashes/utils";
 
 
 const name = "casper_test";
@@ -38,8 +39,7 @@ const transferAmount = '10';
 const burnAmount = '1';
 const totalSupply = '40';
 const text = "hello Casper";
-const utf8Encoder = new TextEncoder();
-const data = utf8Encoder.encode(text);
+const data = utf8ToBytes(text);
 
 const MOCKED_OWNER_PUBKEY = CLPublicKey.fromHex(
   "0145fb72c75e1b459839555d70356a5e6172e706efa204d86c86050e2f7878960f"
@@ -178,6 +178,7 @@ describe("CEP85Client", () => {
         to: MOCKED_RECIPIENT_PUBKEY,
         id,
         amount: "1",
+        data
       },
       "13000000000",
       keyPair.publicKey
