@@ -42,17 +42,17 @@ The following are the required runtime arguments that must be passed to the inst
 The following are the optional parameters that can be passed in at the time of installation.
 
 - `"events_mode"`: The [`EventsMode`](#eventsmode) modality that selects the event schema used to record any changes that occur to tokens issued by the contract instance. This argument is passed in as a `u8` value.
-- `"enable_burn"`: The [`EnableBurn`](#enableburn) modality dictates whether the contract instance will allow approved entities to permanently burn tokens. This argument is passed in as a `u8` value.
-- `"transfer_filter_contract"`: This argument dictates a secondary contract instance that will serve as a transfer filter for the installing instance of CEP-85. Passing an argument with a value of type `Option<Key>` will enable this feature.
-- `"transfer_filter_method"`: This argument outlines the name of the entrypoint on the transfer filter contract that is used to access the filter. It is passed as an `Option<String>`.
+- `"enable_burn"`: The [`EnableBurn`](#enableburn) modality dictates whether the contract instance will allow approved entities to permanently burn tokens. This argument is passed in as a `bool` value.
+- `"transfer_filter_contract"`: This argument dictates a secondary contract instance that will serve as a transfer filter for the installing instance of CEP-85. Passing an argument with a value of type `Key` will enable this feature.
+- `"transfer_filter_method"`: This argument outlines the name of the entrypoint on the transfer filter contract that is used to access the filter. It is passed as an `String`.
 
 In addition, the following arguments may be passed to establish their associated user lists.
 
-- `"admin_list"` : A list of users with `admin` access to this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
-- `"minter_list"` : A list of users that can mint tokens using this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
-- `"burner_list"` : A list of users that can burn tokens using this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
-- `"meta_list"` : A list of users that have access to the `set_uri` entrypoint. Passed in as a string consisting of a list of `PublicKeys`.
-- `"none_list"` : A list of users without special access to the contract instance. Passed in as a string consisting of a list of `PublicKeys`.
+- `"admin_list"` : A list of users with `admin` access to this contract instance. Passed in as a list of `Key`.
+- `"minter_list"` : A list of users that can mint tokens using this contract instance. Passed in as a list of `Key`.
+- `"burner_list"` : A list of users that can burn tokens using this contract instance. Passed in as a list of `Key`.
+- `"meta_list"` : A list of users that have access to the `set_uri` entrypoint. Passed in as a list of `Key`.
+- `"none_list"` : A list of users without (banned of) special access to the contract instance. Passed in as a list of `Key`.
 
 ### Modalities
 
@@ -69,6 +69,20 @@ The modality provides two options:
 | ---------- | --- |
 | NoEvents   | 0   |
 | CES        | 1   |
+
+#### EnableBurn
+
+The `EnableBurn` modality determines if the installed instance of CEP-85 will allow the burning of tokens.
+
+The modality provides two options:
+
+1. `False`: Tokens may not be burned. This is the default mode.
+2. `True`: Tokens may be burned by approved users on the `burner_list`.
+
+| EnableBurn | Bool |
+| ---------- | ---- |
+| False      |
+| True       |
 
 ##### Casper Event Standard
 
@@ -89,20 +103,6 @@ For this CEP-85 reference implementation, the events schema is as follows:
 | SetTotalSupply | id (U256), total_supply (U256)                                            |
 | ChangeSecurity | admin (Key), sec_change_map (BTreeMap<Key, SecurityBadge>)                |
 
-#### EnableBurn
-
-The `EnableBurn` modality determines if the installed instance of CEP-85 will allow the burning of tokens.
-
-The modality provides two options:
-
-1. `False`: Tokens may not be burned. This is the default mode.
-2. `True`: Tokens may be burned by approved users on the `burner_list`.
-
-| EnableBurn | u8  |
-| ---------- | --- |
-| False      | 0   |
-| True       | 1   |
-
 #### Transfer Filter Hook
 
 The transfer filter modality, if enabled, specifies a contract package hash pointing to a contract that will be called when the `safe_transfer_from` or `safe_batch_transfer_from` methods are invoked on the contract. CEP-85 will call the transfer filter method on the specified callback contract, which is expected to return a value of `TransferFilterContractResult`, represented as a u8.
@@ -110,7 +110,7 @@ The transfer filter modality, if enabled, specifies a contract package hash poin
 - `TransferFilterContractResult::DenyTransfer` will block the transfer regardless of the outcome of other checks
 - `TransferFilterContractResult::ProceedTransfer` will allow the transfer to proceed if other checks also pass
 
-The transfer filter can be enabled by passing an `ARG_TRANSFER_FILTER_CONTRACT` argument to the install method, with a value of type `Option<Key>`. The transfer filter method can be defined with the `ARG_TRANSFER_FILTER_METHOD` argument.
+The transfer filter can be enabled by passing an `ARG_TRANSFER_FILTER_CONTRACT` argument to the install method, with a value of type `Key`. The transfer filter method can be defined with the `ARG_TRANSFER_FILTER_METHOD` argument.
 
 ### Example deploy
 
@@ -121,7 +121,7 @@ casper-client put-deploy -n https://rpc.testnet.casperlabs.io/ --chain-name "cas
 --session-arg "name:string='multi-token-1'" \
 --session-arg "uri:string='https://docs.casper.network/'" \
 --session-arg "events_mode:u8='0'" \
---session-arg "enable_burn:u8='1'" \
+--session-arg "enable_burn:bool='1'" \
 ```
 
 ## Installing and Interacting with the Contract using the Rust Casper Client

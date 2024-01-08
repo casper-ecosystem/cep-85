@@ -1,3 +1,4 @@
+import { CLString, CLValueBuilder } from "casper-js-sdk";
 import {
   CEP85Client,
   EventsMode
@@ -20,8 +21,9 @@ const install = async () => {
     {
       name,
       uri,
-      eventsMode: EventsMode.CES,
-      burner_list: [USER1_KEYS.publicKey]
+      events_mode: EventsMode.CES,
+      burner_list: [USER1_KEYS.publicKey],
+      enable_burn: true
     },
     "250000000000",
     FAUCET_KEYS.publicKey,

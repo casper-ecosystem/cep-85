@@ -10,7 +10,7 @@ import * as fs from "fs";
 
 config();
 
-const { MASTER_KEY_PAIR_PATH, USER1_KEY_PAIR_PATH, USER2_KEY_PAIR_PATH } =
+const { MASTER_KEY_PAIR_PATH, USER1_KEY_PAIR_PATH } =
   process.env;
 
 export const FAUCET_KEYS = Keys.Ed25519.parseKeyFiles(
@@ -21,11 +21,6 @@ export const FAUCET_KEYS = Keys.Ed25519.parseKeyFiles(
 export const USER1_KEYS = Keys.Ed25519.parseKeyFiles(
   `${USER1_KEY_PAIR_PATH}/public_key.pem`,
   `${USER1_KEY_PAIR_PATH}/secret_key.pem`
-);
-
-export const USER2_KEYS = Keys.Ed25519.parseKeyFiles(
-  `${USER2_KEY_PAIR_PATH}/public_key.pem`,
-  `${USER2_KEY_PAIR_PATH}/secret_key.pem`
 );
 
 export const name = "casper_test";

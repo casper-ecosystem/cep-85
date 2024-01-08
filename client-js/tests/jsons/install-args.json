@@ -1,18 +1,9 @@
 [
    [
-      "burner_list",
-      {
-         "bytes": "010000000055e148e54479bbf8e38a10939b113d1cde7f558761022c32601684c5a00547ad",
-         "cl_type": {
-            "List": "Key"
-         }
-      }
-   ],
-   [
       "enable_burn",
       {
-         "bytes": "01",
-         "cl_type": "U8"
+         "bytes": "00",
+         "cl_type": "Bool"
       }
    ],
    [

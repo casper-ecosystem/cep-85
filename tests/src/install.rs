@@ -38,7 +38,7 @@ fn should_have_queryable_properties() {
     let name: String = builder.get_value(cep85_token, ARG_NAME);
     let uri: String = builder.get_value(cep85_token, ARG_URI);
     let events_mode: u8 = builder.get_value(cep85_token, ARG_EVENTS_MODE);
-    let enable_burn: u8 = builder.get_value(cep85_token, ARG_ENABLE_BURN);
+    let enable_burn: bool = builder.get_value(cep85_token, ARG_ENABLE_BURN);
     let transfer_filter_contract: Option<ContractHash> =
         builder.get_value(cep85_token, ARG_TRANSFER_FILTER_CONTRACT);
     let transfer_filter_method: Option<String> =
@@ -47,7 +47,7 @@ fn should_have_queryable_properties() {
     assert_eq!(name, TOKEN_NAME);
     assert_eq!(uri, TOKEN_URI);
     assert_eq!(events_mode, EventsMode::NoEvents as u8);
-    assert_eq!(enable_burn, false as u8);
+    assert!(!enable_burn);
     assert_eq!(transfer_filter_contract, None);
     assert_eq!(transfer_filter_method, None);
 }

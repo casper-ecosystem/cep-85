@@ -4,187 +4,29 @@ This tutorial outlines the usage of the JavaScript client available for the CEP-
 
 Further information on the CEP-85 Standard can be found [here](https://github.com/casper-ecosystem/cep-85).
 
-The client is available in *npm* as [casper-cep85-js-client](https://www.npmjs.com/package/casper-cep85-js-client).
+The client is available in _npm_ as [casper-cep85-js-client](https://www.npmjs.com/package/casper-cep85-js-client).
 
 ## Client Installation
 
 The client can be installed in a project you have built using TypeScript / Javascript.
 
-To install run:
+To install run:.send(
 
-```js
+```ts
 npm install casper-cep85-js-client
 ```
 
-## Installing a CEP-85 Contract using the JavaScript Client
-
-The `install` method crafts a [Deploy](https://docs.casperlabs.io/design/casper-design/#execution-semantics-deploys) using `InstallArgs`.
-As with every deploy created by the SDK, you can send it using the `.send(rpcUrl)` method providing the RPC URL that you want to use. It will return deployHash.
-
-```js
-
-  const cc = new CEP85Client(process.env.NODE_URL!, process.env.NETWORK_NAME!);
-
-  const installDeploy = await cc.install(
-    {
-      collectionName: "my-collection",
-      collectionSymbol: "MY-NFTS",
-      totalTokenSupply: "1000",
-      ownershipMode: NFTOwnershipMode.Transferable,
-      nftKind: NFTKind.Physical,
-      jsonSchema: {
-        properties: {
-          color: { name: "color", description: "", required: true },
-          size: { name: "size", description: "", required: true },
-          material: { name: "material", description: "", required: true },
-          condition: { name: "condition", description: "", required: false },
-        },
-      },
-      nftMetadataKind: NFTMetadataKind.CustomValidated,
-      identifierMode: NFTIdentifierMode.Ordinal,
-      metadataMutability: MetadataMutability.Immutable,
-      mintingMode: MintingMode.Installer,
-      ownerReverseLookupMode: OwnerReverseLookupMode.Complete
-    },
-    "250000000000",
-    FAUCET_KEYS.publicKey,
-    [FAUCET_KEYS]
-  );
-
-  const hash = await installDeploy.send(process.env.http://localhost:11101/rpc);
-
-```
-
-`InstallArgs` are specified as follows:
-
-* `collectionName` - The name of the NFT collection, passed in as a `String`. **This parameter is required and cannot be changed post installation**.
-
-* `collectionSymbol` - The symbol representing a given NFT collection, passed in as a `String`. **This parameter is required and cannot be changed post installation**.
-
-* `totalTokenSupply` - The total number of NFTs that a specific contract instance will mint passed in as a `U64` value. **This parameter is required and cannot be changed post installation**.
-
-* `ownershipMode` - The `OwnershipMode` modality that dictates the ownership behavior of the NFT contract. This argument is passed in as a `u8` value and is required at the time of installation.
-
-* `nftKind` - The `NFTKind` modality that specifies the off-chain items represented by the on-chain NFT data. This argument is passed in as a `u8` value and is required at the time of installation.
-
-* `jsonSchema` - The JSON schema for the NFT tokens that will be minted by the NFT contract passed in as a `String`. More information on `NFTMetadataKind` can be found [here](https://github.com/casper-ecosystem/cep-85). This parameter may be left empty if metadata kind is set to `Raw(3)`. If the metadata kind is set to `CustomValidated(4)`, it will require a specifically formatted custom schema. This parameter **cannot be changed post installation**.
-
-* `nftMetadataKind` - The metadata schema for the NFTs to be minted by the NFT contract. This argument is passed in as a `u8` value and is required at the time of installation.
-
-* `identifierMode` - The `NFTIdentifierMode` modality dictates the primary identifier for NFTs minted by the contract. This argument is passed in as a `u8` value and is required at the time of installation.
-
-* `metadataMutability` - The `MetadataMutability` modality dictates whether the metadata of minted NFTs can be updated. This argument is passed in as a `u8` value and is required at the time of installation.
-
-* `mintingmode` - The `MintingMode` modality dictates the access to the `mint()` entry point in the NFT contract. This optional parameter will default to restricting access to the installer of the contract. **This parameter cannot be changed once the contract has been installed**.
-
-* `holdermode` - The `NFTHolderMode` modality dictates which entities can hold NFTs. This optional parameter will default to a mixed mode, allowing either `Accounts` or `Contracts` to hold NFTs. **This parameter cannot be changed once the contract has been installed**.
-
-* `burnMode` - The `BurnMode` modality dictates whether minted NFTs can be burned. This optional parameter will allow tokens to be burnt by default. **This parameter cannot be changed once the contract has been installed**.
-
-* `ownerReverseLookupMode` - The `OwnerReverseLookupMode` dictates whether the contract will index ownership of tokens as outlined [here](https://github.com/casper-ecosystem/cep-85) to allow lookup of owned tokens by account. **This parameter cannot be changed once the contract has been installed**.
-
-Further information on CEP-85 modality options can be found in the base [cep-85](https://github.com/casper-ecosystem/cep-85) repository on GitHub.
-
-## Minting a Token
-
-The CEP-85 JS Client includes code to construct a deploy that will `Mint` a token, as follows:
-
-```js
-
-  const mintDeploy = cc.mint(
-    {
-      owner: FAUCET_KEYS.publicKey,
-      meta: {
-        color: "Blue",
-        size: "Medium",
-        material: "Aluminum",
-        condition: "Used",
-      },
-    },
-    { useSessionCode: true },
-    "2000000000",
-    FAUCET_KEYS.publicKey,
-    [FAUCET_KEYS]
-  );
-
-  const mintDeployHash = await mintDeploy.send("http://localhost:11101/rpc");
-
-```
-The arguments adhere to those provided in the original installation, with the `.send()` pointing to a valid RPC URL on your target Casper network. In this instance, we are using an NCTL RPC URL.
-
-In this example, the [`useSessionCode`](https://github.com/casper-ecosystem/cep-85/blob/dev/client-js/examples/usage.ts#L86-L88) variable decides if the user will call `mint` using session code, or not. It will be set to `true` if the `OwnerReverseLookupMode` is set to `Complete`. [It then registers the recipient with the contract](https://github.com/casper-ecosystem/cep-85/blob/dev/client-js/examples/usage.ts#L116-L130) and mints the token.
-
-If `OwnerReverseLookupMode` is set to `NoLookup`, `useSessionCode` will be set to `false` and it will simply mint the token as it does not need to register the recipient.
-
-## Register Recipient
-
-As we used `ownerReverseLookupMode: OwnerReverseLookupMode.Complete` in this contract installation, we must register the recipient. To do this, we construct a `register` deploy:
-
-```js
-
-    const registerDeploy = cc.register(
-      {
-        tokenOwner: USER1_KEYS.publicKey,
-      },
-      "1000000000",
-      USER1_KEYS.publicKey,
-      [USER1_KEYS]
-    );
-
-    const registerDeployHash = await registerDeploy.send("http://localhost:11101/rpc");
-
-```
-
-## Transferring a Token
-
-After minting one or more tokens, you can then use the following code to transfer the tokens between accounts:
-
-```js
-
-  const transferDeploy = cc.transfer(
-    {
-      tokenId: "0",
-      source: FAUCET_KEYS.publicKey,
-      target: USER1_KEYS.publicKey,
-    },
-    { useSessionCode: true },
-    "13000000000",
-    FAUCET_KEYS.publicKey,
-    [FAUCET_KEYS]
-  );
-
-  const transferDeployHash = await transferDeploy.send("http://localhost:11101/rpc");
-
-```
-
-Transferring accepts the following arguments:
-
-* `tokenId` - The sequential ID assigned to a token in mint order.
-
-* `source` - The account sending the token in question.
-
-* `target` - The account receiving the transferred token.
-
-As above, the `useSessionCode` variable determines if the user will call `transfer` using session code based on the setting of `OwnerReverseLookupMode`.
-
-## Burning a Token
-
-The following code shows how to burn a minted NFT that you hold and have access rights to, requiring only the `tokenId` argument:
-
-```js
-
-  const burnDeploy = await contractClient.burn(
-    { tokenId: "0" },
-    "13000000000",
-    USER1_KEYS.publicKey,
-    [USER1_KEYS]
-  );
-
-  const burnDeployHash = await burnDeploy.send("http://localhost:11101/rpc");
-
-```
-
 ## Example Usages
+
+## Prepare
+
+Running
+
+```ts
+npm run wasms:convert
+```
+
+will copy cep-85 contract wasm file to `/wasm/` folder
 
 ### Running an Install Example
 
@@ -192,47 +34,183 @@ This repository includes an example script for installing a CEP-85 contract inst
 
 You will need to define the following variables in the `.env` file:
 
-* `NODE_URL` - The address of a node. If you are testing using [NCTL](https://docs.casperlabs.io/dapp-dev-guide/building-dapps/setup-nctl/), this will be `http://localhost:11101/rpc`.
+- `NODE_URL` - The address of a node. If you are testing using [NCTL](https://docs.casperlabs.io/dapp-dev-guide/building-dapps/setup-nctl/), this will be `http://localhost:11101/rpc`.
 
-* `NETWORK_NAME` - The name of the Casper network you are operating on, `casper-net-1` when testing using a local network with NCTL.
+- `NETWORK_NAME` - The name of the Casper network you are operating on, `casper-net-1` when testing using a local network with NCTL.
 
-* `MASTER_KEY_PAIR_PATH` - The path to the key pair of the minting account.
+- `MASTER_KEY_PAIR_PATH` - The path to the key pair of the minting account.
 
-* `USER1_KEY_PAIR_PATH` - The path to an additional account's key pair for use in testing transfer features.
-
-You may also need to install associated dependencies using:
-
-```js
-npm i
-```
+- `USER1_KEY_PAIR_PATH` - The path to an additional account's key pair for use in testing transfer features.
 
 This example can be run using the following command:
 
-```js
+```ts
 npm run example:install
 ```
 
 The example will then return the installation's `deployHash`, and inform you when the installation is successful.
 
-The example will then provide the installing account's information, which will include the CEP-85 NFT contract's hash and package hash.
+The example will then provide the installing account's information, which will include the CEP-85 contract's hash and package hash.
 
-
-### Running a Usage Example
+### Running an Usage Example
 
 A usage example uses the same variables as the Install example above, but tests the basic functionality of the contract after installation.
 
 The usage example can be run using the following command:
 
-```js
+```ts
 npm run example:usage
 ```
 
 This example will acquire the contract's hash and package hash, prior to sending three separate deploys to perform several function tests as follows:
 
-* `Mint` - The example will attempt to mint an NFT using the installation account.
+- `Mint` - The example will attempt to mint an NFT using the installation account.
 
-* `Transfer` - The example will transfer the previously minted NFT to a second account (USER1 as defined in the variables.)
+- `Transfer` - The example will transfer the previously minted NFT to a second account (USER1 as defined in the variables.)
 
-* `Burn` - The example will burn the minted NFT.
+- `Burn` - The example will burn the minted NFT.
 
 The associated code for these deploys may be found in the `client-js/examples` directory.
+
+## Installing a CEP-85 Contract using the JavaScript Client
+
+The `install` method crafts a [Deploy](https://docs.casperlabs.io/design/casper-design/#execution-semantics-deploys) using `InstallArgs`.
+As with every deploy created by the SDK, you can send it using the `.send(rpcUrl)` method providing the RPC URL that you want to use. It will return deployHash.
+
+```ts
+const cc = new CEP85Client(process.env.NODE_URL!, process.env.NETWORK_NAME!);
+
+const installDeploy = await cep85.install(
+  {
+    name: 'my-collection',
+    uri: 'https://storage-domain/{id}.json',
+    events_mode: EventsMode.CES,
+    enable_burn: true,
+    minter_list: [USER1_KEYS.publicKey],
+    burner_list: [USER1_KEYS.publicKey],
+    // transfer_filter_contract: 'hash-5f272c9300e51657de7ff68489285efa9c0f62b1574b7614a8486c4cc497a690',
+    // transfer_filter_method: 'transfer_filter'
+  },
+  '250000000000',
+  FAUCET_KEYS.publicKey,
+  [FAUCET_KEYS]
+);
+
+const hash = await installDeploy.send(process.env.NODE_URL!);
+```
+
+`InstallArgs` are specified as follows:
+
+- `name` - The name of the collection, passed in as a `String`. **This parameter is required and cannot be changed post installation**.
+
+- `uri` - The uri representing a global given uri for the collection, passed in as a `String`. **This parameter is required and can be changed post installation, or set per token**.
+
+- `events_mode` - The `EventsMode` modality that dictates the events behavior of the contract. This optional argument is passed in as a `u8` value and default to no events. **This parameter cannot be changed once the contract has been installed**.
+
+- `enable_burn` - The `BurnMode` modality dictates whether minted tokens can be burned. This optional parameter will not allow tokens to be burnt by default. **This parameter cannot be changed once the contract has been installed**.
+
+- `admin_list` : A list of users with `admin` access to this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
+- `minter_list` : A list of users that can mint tokens using this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
+- `burner_list` : A list of users that can burn tokens using this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
+- `meta_list` : A list of users that have access to the `set_uri` entrypoint. Passed in as a string consisting of a list of `PublicKeys`.
+- `none_list` : A list of users without (banned of) special access to the contract instance. Passed in as a string consisting of a list of `PublicKeys`.
+
+Further information on CEP-85 modality options can be found in the base [cep-85](https://github.com/casper-ecosystem/cep-85) repository on GitHub.
+
+## Using a CEP-85 Contract using the JavaScript Client
+
+Set the contract hash (a unique identifier for the network) for instance:
+
+```ts
+cep85.setContractHash(
+  'hash-c2402c3d88b13f14390ff46fde9c06b8590c9e45a9802f7fb8a2674ff9c1e5b1'
+);
+```
+
+You can retrieve contract information by calling these methods:
+
+```ts
+const name = await cep85.collectionName();
+
+const uri = await cep85.collectionUri();
+
+const events_mode = await cep85.getEventsMode();
+```
+
+## Minting a Token
+
+The CEP-85 JS Client includes code to construct a deploy that will `Mint` a token, as follows:
+
+```ts
+const mintDeploy = cep85.mint(
+  {
+    recipient: USER1_KEYS.publicKey,
+    id: '1',
+    amount: '10',
+  },
+  { useSessionCode: true },
+  '2000000000',
+  USER1_KEYS.publicKey,
+  [USER1_KEYS]
+);
+
+const mintDeployHash = await mintDeploy.send(process.env.NODE_URL!);
+```
+
+Minting accepts the following arguments:
+
+- `recipient` - The account receiving the minted token.
+
+- `id` - The sequential ID assigned to a token in mint order.
+
+- `amount` - The amount of supply (and thus total supply) the minted token has.
+
+## Transferring a Token
+
+After minting one or more tokens, you can then use the following code to transfer the tokens between accounts:
+
+```ts
+const transferDeploy = cep85.transfer(
+  {
+    from: USER1_KEYS.publicKey,
+    to: FAUCET_KEYS.publicKey,
+    id: '1',
+    amount: '5',
+  },
+  { useSessionCode: true },
+  '13000000000',
+  USER1_KEYS.publicKey,
+  [USER1_KEYS]
+);
+
+const transferDeployHash = await transferDeploy.send(process.env.NODE_URL!);
+```
+
+Transferring accepts the following arguments:
+
+- `id` - The sequential ID assigned to a token in mint order.
+
+- `from` - The account sending the token in question.
+
+- `to` - The account receiving the transferred token.
+
+- `amount` - The amount of supply receiving the transferred token.
+
+## Burning a Token
+
+The following code shows how to burn supply of a token for an owner or an operator
+
+```ts
+const burnDeploy = await contractClient.burn(
+  {
+    owner: USER1_KEYS.publicKey,
+    id,
+    amount: '5',
+  },
+  '13000000000',
+  USER1_KEYS.publicKey,
+  [USER1_KEYS]
+);
+
+const burnDeployHash = await burnDeploy.send(process.env.NODE_URL!);
+```

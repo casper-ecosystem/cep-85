@@ -5,8 +5,8 @@ export interface CallConfig {
 }
 
 export enum EventsMode {
-  NoEvents,
-  CES,
+  NoEvents = 0,
+  CES = 1,
 }
 
 export interface JSONSchemaEntry {
@@ -20,8 +20,15 @@ export interface JSONSchemaObject {
 }
 
 export type ConfigurableVariables = {
+  events_mode?: EventsMode;
+  enable_burn?: boolean;
+  admin_list?: CLKeyParameters[];
+  minter_list?: CLKeyParameters[];
   burner_list?: CLKeyParameters[];
-  eventsMode?: EventsMode;
+  meta_list?: CLKeyParameters[];
+  none_list?: CLKeyParameters[];
+  transfer_filter_contract?: string;
+  transfer_filter_method?: string;
 };
 
 export type InstallArgs = {

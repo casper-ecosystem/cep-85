@@ -72,7 +72,7 @@ describe("CEP85Client", () => {
       {
         name,
         uri,
-        eventsMode: EventsMode.CES,
+        events_mode: EventsMode.CES,
       },
       "250000000000",
       keyPair.publicKey
@@ -91,7 +91,8 @@ describe("CEP85Client", () => {
       {
         name,
         uri,
-        eventsMode: EventsMode.CES,
+        events_mode: EventsMode.CES,
+        enable_burn: true,
         burner_list: [MOCKED_RECIPIENT_PUBKEY]
       },
       "250000000000",

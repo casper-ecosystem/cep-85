@@ -527,13 +527,11 @@ pub extern "C" fn batch_mint() {
 
 #[no_mangle]
 pub extern "C" fn burn() {
-    if 0_u8
-        == get_stored_value_with_user_errors::<u8>(
-            ARG_ENABLE_BURN,
-            Cep85Error::MissingEnableMBFlag,
-            Cep85Error::InvalidEnableMBFlag,
-        )
-    {
+    if !get_stored_value_with_user_errors::<bool>(
+        ARG_ENABLE_BURN,
+        Cep85Error::MissingEnableMBFlag,
+        Cep85Error::InvalidEnableMBFlag,
+    ) {
         revert(Cep85Error::BurnDisabled);
     };
 
@@ -590,13 +588,11 @@ pub extern "C" fn burn() {
 
 #[no_mangle]
 pub extern "C" fn batch_burn() {
-    if 0_u8
-        == get_stored_value_with_user_errors::<u8>(
-            ARG_ENABLE_BURN,
-            Cep85Error::MissingEnableMBFlag,
-            Cep85Error::InvalidEnableMBFlag,
-        )
-    {
+    if !get_stored_value_with_user_errors::<bool>(
+        ARG_ENABLE_BURN,
+        Cep85Error::MissingEnableMBFlag,
+        Cep85Error::InvalidEnableMBFlag,
+    ) {
         revert(Cep85Error::BurnDisabled);
     };
 
@@ -857,13 +853,11 @@ pub extern "C" fn change_security() {
         get_optional_named_arg_with_user_errors(NONE_LIST, Cep85Error::InvalidNoneList);
 
     let mut badge_map: BTreeMap<Key, SecurityBadge> = BTreeMap::new();
-    if 1_u8
-        == get_stored_value_with_user_errors::<u8>(
-            ARG_ENABLE_BURN,
-            Cep85Error::MissingEnableMBFlag,
-            Cep85Error::InvalidEnableMBFlag,
-        )
-    {
+    if get_stored_value_with_user_errors::<bool>(
+        ARG_ENABLE_BURN,
+        Cep85Error::MissingEnableMBFlag,
+        Cep85Error::InvalidEnableMBFlag,
+    ) {
         let burner_list: Option<Vec<Key>> =
             get_optional_named_arg_with_user_errors(BURNER_LIST, Cep85Error::InvalidBurnerList);
         if let Some(burner_list) = burner_list {
@@ -924,7 +918,7 @@ fn install_contract() {
         get_optional_named_arg_with_user_errors(ARG_EVENTS_MODE, Cep85Error::InvalidEventsMode)
             .unwrap_or_default();
 
-    let enable_burn: u8 =
+    let enable_burn: bool =
         get_optional_named_arg_with_user_errors(ARG_ENABLE_BURN, Cep85Error::InvalidEnableMBFlag)
             .unwrap_or_default();
 

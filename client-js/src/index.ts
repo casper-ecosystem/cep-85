@@ -87,12 +87,46 @@ export class CEP85Client {
     const runtimeArgs = RuntimeArgs.fromMap({
       name: CLValueBuilder.string(args.name),
       uri: CLValueBuilder.string(args.uri),
-      events_mode: CLValueBuilder.u8(args.eventsMode),
-      enable_burn: CLValueBuilder.u8(1),
+      events_mode: CLValueBuilder.u8(args.events_mode),
+      enable_burn: CLValueBuilder.bool(args.enable_burn),
     });
 
+    if (args.admin_list) {
+      runtimeArgs.insert(
+        'admin_list',
+        CLValueBuilder.list(args.admin_list.map(CLValueBuilder.key))
+      );
+    }
+    if (args.minter_list) {
+      runtimeArgs.insert(
+        'minter_list',
+        CLValueBuilder.list(args.minter_list.map(CLValueBuilder.key))
+      );
+    }
     if (args.burner_list) {
-      runtimeArgs.insert("burner_list", CLValueBuilder.list(args.burner_list.map(burner => CLValueBuilder.key(burner))));
+      runtimeArgs.insert(
+        'burner_list',
+        CLValueBuilder.list(args.burner_list.map(CLValueBuilder.key))
+      );
+    }
+    if (args.none_list) {
+      runtimeArgs.insert(
+        'none_list',
+        CLValueBuilder.list(args.none_list.map(CLValueBuilder.key))
+      );
+    }
+
+    if (args.transfer_filter_contract && args.transfer_filter_method) {
+      runtimeArgs.insert(
+        'transfer_filter_contract',
+        CLValueBuilder.key(
+          CLValueBuilder.byteArray(convertHashStringToBuffer(args.transfer_filter_contract))
+        )
+      );
+      runtimeArgs.insert(
+        'transfer_filter_method',
+        CLValueBuilder.string(args.transfer_filter_method)
+      );
     }
 
     return this.contractClient.install(
