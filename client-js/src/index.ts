@@ -160,7 +160,7 @@ export class CEP85Client {
       const result = await this.contractClient.queryContractData(["name"]) as CLValue;
       return result.toJSON() as string;
     } catch (error) {
-      console.error(error);
+      // console.error(error);
       return '';
     }
   }
@@ -174,7 +174,7 @@ export class CEP85Client {
       const result = await this.contractClient.queryContractData(["uri"]) as CLValue;
       return result.toJSON() as string;
     } catch (error) {
-      console.error(error);
+      // console.error(error);
       return '';
     }
   }
