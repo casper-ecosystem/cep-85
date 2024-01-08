@@ -37,6 +37,7 @@ fn should_check_balance_of() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -78,6 +79,7 @@ fn should_check_balance_of_batch() {
         &recipient_user_1,
         ids.clone(),
         amounts,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -119,6 +121,7 @@ fn should_error_on_balance_of_batch_args_len_difference() {
         &minting_recipient,
         ids.clone(),
         amounts,
+        None,
     );
 
     mint_call.expect_success().commit();

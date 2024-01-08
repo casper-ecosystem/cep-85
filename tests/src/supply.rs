@@ -84,6 +84,7 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -184,6 +185,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
         &minting_recipient,
         ids.clone(),
         amounts,
+        None,
     );
     batch_mint_call.expect_success().commit();
 
@@ -253,6 +255,7 @@ fn should_get_supply_of_id() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -305,6 +308,7 @@ fn should_get_supply_of_batch_for_ids() {
         &minting_recipient,
         ids.clone(),
         mint_amounts.clone(),
+        None,
     );
 
     batch_mint_call.expect_success().commit();

@@ -210,18 +210,23 @@ pub fn cep85_mint<'a>(
     recipient: &Key,
     id: &U256,
     amount: &U256,
+    uri: Option<&str>,
 ) -> &'a mut casper_engine_test_support::WasmTestBuilder<
     casper_execution_engine::storage::global_state::in_memory::InMemoryGlobalState,
 > {
+    let mut mint_args = runtime_args! {
+        ARG_RECIPIENT => *recipient,
+        ARG_ID => *id,
+        ARG_AMOUNT => *amount,
+    };
+    if uri.is_some() {
+        let _ = mint_args.insert(ARG_URI, uri.unwrap_or_default());
+    }
     let mint_request = ExecuteRequestBuilder::contract_call_by_hash(
         *minting_account,
         *cep85_token,
         ENTRY_POINT_MINT,
-        runtime_args! {
-            ARG_RECIPIENT => *recipient,
-            ARG_ID => *id,
-            ARG_AMOUNT => *amount,
-        },
+        mint_args,
     )
     .build();
     builder.exec(mint_request)
@@ -234,16 +239,21 @@ pub fn cep85_batch_mint<'a>(
     recipient: &Key,
     ids: Vec<U256>,
     amounts: Vec<U256>,
+    uri: Option<&str>,
 ) -> &'a mut InMemoryWasmTestBuilder {
+    let mut batch_mint_args = runtime_args! {
+        ARG_RECIPIENT => *recipient,
+        ARG_IDS => ids,
+        ARG_AMOUNTS => amounts,
+    };
+    if uri.is_some() {
+        let _ = batch_mint_args.insert(ARG_URI, uri.unwrap_or_default());
+    }
     let mint_request = ExecuteRequestBuilder::contract_call_by_hash(
         *minting_account,
         *cep85_token,
         ENTRY_POINT_BATCH_MINT,
-        runtime_args! {
-            ARG_RECIPIENT => *recipient,
-            ARG_IDS => ids,
-            ARG_AMOUNTS => amounts,
-        },
+        batch_mint_args,
     )
     .build();
     builder.exec(mint_request)

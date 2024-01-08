@@ -41,6 +41,7 @@ fn should_check_if_fungible() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -74,6 +75,7 @@ fn should_check_if_non_fungible() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -119,6 +121,7 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -182,6 +185,7 @@ fn should_get_total_fungible_supply() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();

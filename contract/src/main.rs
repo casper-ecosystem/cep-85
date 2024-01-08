@@ -439,8 +439,15 @@ pub extern "C" fn mint() {
     write_supply_of(&id, &new_supply);
     write_balance_to(&recipient, &id, &new_recipient_balance);
 
-    let uri: String =
-        get_stored_value_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri);
+    let mint_uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
+        .unwrap_or_default();
+
+    let uri: String = if mint_uri.is_empty() {
+        get_stored_value_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
+    } else {
+        mint_uri
+    };
+
     write_uri_of(&id, &uri);
 
     record_event_dictionary(Event::Mint(Mint {
@@ -478,6 +485,15 @@ pub extern "C" fn batch_mint() {
     )
     .unwrap_or_revert();
 
+    let mint_uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
+        .unwrap_or_default();
+
+    let uri = if mint_uri.is_empty() {
+        get_stored_value_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
+    } else {
+        mint_uri
+    };
+
     if ids.len() != amounts.len() {
         revert(Cep85Error::MismatchParamsLength);
     }
@@ -504,12 +520,6 @@ pub extern "C" fn batch_mint() {
 
         write_supply_of(&id, &new_supply);
         write_balance_to(&recipient, &id, &new_recipient_balance);
-
-        let uri: String = get_stored_value_with_user_errors(
-            ARG_URI,
-            Cep85Error::MissingUri,
-            Cep85Error::InvalidUri,
-        );
         write_uri_of(&id, &uri);
 
         record_event_dictionary(Event::Mint(Mint {
@@ -520,7 +530,7 @@ pub extern "C" fn batch_mint() {
 
         record_event_dictionary(Event::Uri(Uri {
             id: Some(id),
-            value: uri,
+            value: uri.to_string(),
         }));
     }
 }
@@ -786,12 +796,9 @@ pub extern "C" fn set_uri() {
 
     let id: Option<U256> = get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId);
 
-    let uri: String = get_named_arg_with_user_errors(
-        ARG_URI,
-        Cep85Error::MissingAccount,
-        Cep85Error::InvalidAccount,
-    )
-    .unwrap_or_revert();
+    let uri: String =
+        get_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
+            .unwrap_or_revert();
     match id {
         Some(id) => write_uri_of(&id, &uri),
         None => put_key(ARG_URI, storage::new_uref(uri.to_owned()).into()),

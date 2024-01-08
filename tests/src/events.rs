@@ -96,6 +96,7 @@ fn should_record_events_in_events_mode() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -146,6 +147,7 @@ fn should_not_record_events_in_no_events_mode() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();

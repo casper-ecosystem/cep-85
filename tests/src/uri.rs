@@ -5,12 +5,14 @@ use cep85_test_contract::constants::ENTRY_POINT_CHECK_URI;
 
 use crate::utility::{
     constants::TOKEN_URI_TEST,
-    installer_request_builders::{cep85_check_uri, cep85_mint, cep85_set_uri, setup, TestContext},
+    installer_request_builders::{
+        cep85_batch_mint, cep85_check_uri, cep85_mint, cep85_set_uri, setup, TestContext,
+    },
     support::assert_expected_error,
 };
 
 #[test]
-fn should_set_global_uri() {
+fn should_set_specific_uri_on_mint() {
     let (
         mut builder,
         TestContext {
@@ -32,6 +34,88 @@ fn should_set_global_uri() {
         &minting_recipient,
         &id,
         &mint_amount,
+        Some(TOKEN_URI_TEST),
+    );
+
+    mint_call.expect_success().commit();
+
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, Some(id));
+    assert_eq!(actual_uri, replace_token_id_in_uri(TOKEN_URI_TEST, &id));
+}
+
+#[test]
+fn should_set_specific_uri_on_batch_mint() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let minting_recipient: Key = minting_account.into();
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::from(2), U256::from(3)];
+
+    // batch_mint is only one recipient
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        ids,
+        amounts,
+        Some(TOKEN_URI_TEST),
+    );
+
+    mint_call.expect_success().commit();
+
+    let actual_uri = cep85_check_uri(
+        &mut builder,
+        &cep85_test_contract_package,
+        Some(U256::one()),
+    );
+    assert_eq!(
+        actual_uri,
+        replace_token_id_in_uri(TOKEN_URI_TEST, &U256::one())
+    );
+    let actual_uri = cep85_check_uri(
+        &mut builder,
+        &cep85_test_contract_package,
+        Some(U256::from(2)),
+    );
+    assert_eq!(
+        actual_uri,
+        replace_token_id_in_uri(TOKEN_URI_TEST, &U256::from(2))
+    );
+}
+
+#[test]
+fn should_set_and_get_global_uri() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let minting_recipient: Key = minting_account.into();
+    let mint_amount = U256::from(1);
+    let id = U256::one();
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -49,7 +133,7 @@ fn should_set_global_uri() {
 }
 
 #[test]
-fn should_get_uri_for_id() {
+fn should_set_and_get_uri_for_id() {
     let (
         mut builder,
         TestContext {
@@ -71,6 +155,7 @@ fn should_get_uri_for_id() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();

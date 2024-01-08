@@ -36,6 +36,7 @@ fn should_transfer_full_owned_amount() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -125,6 +126,7 @@ fn should_batch_transfer_full_owned_amount() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -187,6 +189,7 @@ fn should_not_transfer_more_than_owned_balance() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -283,6 +286,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
         &minting_recipient,
         ids.clone(),
         mint_amounts,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -353,6 +357,7 @@ fn should_not_be_able_to_own_transfer() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -452,6 +457,7 @@ fn should_not_be_able_to_own_batch_transfer() {
         &minting_recipient,
         ids.clone(),
         mint_amounts,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -523,6 +529,7 @@ fn should_verify_zero_amount_transfer_is_noop() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -620,6 +627,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
         &minting_recipient,
         ids.clone(),
         mint_amounts,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -696,6 +704,7 @@ fn should_transfer_account_to_account() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -781,6 +790,7 @@ fn should_batch_transfer_account_to_account() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -848,6 +858,7 @@ fn should_transfer_account_to_contract_package() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -933,6 +944,7 @@ fn should_batch_transfer_account_to_contract_package() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -998,6 +1010,7 @@ fn should_transfer_contract_package_to_contract() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1081,6 +1094,7 @@ fn should_batch_transfer_contract_package_to_contract() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1149,6 +1163,7 @@ fn should_transfer_account_to_contract() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1235,6 +1250,7 @@ fn should_batch_transfer_account_to_contract_() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1301,6 +1317,7 @@ fn should_transfer_contract_to_contract() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1385,6 +1402,7 @@ fn should_batch_transfer_contract_to_contract() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();

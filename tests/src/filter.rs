@@ -165,6 +165,7 @@ fn check_transfers_with_transfer_filter_contract() {
         &recipient_user_1,
         ids.clone(),
         amounts,
+        None,
     );
 
     mint_call.expect_success().commit();

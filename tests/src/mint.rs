@@ -36,6 +36,7 @@ fn should_mint_nft() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -79,6 +80,7 @@ fn should_mint_fungible_token() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -124,6 +126,7 @@ fn should_batch_mint() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -176,6 +179,7 @@ fn should_not_mint_above_total_supply() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -189,6 +193,7 @@ fn should_not_mint_above_total_supply() {
         &minting_recipient,
         &id,
         &failing_mint_amount,
+        None,
     );
 
     failing_mint_call.expect_failure();
@@ -219,6 +224,7 @@ fn should_not_mint_above_total_supply() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -260,6 +266,7 @@ fn should_not_batch_mint_above_total_supply() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -272,6 +279,7 @@ fn should_not_batch_mint_above_total_supply() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     failing_mint_call.expect_failure();
@@ -303,6 +311,7 @@ fn should_not_batch_mint_above_total_supply() {
         &minting_recipient,
         ids.clone(),
         amounts,
+        None,
     );
 
     batch_mint_call.expect_success().commit();

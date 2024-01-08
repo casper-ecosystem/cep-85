@@ -329,6 +329,7 @@ fn should_not_transfer_from_account_to_account_without_allowance() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -407,6 +408,7 @@ fn should_not_batch_transfer_from_account_to_account_without_allowance() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -470,6 +472,7 @@ fn should_transfer_from_account_to_account_with_allowance() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -546,6 +549,7 @@ fn should_batch_transfer_from_account_to_account_with_allowance() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -623,6 +627,7 @@ fn should_not_transfer_from_account_to_account_through_contract_without_allowanc
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -696,6 +701,7 @@ fn should_not_batch_transfer_from_account_to_account_through_contract_without_al
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -780,6 +786,7 @@ fn should_transfer_from_account_to_account_through_contract_with_allowance() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -861,6 +868,7 @@ fn should_transfer_from_account_to_account_through_package_with_allowance() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -946,6 +954,7 @@ fn should_batch_transfer_from_account_to_account_through_contract_with_allowance
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1026,6 +1035,7 @@ fn should_batch_transfer_from_account_to_account_through_package_with_allowance(
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1105,6 +1115,7 @@ fn should_transfer_from_account_to_contract_through_contract_with_allowance() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1186,6 +1197,7 @@ fn should_transfer_from_account_to_contract_through_package_with_allowance() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1268,6 +1280,7 @@ fn should_batch_transfer_from_account_to_contract_through_contract_with_allowanc
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1348,6 +1361,7 @@ fn should_batch_transfer_from_account_to_contract_through_package_with_allowance
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();

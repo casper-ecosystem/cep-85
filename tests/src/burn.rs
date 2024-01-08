@@ -49,6 +49,7 @@ fn should_burn_by_owner() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -119,6 +120,7 @@ fn should_batch_burn_by_owner() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -189,6 +191,7 @@ fn should_not_burn_above_balance() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -262,6 +265,7 @@ fn should_not_batch_burn_above_balance() {
         &minting_recipient,
         ids.clone(),
         amounts,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -353,6 +357,7 @@ fn should_reduce_supply_on_burn() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -446,6 +451,7 @@ fn should_reduce_supply_on_batch_burn() {
         &minting_recipient,
         ids.clone(),
         mint_amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -535,6 +541,7 @@ fn should_not_burn_previously_burnt_token() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -604,6 +611,7 @@ fn should_not_batch_burn_previously_burnt_token() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -672,6 +680,7 @@ fn should_return_expected_error_when_burning_non_existing_token() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -732,6 +741,7 @@ fn should_return_expected_error_when_batch_burning_non_existing_token() {
         &minting_recipient,
         ids,
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -791,6 +801,7 @@ fn should_return_expected_error_burning_of_others_users_token() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -849,6 +860,7 @@ fn should_return_expected_error_batch_burning_of_others_users_token() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -923,6 +935,7 @@ fn should_allow_contract_to_burn_token() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -990,6 +1003,7 @@ fn should_allow_contract_to_batch_burn_token() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1056,6 +1070,7 @@ fn should_allow_contract_package_to_burn_token() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1124,6 +1139,7 @@ fn should_allow_contract_package_to_batch_burn_token() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1180,6 +1196,7 @@ fn should_allow_operator_to_burn_token() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1276,6 +1293,7 @@ fn should_allow_operator_to_batch_burn_token() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1384,6 +1402,7 @@ fn should_allow_contract_as_operator_to_burn_token() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1493,6 +1512,7 @@ fn should_allow_contract_as_operator_to_batch_burn_token() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1600,6 +1620,7 @@ fn should_allow_contract_package_as_operator_to_burn_token() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1709,6 +1730,7 @@ fn should_allow_contract_package_as_operator_to_batch_burn_token() {
         &minting_recipient,
         ids.clone(),
         amounts.clone(),
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -1788,6 +1810,7 @@ fn should_not_burn_in_non_burn_mode() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
