@@ -18,6 +18,8 @@ pub enum Event {
     Uri(Uri),
     SetTotalSupply(SetTotalSupply),
     ChangeSecurity(ChangeSecurity),
+    SetModalities(SetModalities),
+    Migration(Migration),
 }
 
 pub fn record_event_dictionary(event: Event) {
@@ -158,6 +160,24 @@ impl ChangeSecurity {
     }
 }
 
+#[derive(Event, Debug, PartialEq, Eq, Default)]
+pub struct SetModalities {}
+
+impl SetModalities {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+#[derive(Event, Debug, PartialEq, Eq, Default)]
+pub struct Migration {}
+
+impl Migration {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
 fn ces(event: Event) {
     match event {
         Event::Mint(ev) => emit(ev),
@@ -168,6 +188,8 @@ fn ces(event: Event) {
         Event::Uri(ev) => emit(ev),
         Event::SetTotalSupply(ev) => emit(ev),
         Event::ChangeSecurity(ev) => emit(ev),
+        Event::SetModalities(ev) => emit(ev),
+        Event::Migration(ev) => emit(ev),
     }
 }
 
@@ -184,7 +206,9 @@ pub fn init_events() {
             .with::<TransferBatch>()
             .with::<Uri>()
             .with::<SetTotalSupply>()
-            .with::<ChangeSecurity>();
+            .with::<ChangeSecurity>()
+            .with::<SetModalities>()
+            .with::<Migration>();
         casper_event_standard::init(schemas);
     }
 }

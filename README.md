@@ -102,6 +102,8 @@ For this CEP-85 reference implementation, the events schema is as follows:
 | Uri            | value (String), id (Option<U256>)                                         |
 | SetTotalSupply | id (U256), total_supply (U256)                                            |
 | ChangeSecurity | admin (Key), sec_change_map (BTreeMap<Key, SecurityBadge>)                |
+| SetModalities  |                                                                           |
+| Migration      |                                                                           |
 
 #### Transfer Filter Hook
 
@@ -212,3 +214,4 @@ The expected behavior of the multi-token contract implementation is asserted by 
 | 74   | TokenSupplyDepleted           |
 | 75   | TransferFilterContractDenied  |
 | 76   | UnexpectedKeyVariant          |
+| 77   | InvalidUpgradeFlag            |

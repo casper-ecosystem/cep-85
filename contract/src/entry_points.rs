@@ -8,14 +8,14 @@ use casper_types::{
 
 use crate::constants::{
     ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED,
-    ARG_CONTRACT_HASH, ARG_DATA, ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR, ARG_OWNER,
-    ARG_PACKAGE_HASH, ARG_RECIPIENT, ARG_TO, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY,
-    ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD, ARG_URI, BURNER_LIST,
-    ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_BATCH_BURN,
+    ARG_CONTRACT_HASH, ARG_DATA, ARG_ENABLE_BURN, ARG_EVENTS_MODE, ARG_FROM, ARG_ID, ARG_IDS,
+    ARG_OPERATOR, ARG_OWNER, ARG_PACKAGE_HASH, ARG_RECIPIENT, ARG_TO, ARG_TOTAL_SUPPLIES,
+    ARG_TOTAL_SUPPLY, ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD, ARG_URI,
+    BURNER_LIST, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_BATCH_BURN,
     ENTRY_POINT_BATCH_MINT, ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_INIT,
-    ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE, ENTRY_POINT_MINT,
-    ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
-    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE, ENTRY_POINT_MIGRATE,
+    ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
+    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_MODALITIES, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
     ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI, ENTRY_POINT_SUPPLY_OF,
     ENTRY_POINT_SUPPLY_OF_BATCH, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_TOTAL_SUPPLY_OF,
     ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_URI, META_LIST, MINTER_LIST, NONE_LIST,
@@ -35,6 +35,16 @@ pub fn init() -> EntryPoint {
             Parameter::new(META_LIST, CLType::List(Box::new(CLType::Key))),
             Parameter::new(NONE_LIST, CLType::List(Box::new(CLType::Key))),
         ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    )
+}
+
+pub fn migrate() -> EntryPoint {
+    EntryPoint::new(
+        ENTRY_POINT_MIGRATE,
+        vec![Parameter::new(ARG_PACKAGE_HASH, CLType::Key)],
         CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,
@@ -314,10 +324,24 @@ pub fn change_security() -> EntryPoint {
     )
 }
 
+pub fn set_modalities() -> EntryPoint {
+    EntryPoint::new(
+        ENTRY_POINT_SET_MODALITIES,
+        vec![
+            Parameter::new(ARG_ENABLE_BURN, CLType::Bool),
+            Parameter::new(ARG_EVENTS_MODE, CLType::U8),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    )
+}
+
 /// Returns the default set of CEP85 token entry points.
 pub fn generate_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(init());
+    entry_points.add_entry_point(migrate());
     entry_points.add_entry_point(balance_of());
     entry_points.add_entry_point(balance_of_batch());
     entry_points.add_entry_point(mint());
@@ -339,5 +363,6 @@ pub fn generate_entry_points() -> EntryPoints {
     entry_points.add_entry_point(is_non_fungible());
     entry_points.add_entry_point(total_fungible_supply());
     entry_points.add_entry_point(change_security());
+    entry_points.add_entry_point(set_modalities());
     entry_points
 }

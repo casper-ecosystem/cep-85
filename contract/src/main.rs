@@ -8,6 +8,8 @@ compile_error!("target arch should be wasm32: compile with '--target wasm32-unkn
 // `no_std` environment.
 extern crate alloc;
 
+use core::convert::TryInto;
+
 use alloc::{
     borrow::ToOwned,
     collections::BTreeMap,
@@ -34,18 +36,19 @@ use cep85::{
         ARG_CONTRACT_HASH, ARG_DATA, ARG_ENABLE_BURN, ARG_EVENTS_MODE, ARG_FROM, ARG_ID, ARG_IDS,
         ARG_NAME, ARG_OPERATOR, ARG_OWNER, ARG_PACKAGE_HASH, ARG_RECIPIENT, ARG_TO,
         ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_TRANSFER_FILTER_CONTRACT,
-        ARG_TRANSFER_FILTER_METHOD, ARG_URI, BURNER_LIST, DICT_BALANCES, DICT_OPERATORS,
-        DICT_SECURITY_BADGES, DICT_SUPPLY, DICT_TOKEN_URI, DICT_TOTAL_SUPPLY, ENTRY_POINT_INIT,
-        META_LIST, MINTER_LIST, NONE_LIST, PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME,
-        PREFIX_CONTRACT_PACKAGE_NAME, PREFIX_CONTRACT_VERSION,
+        ARG_TRANSFER_FILTER_METHOD, ARG_UPGRADE_FLAG, ARG_URI, BURNER_LIST, DICT_BALANCES,
+        DICT_OPERATORS, DICT_SECURITY_BADGES, DICT_SUPPLY, DICT_TOKEN_URI, DICT_TOTAL_SUPPLY,
+        ENTRY_POINT_INIT, ENTRY_POINT_MIGRATE, META_LIST, MINTER_LIST, NONE_LIST,
+        PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
+        PREFIX_CONTRACT_VERSION,
     },
     entry_points::generate_entry_points,
     error::Cep85Error,
     events::{
-        init_events, record_event_dictionary, ApprovalForAll, Burn, ChangeSecurity, Event, Mint,
-        SetTotalSupply, TransferBatch, TransferSingle, Uri,
+        init_events, record_event_dictionary, ApprovalForAll, Burn, ChangeSecurity, Event,
+        Migration, Mint, SetModalities, SetTotalSupply, TransferBatch, TransferSingle, Uri,
     },
-    modalities::TransferFilterContractResult,
+    modalities::{EventsMode, TransferFilterContractResult},
     operators::{read_operator, write_operator},
     security::{change_sec_badge, sec_check, SecurityBadge},
     supply::{read_supply_of, read_total_supply_of, write_supply_of, write_total_supply_of},
@@ -540,7 +543,7 @@ pub extern "C" fn burn() {
     if !get_stored_value_with_user_errors::<bool>(
         ARG_ENABLE_BURN,
         Cep85Error::MissingEnableMBFlag,
-        Cep85Error::InvalidEnableMBFlag,
+        Cep85Error::InvalidEnableBurnFlag,
     ) {
         revert(Cep85Error::BurnDisabled);
     };
@@ -601,7 +604,7 @@ pub extern "C" fn batch_burn() {
     if !get_stored_value_with_user_errors::<bool>(
         ARG_ENABLE_BURN,
         Cep85Error::MissingEnableMBFlag,
-        Cep85Error::InvalidEnableMBFlag,
+        Cep85Error::InvalidEnableBurnFlag,
     ) {
         revert(Cep85Error::BurnDisabled);
     };
@@ -863,7 +866,7 @@ pub extern "C" fn change_security() {
     if get_stored_value_with_user_errors::<bool>(
         ARG_ENABLE_BURN,
         Cep85Error::MissingEnableMBFlag,
-        Cep85Error::InvalidEnableMBFlag,
+        Cep85Error::InvalidEnableBurnFlag,
     ) {
         let burner_list: Option<Vec<Key>> =
             get_optional_named_arg_with_user_errors(BURNER_LIST, Cep85Error::InvalidBurnerList);
@@ -906,6 +909,65 @@ pub extern "C" fn change_security() {
     }));
 }
 
+// set_modalities allows the user to set any variable or any combination of variables
+// simultaneously.
+#[no_mangle]
+pub extern "C" fn set_modalities() {
+    // Only the installing account can change the mutable variables.
+    sec_check(vec![SecurityBadge::Admin]);
+
+    if let Some(enable_burn) = get_optional_named_arg_with_user_errors::<bool>(
+        ARG_ENABLE_BURN,
+        Cep85Error::InvalidEventsMode,
+    ) {
+        runtime::put_key(ARG_ENABLE_BURN, storage::new_uref(enable_burn).into());
+    }
+
+    if let Some(optional_events_mode) = get_optional_named_arg_with_user_errors::<u8>(
+        ARG_EVENTS_MODE,
+        Cep85Error::InvalidEventsMode,
+    ) {
+        let old_events_mode: EventsMode = get_stored_value_with_user_errors::<u8>(
+            ARG_EVENTS_MODE,
+            Cep85Error::MissingEventsMode,
+            Cep85Error::InvalidEventsMode,
+        )
+        .try_into()
+        .unwrap_or_revert();
+
+        runtime::put_key(
+            ARG_EVENTS_MODE,
+            storage::new_uref(optional_events_mode).into(),
+        );
+
+        let new_events_mode: EventsMode = optional_events_mode
+            .try_into()
+            .unwrap_or_revert_with(Cep85Error::InvalidEventsMode);
+
+        // Check if current_events_mode and requested_events_mode are both CES
+        if old_events_mode != EventsMode::CES && new_events_mode == EventsMode::CES {
+            // Initialize events structures
+            init_events();
+        }
+    }
+
+    record_event_dictionary(Event::SetModalities(SetModalities {}));
+}
+
+#[no_mangle]
+pub extern "C" fn migrate() {
+    put_key(
+        ARG_CONTRACT_HASH,
+        get_named_arg_with_user_errors::<Key>(
+            ARG_CONTRACT_HASH,
+            Cep85Error::MissingContractHash,
+            Cep85Error::InvalidContractHash,
+        )
+        .unwrap_or_revert(),
+    );
+    record_event_dictionary(Event::Migration(Migration {}))
+}
+
 fn install_contract() {
     let name: String = get_named_arg_with_user_errors(
         ARG_NAME,
@@ -926,7 +988,7 @@ fn install_contract() {
             .unwrap_or_default();
 
     let enable_burn: bool =
-        get_optional_named_arg_with_user_errors(ARG_ENABLE_BURN, Cep85Error::InvalidEnableMBFlag)
+        get_optional_named_arg_with_user_errors(ARG_ENABLE_BURN, Cep85Error::InvalidEnableBurnFlag)
             .unwrap_or_default();
 
     let transfer_filter_contract_key: Option<Key> = get_optional_named_arg_with_user_errors(
@@ -1014,6 +1076,31 @@ fn install_contract() {
     runtime::call_contract::<()>(contract_hash, ENTRY_POINT_INIT, init_args);
 }
 
+fn migrate_contract(name: &str, contract_package_hash: Key) {
+    let (contract_hash, contract_version) = storage::add_contract_version(
+        contract_package_hash
+            .into_hash()
+            .unwrap_or_revert_with(Cep85Error::InvalidPackageHash)
+            .into(),
+        generate_entry_points(),
+        NamedKeys::new(),
+    );
+
+    let contract_hash_key = Key::from(contract_hash);
+
+    runtime::put_key(&format!("{PREFIX_CONTRACT_NAME}_{name}"), contract_hash_key);
+    runtime::put_key(
+        &format!("{PREFIX_CONTRACT_VERSION}_{name}"),
+        storage::new_uref(contract_version).into(),
+    );
+
+    let runtime_args = runtime_args! {
+        ARG_CONTRACT_HASH => contract_hash_key,
+    };
+
+    runtime::call_contract::<()>(contract_hash, ENTRY_POINT_MIGRATE, runtime_args);
+}
+
 fn before_token_transfer(
     operator: &Key,
     from: &Key,
@@ -1060,5 +1147,18 @@ fn before_token_transfer(
 
 #[no_mangle]
 pub extern "C" fn call() {
-    install_contract()
+    let upgrade_flag: Option<bool> =
+        get_optional_named_arg_with_user_errors(ARG_UPGRADE_FLAG, Cep85Error::InvalidUpgradeFlag);
+
+    if upgrade_flag.is_some() {
+        let name: String =
+            get_optional_named_arg_with_user_errors(ARG_NAME, Cep85Error::MissingCollectionName)
+                .unwrap_or_revert_with(Cep85Error::InvalidCollectionName);
+        let contract_package_hash: Key =
+            get_key(&format!("{PREFIX_CONTRACT_PACKAGE_NAME}_{}", name))
+                .unwrap_or_revert_with(Cep85Error::InvalidUpgradeFlag);
+        migrate_contract(&name, contract_package_hash)
+    } else {
+        install_contract()
+    }
 }

@@ -21,14 +21,19 @@ use casper_types::{
     system::mint::{ARG_ID, ARG_TO},
     CLTyped, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
 };
-use cep85::constants::{
-    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA, ARG_FROM, ARG_IDS,
-    ARG_NAME, ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TOKEN_CONTRACT, ARG_TOTAL_SUPPLIES,
-    ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT,
-    ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT,
-    ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
-    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
-    ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST,
+use cep85::{
+    constants::{
+        ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA,
+        ARG_ENABLE_BURN, ARG_EVENTS_MODE, ARG_FROM, ARG_IDS, ARG_NAME, ARG_OPERATOR, ARG_OWNER,
+        ARG_RECIPIENT, ARG_TOKEN_CONTRACT, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_URI,
+        BURNER_LIST, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT, ENTRY_POINT_BURN,
+        ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
+        ENTRY_POINT_SAFE_TRANSFER_FROM, ENTRY_POINT_SET_APPROVAL_FOR_ALL,
+        ENTRY_POINT_SET_MODALITIES, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
+        ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST,
+        NONE_LIST,
+    },
+    modalities::EventsMode,
 };
 use cep85_test_contract::constants::{
     CEP85_TEST_CONTRACT_NAME, CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF,
@@ -793,6 +798,30 @@ pub fn cep85_check_total_fungible_supply(
     .build();
     builder.exec(exec_request).expect_success().commit();
     get_test_result(builder, *contract_package_hash)
+}
+
+pub fn cep85_set_modalities<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    cep85_token: &'a ContractHash,
+    owner: &'a AccountHash,
+    burn_enable: Option<bool>,
+    events_mode: Option<EventsMode>,
+) -> &'a mut InMemoryWasmTestBuilder {
+    let mut args = runtime_args! {};
+    if let Some(burn_enable) = burn_enable {
+        let _ = args.insert(ARG_ENABLE_BURN, burn_enable);
+    };
+    if let Some(events_mode) = events_mode {
+        let _ = args.insert(ARG_EVENTS_MODE, events_mode as u8);
+    };
+    let set_modalities_request = ExecuteRequestBuilder::contract_call_by_hash(
+        *owner,
+        *cep85_token,
+        ENTRY_POINT_SET_MODALITIES,
+        args,
+    )
+    .build();
+    builder.exec(set_modalities_request)
 }
 
 pub struct SecurityLists {

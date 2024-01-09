@@ -32,7 +32,7 @@ pub enum Cep85Error {
     InvalidCollectionName = 19,
     InvalidContractHash = 20,
     InvalidData = 21,
-    InvalidEnableMBFlag = 22,
+    InvalidEnableBurnFlag = 22,
     InvalidEventsMode = 23,
     InvalidFrom = 24,
     InvalidId = 25,
@@ -87,6 +87,7 @@ pub enum Cep85Error {
     TokenSupplyDepleted = 74,
     TransferFilterContractDenied = 75,
     UnexpectedKeyVariant = 76,
+    InvalidUpgradeFlag = 77,
 }
 
 impl From<Cep85Error> for ApiError {

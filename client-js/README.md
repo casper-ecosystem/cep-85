@@ -2,6 +2,8 @@
 
 This package was created to help JS/TS users with the [cep-85](https://github.com/casper-ecosystem/cep-85) and is published in `npm` as the [casper-cep85-js-client](https://www.npmjs.com/package/casper-cep85-js-client). It was built on top of the [casper-js-sdk](https://github.com/casper-ecosystem/casper-js-sdk).
 
+CEP85Client is a TypeScript class that provides a high-level interface for interacting with a Casper blockchain smart contract implementing the CEP-85 standard. The standard defines methods for managing fungible and non-fungible tokens, as well as setting various parameters for token contracts.
+
 This JavaScript client gives you an easy way to install and interact with the Casper CEP-85 contract.
 Users can treat this package as a deploy builder for all of these possible interactions:
 
