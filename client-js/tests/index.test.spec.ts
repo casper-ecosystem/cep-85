@@ -584,7 +584,7 @@ describe("CEP85Client", () => {
 
   it("Should correctly return for 'collectionUri'", async () => {
     let collectionUri = await cc.collectionUri();
-    expect(name).toBe('');
+    expect(collectionUri).toBe('');
 
     const mockValue = 'test';
     jest.spyOn(cc.contractClient, 'queryContractData').mockResolvedValue(mockValue);
