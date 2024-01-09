@@ -157,7 +157,7 @@ fn should_toggle_events_mode() {
 
     assert_eq!(events_mode, EventsMode::NoEvents as u8);
 
-    // Expect No SetModalities event after 3 Mint events.
+    // Expect No SetModalities event after one SetModalities event
     let dictionary_seed_uref = *builder
         .query(None, cep85_token.into(), &[])
         .expect("must have contract")
