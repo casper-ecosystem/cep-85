@@ -11,8 +11,8 @@ use casper_types::{runtime_args, Key, RuntimeArgs, U256};
 use cep85::{
     constants::ARG_EVENTS_MODE,
     events::{
-        ApprovalForAll, Burn, ChangeSecurity, Migration, Mint, SetModalities, SetTotalSupply,
-        TransferBatch, TransferSingle, Uri,
+        ApprovalForAll, Burn, ChangeSecurity, Mint, SetModalities, SetTotalSupply, TransferBatch,
+        TransferSingle, Upgrade, Uri,
     },
     modalities::EventsMode,
 };
@@ -35,7 +35,7 @@ fn should_have_events_schema_in_events_mode() {
         .with::<SetTotalSupply>()
         .with::<ChangeSecurity>()
         .with::<SetModalities>()
-        .with::<Migration>();
+        .with::<Upgrade>();
     let actual_schemas: Schemas = builder.get_value(cep85_token, EVENTS_SCHEMA);
     assert_eq!(actual_schemas, expected_schemas, "Schemas mismatch.");
 }

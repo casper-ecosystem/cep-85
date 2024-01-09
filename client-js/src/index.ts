@@ -31,6 +31,8 @@ import {
   BatchBurnArgs,
   TotalSupplyOfArgsBatch,
   BatchTransferArgs,
+  SetModalitiesArgs,
+  UpgradeArgs,
 } from "./types";
 import ContractBinary from "../wasm/cep85.wasm";
 
@@ -157,10 +159,10 @@ export class CEP85Client {
  */
   public async collectionName() {
     try {
-      const result = await this.contractClient.queryContractData(["name"]) as CLValue;
-      return result.toJSON() as string;
+      return await this.contractClient.queryContractData(["name"]) as string;
     } catch (error) {
       // console.error(error);
+      console.info('Contract collection name is empty');
       return '';
     }
   }
@@ -171,10 +173,10 @@ export class CEP85Client {
  */
   public async collectionUri() {
     try {
-      const result = await this.contractClient.queryContractData(["uri"]) as CLValue;
-      return result.toJSON() as string;
+      return await this.contractClient.queryContractData(["uri"]) as string;
     } catch (error) {
       // console.error(error);
+      console.info('Contract collection uri is empty');
       return '';
     }
   }
@@ -869,11 +871,88 @@ export class CEP85Client {
  * The events mode is converted from its internal numerical representation to its corresponding string value.
  */
   public async getEventsMode(): Promise<keyof typeof EventsMode> {
-    const internalValue = (await this.contractClient.queryContractData([
-      'events_mode'
-    ])) as BigNumber;
-    const u8res = internalValue.toNumber();
-    return EventsMode[u8res] as keyof typeof EventsMode;
+    try {
+      const internalValue = (await this.contractClient.queryContractData([
+        'events_mode'
+      ])) as BigNumber;
+      const u8res = internalValue.toNumber();
+      return EventsMode[u8res] as keyof typeof EventsMode;
+    } catch (error) {
+      // console.error(error);
+      return EventsMode[EventsMode.NoEvents] as keyof typeof EventsMode;
+    }
   }
 
+  /**
+ * Sets modalities by calling the "set_modalities" entrypoint on the contract.
+ * @param args - The arguments for setting modalities. @see {@link SetModalitiesArgs}
+ * @param paymentAmount - The payment amount in string format.
+ * @param deploySender - The deploy sender's public key.
+ * @param keys - Optional asymmetric keys for the deployment.
+ * @returns The prepared deploy for setting modalities.
+ */
+  public setModalities(
+    args: SetModalitiesArgs,
+    paymentAmount: string,
+    deploySender: CLPublicKey,
+    keys?: Keys.AsymmetricKey[]
+  ) {
+    const runtimeArgs = RuntimeArgs.fromMap({});
+    if (args.enable_burn !== undefined) {
+      runtimeArgs.insert(
+        'enable_burn',
+        CLValueBuilder.bool(args.enable_burn)
+      );
+    }
+    if (args.events_mode !== undefined) {
+      runtimeArgs.insert(
+        'events_mode',
+        CLValueBuilder.u8(args.events_mode)
+      );
+    }
+    const preparedDeploy = this.contractClient.callEntrypoint(
+      "set_modalities",
+      runtimeArgs,
+      deploySender,
+      this.networkName,
+      paymentAmount,
+      keys
+    );
+    return preparedDeploy;
+  }
+
+  /**
+ * Upgrades the contract by installing a new version with the provided arguments.
+ * @param args - The arguments for the contract upgrade. @see {@link UpgradeArgs}
+ * @param paymentAmount - The payment amount in string format.
+ * @param deploySender - The deploy sender's public key.
+ * @param keys - Optional asymmetric keys for the deployment.
+ * @param wasm - Optional WebAssembly binary for the contract. If not provided, the default ContractBinary is used.
+ * @returns The prepared deploy for the contract upgrade.
+ */
+  public upgrade(
+    args: UpgradeArgs,
+    paymentAmount: string,
+    deploySender: CLPublicKey,
+    keys?: Keys.AsymmetricKey[],
+    wasm?: Uint8Array
+  ) {
+    const wasmToInstall = wasm || ContractBinary;
+    if (!args.name) {
+      console.error('Missing collection name for upgrade');
+    }
+    const runtimeArgs = RuntimeArgs.fromMap({
+      upgrade: CLValueBuilder.bool(true),
+      name: CLValueBuilder.string(args.name)
+    });
+
+    return this.contractClient.install(
+      wasmToInstall,
+      runtimeArgs,
+      paymentAmount,
+      deploySender,
+      this.networkName,
+      keys
+    );
+  }
 }

@@ -1,0 +1,16 @@
+[
+   [
+      "name",
+      {
+         "bytes": "0b0000006361737065725f74657374",
+         "cl_type": "String"
+      }
+   ],
+   [
+      "upgrade",
+      {
+         "bytes": "01",
+         "cl_type": "Bool"
+      }
+   ]
+]

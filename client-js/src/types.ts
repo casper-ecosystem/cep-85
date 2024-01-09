@@ -109,6 +109,15 @@ export type SetApprovallForAllArgs = {
   approved: boolean;
 };
 
+export type SetModalitiesArgs = {
+  events_mode?: EventsMode;
+  enable_burn?: boolean;
+};
+
+export type UpgradeArgs = {
+  name: string;
+};
+
 type WriteCLValue = {
   cl_type: string;
   bytes: string;

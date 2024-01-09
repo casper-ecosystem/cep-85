@@ -15,6 +15,7 @@ import {
 
 import INSTALL_ARGS_JSON from "./jsons/install-args.json";
 import INSTALL_ARGS_JSON_BURNER_LIST from "./jsons/install-args-burner_list.json";
+import UPGRADE_ARGS_JSON from "./jsons/upgrade-args.json";
 
 import MINT_DEPLOY_ARGS_JSON from "./jsons/mint-args.json";
 import BATCH_MINT_DEPLOY_ARGS_JSON from "./jsons/batch_mint-args.json";
@@ -23,11 +24,13 @@ import BATCH_DEPLOY_ARGS_JSON from "./jsons/batch_burn-args.json";
 import TRANSFER_DEPLOY_ARGS_JSON from "./jsons/transfer-args.json";
 import BATCH_TRANSFER_DEPLOY_ARGS_JSON from "./jsons/batch_transfer-args.json";
 import SET_APPROVAL_FOR_ALL_JSON from "./jsons/set_approval_for_all-args.json";
+import SET_MODALITIES_JSON from "./jsons/set_modalities-args.json";
 import SET_TOTAL_SUPPLY_OF_JSON from "./jsons/set_total_supply_of-args.json";
 import SET_TOTAL_SUPPLY_OF_BATCH_JSON from "./jsons/set_total_supply_of_batch-args.json";
 import SET_URI_JSON from "./jsons/set_uri-args.json";
 import CHANGE_SECURITY_JSON from "./jsons/change_security-args.json";
 import { utf8ToBytes } from "@noble/hashes/utils";
+import { BigNumber } from "@ethersproject/bignumber";
 
 
 const name = "casper_test";
@@ -351,6 +354,44 @@ describe("CEP85Client", () => {
     );
   });
 
+  it("Should correctly construct deploy for 'setModalities'", async () => {
+    const setModalitiesDeploy = cc.setModalities(
+      {
+        events_mode: EventsMode.NoEvents,
+        enable_burn: true,
+      },
+      "13000000000",
+      keyPair.publicKey
+    );
+
+    const JSONDeploy = DeployUtil.deployToJson(setModalitiesDeploy) as any;
+
+    expect(setModalitiesDeploy).toBeInstanceOf(DeployUtil.Deploy);
+    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+      "set_modalities"
+    );
+    expect(JSONDeploy.deploy.session).toEqual(
+      SET_MODALITIES_JSON
+    );
+  });
+
+  it("Should correctly construct contract upgrade deploy", async () => {
+    const upgradeDeploy = await cc.upgrade(
+      {
+        name
+      },
+      "250000000000",
+      keyPair.publicKey
+    );
+
+    const JSONDeploy = DeployUtil.deployToJson(upgradeDeploy) as any;
+
+    expect(upgradeDeploy).toBeInstanceOf(DeployUtil.Deploy);
+    expect(JSONDeploy.deploy.session.ModuleBytes.args.sort()).toEqual(
+      UPGRADE_ARGS_JSON.sort()
+    );
+  });
+
   it("Should correctly return for 'getBalanceOf'", async () => {
     let balance = await cc.getBalanceOf(
       MOCKED_RECIPIENT_PUBKEY,
@@ -501,7 +542,6 @@ describe("CEP85Client", () => {
     expect(uri).toBe(mockValue);
   });
 
-
   it("Should correctly return for 'getIsNonFungible'", async () => {
     let isNFT = await cc.getIsNonFungible(
       id
@@ -533,26 +573,34 @@ describe("CEP85Client", () => {
   });
 
   it("Should correctly return for 'collectionName'", async () => {
-    let name = await cc.collectionName();
-    expect(name).toBe('');
+    let collectionName = await cc.collectionName();
+    expect(collectionName).toBe('');
 
     const mockValue = 'test';
-    const mockResult = CLValueBuilder.string(mockValue) as CLValue;
-    jest.spyOn(cc.contractClient, 'queryContractData').mockResolvedValue(mockResult);
-    name = await cc.collectionName();
-    expect(name).toBe(mockValue);
+    jest.spyOn(cc.contractClient, 'queryContractData').mockResolvedValue(mockValue);
+    collectionName = await cc.collectionName();
+    expect(collectionName).toBe(mockValue);
   });
 
-
   it("Should correctly return for 'collectionUri'", async () => {
-    let name = await cc.collectionUri();
+    let collectionUri = await cc.collectionUri();
     expect(name).toBe('');
 
     const mockValue = 'test';
-    const mockResult = CLValueBuilder.string(mockValue) as CLValue;
-    jest.spyOn(cc.contractClient, 'queryContractData').mockResolvedValue(mockResult);
-    name = await cc.collectionUri();
-    expect(name).toBe(mockValue);
+    jest.spyOn(cc.contractClient, 'queryContractData').mockResolvedValue(mockValue);
+    collectionUri = await cc.collectionUri();
+    expect(collectionUri).toBe(mockValue);
+  });
+
+  it("Should correctly return for 'getEventsMode'", async () => {
+    let events_mode = await cc.getEventsMode();
+    expect(events_mode).toBe(EventsMode[EventsMode.NoEvents] as keyof typeof EventsMode);
+
+    const mockValue = BigNumber.from(EventsMode.CES);
+    jest.spyOn(cc.contractClient, 'queryContractData').mockResolvedValue(mockValue);
+    events_mode = await cc.getEventsMode();
+    console.log(events_mode);
+    expect(events_mode).toBe(EventsMode[EventsMode.CES] as keyof typeof EventsMode);
   });
 
 });

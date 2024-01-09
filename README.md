@@ -37,7 +37,7 @@ The `call` method will install the contract with the necessary entrypoints and c
 The following are the required runtime arguments that must be passed to the installer session code to correctly install the multi-token contract.
 
 - `"name"`: The name of the multi-token collection, passed in as a `String`. This parameter is required and cannot be changed post installation.
-- `"uri"`: A string URI for any off-chain resource associated with the token.
+- `"uri"`: A string URI for any off-chain resource associated with the collection.
 
 The following are the optional parameters that can be passed in at the time of installation.
 

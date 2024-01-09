@@ -10,7 +10,7 @@ use casper_types::{runtime_args, ContractHash, Key, RuntimeArgs};
 use cep85::constants::{ARG_CONTRACT_HASH, ARG_NAME, ARG_UPGRADE_FLAG};
 
 #[test]
-fn should_migrate_and_update_account_contract_contexts() {
+fn should_upgrade_and_update_account_contract_contexts() {
     let (mut builder, TestContext { cep85_token, .. }) = setup();
 
     let contract = builder

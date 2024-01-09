@@ -1,6 +1,7 @@
 import {
   CEP85Client,
   CESEventParserFactory,
+  EventsMode,
 } from "../src/index";
 
 import {
@@ -23,6 +24,7 @@ import {
 } from "casper-js-sdk";
 import { install } from "./install";
 import { utf8ToBytes } from "@noble/hashes/utils";
+import { assert } from "console";
 
 const { NODE_URL, EVENT_STREAM_ADDRESS } = process.env;
 
@@ -96,6 +98,11 @@ const usage = async () => {
 
     cc.setContractHash(contractHash, contractPackageHash);
 
+    const collectionName = await cc.collectionName();
+    console.log(`... Contract collection name: ${collectionName}`);
+    let collectionUri = await cc.collectionUri();
+    console.log(`... Contract collection global uri: ${collectionUri}`);
+    assert(collectionName === name);
     console.log(`\n=====================================\n`);
 
     const es = setEventsSubscription(contractHash);
@@ -234,12 +241,6 @@ const usage = async () => {
     const is_operator = await cc.getIsApprovedForAll(USER1_KEYS.publicKey, FAUCET_KEYS.publicKey);
     console.log(`> is account ${FAUCET_KEYS.publicKey.toAccountHashStr()} operator of ${USER1_KEYS.publicKey.toAccountHashStr()} ${is_operator}`);
 
-    /* Events mode */
-    printHeader("Events mode");
-
-    const events_mode = await cc.getEventsMode();
-    console.log(`> Events mode ${events_mode}`);
-
     printHeader("Change security");
 
     const changeSecurity = cc.changeSecurity(
@@ -335,6 +336,79 @@ const usage = async () => {
     console.log(`> Total supply for tokens [${ids}] = [${result_total_supply_batch}]`);
     const result_supply_batch = await cc.getSupplyOfBatch(ids);
     console.log(`> Current supply for tokens [${ids}] = [${result_supply_batch}]`);
+
+    /* Events mode */
+    printHeader("Events mode");
+
+    let events_mode = await cc.getEventsMode();
+    console.log(`> Events mode ${events_mode}`);
+
+    /* Set Modalities */
+    printHeader("Set modalities");
+
+    const set_modalitiesDeploy = cc.setModalities(
+      {
+        enable_burn: false,
+        events_mode: EventsMode.NoEvents,
+      },
+      "3000000000",
+      FAUCET_KEYS.publicKey,
+      [FAUCET_KEYS]
+    );
+
+    await runDeployFlow(set_modalitiesDeploy);
+
+    events_mode = await cc.getEventsMode();
+    console.log(`> Events mode ${events_mode}`);
+
+
+    /* Set Modalities */
+    printHeader("Upgrade");
+    accountInfo = await getAccountInfo(NODE_URL!, FAUCET_KEYS.publicKey);
+    const currentContractHash = await getAccountNamedKeyValue(
+      accountInfo,
+      `cep85_contract_hash_${name}`
+    );
+    const currentContractVersionUref = await getAccountNamedKeyValue(
+      accountInfo,
+      `cep85_contract_version_${name}`
+    );
+
+    const casperClientRPC = new CasperServiceByJsonRPC(NODE_URL as string);
+    let stateRootHash = await casperClientRPC.getStateRootHash();
+    const currentContractVersionStoredValue = await casperClientRPC.getBlockState(stateRootHash, currentContractVersionUref, []);
+
+    console.log(`... Contract Hash before Upgrade: ${currentContractHash}`);
+    console.log(`... Contract Version before Upgrade: ${currentContractVersionStoredValue.CLValue?.toJSON() as string}`);
+
+    const upgradeDeploy = cc.upgrade(
+      {
+        name
+      },
+      "250000000000",
+      FAUCET_KEYS.publicKey,
+      [FAUCET_KEYS]
+    );
+
+    await runDeployFlow(upgradeDeploy);
+
+    accountInfo = await getAccountInfo(NODE_URL!, FAUCET_KEYS.publicKey);
+    const upgradedContractHash = await getAccountNamedKeyValue(
+      accountInfo,
+      `cep85_contract_hash_${name}`
+    );
+    const upgradedContractVersionUref = await getAccountNamedKeyValue(
+      accountInfo,
+      `cep85_contract_version_${name}`
+    );
+
+    cc.setContractHash(upgradedContractHash, contractPackageHash);
+
+    stateRootHash = await casperClientRPC.getStateRootHash();
+    const upgradedContractVersionStoredValue = await casperClientRPC.getBlockState(stateRootHash, upgradedContractVersionUref, []);
+
+    console.log(`... Contract Hash after Upgrade: ${upgradedContractHash}`);
+    console.log(`... Contract Version after Upgrade: ${upgradedContractVersionStoredValue.CLValue?.toJSON() as string}`);
 
     es.stop();
 

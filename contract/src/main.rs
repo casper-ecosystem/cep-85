@@ -38,15 +38,15 @@ use cep85::{
         ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_TRANSFER_FILTER_CONTRACT,
         ARG_TRANSFER_FILTER_METHOD, ARG_UPGRADE_FLAG, ARG_URI, BURNER_LIST, DICT_BALANCES,
         DICT_OPERATORS, DICT_SECURITY_BADGES, DICT_SUPPLY, DICT_TOKEN_URI, DICT_TOTAL_SUPPLY,
-        ENTRY_POINT_INIT, ENTRY_POINT_MIGRATE, META_LIST, MINTER_LIST, NONE_LIST,
+        ENTRY_POINT_INIT, ENTRY_POINT_UPGRADE, META_LIST, MINTER_LIST, NONE_LIST,
         PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
         PREFIX_CONTRACT_VERSION,
     },
     entry_points::generate_entry_points,
     error::Cep85Error,
     events::{
-        init_events, record_event_dictionary, ApprovalForAll, Burn, ChangeSecurity, Event,
-        Migration, Mint, SetModalities, SetTotalSupply, TransferBatch, TransferSingle, Uri,
+        init_events, record_event_dictionary, ApprovalForAll, Burn, ChangeSecurity, Event, Mint,
+        SetModalities, SetTotalSupply, TransferBatch, TransferSingle, Upgrade, Uri,
     },
     modalities::{EventsMode, TransferFilterContractResult},
     operators::{read_operator, write_operator},
@@ -955,7 +955,7 @@ pub extern "C" fn set_modalities() {
 }
 
 #[no_mangle]
-pub extern "C" fn migrate() {
+pub extern "C" fn upgrade() {
     put_key(
         ARG_CONTRACT_HASH,
         get_named_arg_with_user_errors::<Key>(
@@ -965,7 +965,7 @@ pub extern "C" fn migrate() {
         )
         .unwrap_or_revert(),
     );
-    record_event_dictionary(Event::Migration(Migration {}))
+    record_event_dictionary(Event::Upgrade(Upgrade {}))
 }
 
 fn install_contract() {
@@ -1076,7 +1076,7 @@ fn install_contract() {
     runtime::call_contract::<()>(contract_hash, ENTRY_POINT_INIT, init_args);
 }
 
-fn migrate_contract(name: &str, contract_package_hash: Key) {
+fn upgrade_contract(name: &str, contract_package_hash: Key) {
     let (contract_hash, contract_version) = storage::add_contract_version(
         contract_package_hash
             .into_hash()
@@ -1098,7 +1098,7 @@ fn migrate_contract(name: &str, contract_package_hash: Key) {
         ARG_CONTRACT_HASH => contract_hash_key,
     };
 
-    runtime::call_contract::<()>(contract_hash, ENTRY_POINT_MIGRATE, runtime_args);
+    runtime::call_contract::<()>(contract_hash, ENTRY_POINT_UPGRADE, runtime_args);
 }
 
 fn before_token_transfer(
@@ -1150,14 +1150,14 @@ pub extern "C" fn call() {
     let upgrade_flag: Option<bool> =
         get_optional_named_arg_with_user_errors(ARG_UPGRADE_FLAG, Cep85Error::InvalidUpgradeFlag);
 
-    if upgrade_flag.is_some() {
+    if upgrade_flag.is_some() && upgrade_flag.unwrap() {
         let name: String =
             get_optional_named_arg_with_user_errors(ARG_NAME, Cep85Error::MissingCollectionName)
                 .unwrap_or_revert_with(Cep85Error::InvalidCollectionName);
         let contract_package_hash: Key =
             get_key(&format!("{PREFIX_CONTRACT_PACKAGE_NAME}_{}", name))
-                .unwrap_or_revert_with(Cep85Error::InvalidUpgradeFlag);
-        migrate_contract(&name, contract_package_hash)
+                .unwrap_or_revert_with(Cep85Error::MissingPackageHash);
+        upgrade_contract(&name, contract_package_hash)
     } else {
         install_contract()
     }
