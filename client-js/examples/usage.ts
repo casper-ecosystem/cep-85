@@ -42,7 +42,7 @@ const runDeployFlow = async (deploy: DeployUtil.Deploy) => {
   console.log("...... Deploy hash: ", deployHash);
   console.log("...... Waiting for the deploy to be processed...");
   await getDeploy(NODE_URL!, deployHash);
-  console.log(`...... Deploy ${deployHash} succedeed`);
+  console.info(`...... Deploy ${deployHash} succedeed`);
 };
 
 const setEventsSubscription = (contractHash: string) => {
@@ -117,7 +117,7 @@ const usage = async () => {
         id,
         amount: mintAmount,
       },
-      "3000000000",
+      "1000000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
@@ -136,7 +136,7 @@ const usage = async () => {
         amount: transferAmount,
         data
       },
-      "13000000000",
+      "1000000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
@@ -153,7 +153,7 @@ const usage = async () => {
         id,
         amount: burnAmount,
       },
-      "13000000000",
+      "1000000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
@@ -166,7 +166,7 @@ const usage = async () => {
         id,
         amount: burnAmount,
       },
-      "13000000000",
+      "1000000000",
       USER1_KEYS.publicKey,
       [USER1_KEYS]
     );
@@ -185,7 +185,7 @@ const usage = async () => {
         id,
         uri: uri.replace('test', 'usage')
       },
-      "3000000000",
+      "500000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
@@ -203,7 +203,7 @@ const usage = async () => {
         id,
         total_supply: totalSupply
       },
-      "3000000000",
+      "500000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
@@ -231,7 +231,7 @@ const usage = async () => {
         operator: FAUCET_KEYS.publicKey,
         approved: true
       },
-      "3000000000",
+      "500000000",
       USER1_KEYS.publicKey,
       [USER1_KEYS]
     );
@@ -247,7 +247,7 @@ const usage = async () => {
       {
         minter_list: [USER1_KEYS.publicKey],
       },
-      "3000000000",
+      "500000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
@@ -260,7 +260,7 @@ const usage = async () => {
         id: '2',
         amount: mintAmount,
       },
-      "3000000000",
+      "1000000000",
       USER1_KEYS.publicKey,
       [USER1_KEYS]
     );
@@ -277,7 +277,7 @@ const usage = async () => {
         ids,
         amounts: [mintAmount, mintAmount],
       },
-      "3000000000",
+      "1500000000",
       USER1_KEYS.publicKey,
       [USER1_KEYS]
     );
@@ -294,7 +294,7 @@ const usage = async () => {
         amounts: [transferAmount, transferAmount],
         data
       },
-      "3000000000",
+      "1000000000",
       USER1_KEYS.publicKey,
       [USER1_KEYS]
     );
@@ -310,7 +310,7 @@ const usage = async () => {
         ids,
         amounts: [burnAmount, burnAmount],
       },
-      "3000000000",
+      "1000000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
@@ -325,7 +325,7 @@ const usage = async () => {
         ids,
         total_supplies: [totalSupply, totalSupply],
       },
-      "3000000000",
+      "500000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
@@ -351,7 +351,7 @@ const usage = async () => {
         enable_burn: false,
         events_mode: EventsMode.NoEvents,
       },
-      "3000000000",
+      "500000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
@@ -385,7 +385,7 @@ const usage = async () => {
       {
         name
       },
-      "250000000000",
+      "175000000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
