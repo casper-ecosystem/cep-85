@@ -3,11 +3,16 @@ use crate::utility::{
         CEP85_CONTRACT_WASM, CEP85_TEST_TOKEN_CONTRACT_NAME, CEP85_TEST_TOKEN_CONTRACT_VERSION,
         TOKEN_NAME,
     },
-    installer_request_builders::{setup, TestContext},
+    installer_request_builders::{setup, setup_with_args, TestContext},
+    support::get_event,
 };
 use casper_engine_test_support::{ExecuteRequestBuilder, DEFAULT_ACCOUNT_ADDR};
 use casper_types::{runtime_args, ContractHash, Key, RuntimeArgs};
-use cep85::constants::{ARG_CONTRACT_HASH, ARG_NAME, ARG_UPGRADE_FLAG};
+use cep85::{
+    constants::{ARG_CONTRACT_HASH, ARG_EVENTS_MODE, ARG_NAME, ARG_UPGRADE_FLAG},
+    events::Upgrade,
+    modalities::EventsMode,
+};
 
 #[test]
 fn should_upgrade_and_update_account_contract_contexts() {
@@ -97,5 +102,34 @@ fn should_upgrade_and_update_account_contract_contexts() {
         .into_t::<u32>()
         .unwrap();
 
-    assert_eq!(cep85_token_contract_version, 2_u32)
+    assert_eq!(cep85_token_contract_version, 2_u32);
+}
+
+#[test]
+fn should_emit_event_on_upgrade_with_events_mode_ces() {
+    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
+        runtime_args! {
+            ARG_EVENTS_MODE => EventsMode::CES as u8,
+        },
+        None,
+    );
+
+    let upgrade_request_contract = ExecuteRequestBuilder::standard(
+        *DEFAULT_ACCOUNT_ADDR,
+        CEP85_CONTRACT_WASM,
+        runtime_args! {
+            ARG_UPGRADE_FLAG => true,
+            ARG_NAME => TOKEN_NAME,
+        },
+    )
+    .build();
+    builder
+        .exec(upgrade_request_contract)
+        .expect_success()
+        .commit();
+
+    // Expect Upgrade event
+    let expected_event = Upgrade::new();
+    let actual_event: Upgrade = get_event(&builder, &cep85_token.into(), 0);
+    assert_eq!(actual_event, expected_event, "Expected Upgrade event.");
 }
