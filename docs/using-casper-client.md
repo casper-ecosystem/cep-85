@@ -77,7 +77,7 @@ casper-client put-deploy -n http://localhost:11101/rpc --chain-name "casper-net-
 
 18. [Setting Modalities](#setting-modalities)
 
-19. [Upgrading Collection Contract](#upgrading)
+19. [Upgrading Collection Contract](#upgrading-collection-contract)
 
 ## Minting a Token
 
@@ -890,5 +890,86 @@ casper-client put-deploy -n http://<NODE IP>:<PORT> \
 {"name":"admin_list","type":{"List":"Key"},"value":["account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd"]},
 {"name":"none_list","type":{"List":"Key"},"value":["account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd"]}
 ]' \
---payment-amount 1000000000
+--payment-amount 500000000
 ```
+
+## Setting modalities
+
+The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to set a modality of the contract instance.
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+// The chain name of the Casper network on which your CEP-85 instance was installed.
+--chain-name <CHAIN NAME> \
+// The local path to your account's secret key.
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+// The contract hash of your CEP-85 contract instance.
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+// The name of the entrypoint you are invoking.
+--session-entry-point "set_modalities" \
+// The events mode for this contract. In this instance the 1 represents the `CES` version of `EventsMode`.
+--session-arg "events_mode:u8='1'" \"operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
+// A boolean representing enabling (true) or disabling (false) the burn mode.
+--session-arg "enable_burn:bool='true'"
+// The gas payment you are allotting, in motes.
+--payment-amount "500000000"
+
+```
+
+<details>
+<summary><b>Casper client command without comments</b></summary>
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+--chain-name <CHAIN NAME> \
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+--session-entry-point "set_modalities" \
+--session-arg "events_mode:u8='1'" \
+--session-arg "enable_burn:bool='true'" \
+--payment-amount "1300000000"
+
+```
+
+</details>
+
+## Upgrading Collection Contract
+
+The following command will invoke the `call` entrypoint on your instance of CEP-85, directing it to upgrade the instance to a new version.
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+// The chain name of the Casper network on which your CEP-85 instance was installed.
+--chain-name <CHAIN NAME> \
+// The local path to cep85.wasm
+--session-path ~/casper/cep-85/target/wasm32-unknown-unknown/release/cep85.wasm \
+// The local path to your account's secret key.
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+// A boolean representing enabling (true) or disabling (false) the upgrade.
+--session-arg "upgrade:bool='true'" \
+// The name of the token as a string. In this instance, "multi-token-1".
+--session-arg "name:string='multi-token-1'"  \
+// The gas payment you are allotting, in motes.
+--payment-amount "175000000000"
+
+```
+
+<details>
+<summary><b>Casper client command without comments</b></summary>
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+--chain-name <CHAIN NAME> \
+--session-path ~/casper/cep-85/target/wasm32-unknown-unknown/release/cep85.wasm \
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+--session-arg "upgrade:bool='true'" \
+--session-arg "name:string='multi-token-1'" \
+--payment-amount "175000000000"
+
+```
+
+</details>
