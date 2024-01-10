@@ -20,9 +20,11 @@
 
 3. [Installing and Interacting with CEP-85 Contracts using the Rust Casper Client](#installing-and-interacting-with-the-contract-using-the-rust-casper-client)
 
-4. [Test Suite and Specification](#test-suite-and-specification)
+4. [Installing and Interacting with CEP-85 Contracts using the JS Casper Client](#installing-and-interacting-with-the-contract-using-the-js-casper-client)
 
-5. [Error Codes](#error-codes)
+5. [Test Suite and Specification](#test-suite-and-specification)
+
+6. [Error Codes](#error-codes)
 
 ## Building the Contract
 
@@ -44,7 +46,7 @@ The following are the optional parameters that can be passed in at the time of i
 - `"events_mode"`: The [`EventsMode`](#eventsmode) modality that selects the event schema used to record any changes that occur to tokens issued by the contract instance. This argument is passed in as a `u8` value.
 - `"enable_burn"`: The [`EnableBurn`](#enableburn) modality dictates whether the contract instance will allow approved entities to permanently burn tokens. This argument is passed in as a `bool` value.
 - `"transfer_filter_contract"`: This argument dictates a secondary contract instance that will serve as a transfer filter for the installing instance of CEP-85. Passing an argument with a value of type `Key` will enable this feature.
-- `"transfer_filter_method"`: This argument outlines the name of the entrypoint on the transfer filter contract that is used to access the filter. It is passed as an `String`.
+- `"transfer_filter_method"`: This argument outlines the name of the entrypoint on the transfer filter contract that is used to process the filter. It is passed as an `String`.
 
 In addition, the following arguments may be passed to establish their associated user lists.
 
@@ -79,10 +81,10 @@ The modality provides two options:
 1. `False`: Tokens may not be burned. This is the default mode.
 2. `True`: Tokens may be burned by approved users on the `burner_list`.
 
-| EnableBurn | Bool |
-| ---------- | ---- |
-| False      |
-| True       |
+| EnableBurn | Bool  |
+| ---------- | ----- |
+| Disabled   | False |
+| Enabled    | True  |
 
 ##### Casper Event Standard
 
@@ -114,6 +116,8 @@ The transfer filter modality, if enabled, specifies a contract package hash poin
 
 The transfer filter can be enabled by passing an `ARG_TRANSFER_FILTER_CONTRACT` argument to the install method, with a value of type `Key`. The transfer filter method can be defined with the `ARG_TRANSFER_FILTER_METHOD` argument.
 
+This parameter is optional and cannot be changed post installation.
+
 ### Example deploy
 
 The following is an example of installing the CEP-85 contract via a deploy using the Rust CLI Casper client. You can find more examples [here](/docs/using-casper-client.md).
@@ -123,12 +127,16 @@ casper-client put-deploy -n https://rpc.testnet.casperlabs.io/ --chain-name "cas
 --session-arg "name:string='multi-token-1'" \
 --session-arg "uri:string='https://docs.casper.network/'" \
 --session-arg "events_mode:u8='0'" \
---session-arg "enable_burn:bool='1'" \
+--session-arg "enable_burn:bool='true'" \
 ```
 
 ## Installing and Interacting with the Contract using the Rust Casper Client
 
 You can find instructions on installing an instance of the CEP-85 contract using the Rust CLI Casper client [here](/docs/using-casper-client.md).
+
+## Installing and Interacting with the Contract using the JS Casper Client
+
+You can find instructions on installing an instance of the CEP-85 contract using the JS Casper client [here](/client-js/README.md)
 
 ## Test Suite and Specification
 
