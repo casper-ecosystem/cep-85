@@ -49,39 +49,43 @@ casper-client put-deploy -n http://localhost:11101/rpc --chain-name "casper-net-
 
 4. [Batch Burning Tokens](#batch-burning-tokens)
 
-5. [Checking the Balance of a Single Token ID](#checking-the-balance-of-a-single-token-id)
+5. [Checking the Supply of a Token](#checking-the-supply-of-a-token)
 
-6. [Checking the Balance of Multiple Token IDs](#checking-the-balance-of-multiple-token-ids)
+6. [Checking the Total Supply of a Token](#checking-the-total-supply-of-a-token)
 
-7. [Approving An Operator to Transfer Tokens](#approving-an-operator-to-transfer-tokens)
+7. [Setting the Total Supply of a Token](#setting-the-total-supply-of-a-token)
 
-8. [Checking Approval Status of an Account](#checking-approval-status-of-an-account)
+8. [Setting the Total Supply of a Batch of Tokens](#setting-the-total-supply-of-a-batch-of-tokens)
 
-9. [Transferring a Token](#transferring-a-token)
+9. [Checking the Balance of a Single Token ID](#checking-the-balance-of-a-single-token-id)
 
-10. [Transferring a Batch of Tokens](#transferring-a-batch-of-tokens)
+10. [Checking the Balance of Multiple Token IDs](#checking-the-balance-of-multiple-token-ids)
 
-11. [Checking the Supply of a Token](#checking-the-supply-of-a-token)
+11. [Approving An Operator to Transfer Tokens](#approving-an-operator-to-transfer-tokens)
 
-12. [Checking the Total Supply of a Token](#checking-the-total-supply-of-a-token)
+12. [Checking Approval Status of an Account](#checking-approval-status-of-an-account)
 
-13. [Checking the URI for a Token](#checking-the-uri-for-a-token)
+13. [Transferring a Token](#transferring-a-token)
 
-14. [Setting the URI of a Token](#setting-the-uri-of-a-token)
+14. [Transferring a Batch of Tokens](#transferring-a-batch-of-tokens)
 
-15. [Checking a Token's Fungibility](#checking-a-tokens-fungibility)
+15. [Checking the URI for a Token](#checking-the-uri-for-a-token)
 
-16. [Checking a Token's Total Fungible Supply](#checking-a-tokens-total-fungible-supply)
+16. [Setting the URI of a Token](#setting-the-uri-of-a-token)
 
-17. [Changing Account Security Permissions](#changing-account-security-permissions)
+17. [Checking a Token's Fungibility](#checking-a-tokens-fungibility)
 
-18. [Setting Modalities](#setting-modalities)
+18. [Checking a Token's Total Fungible Supply](#checking-a-tokens-total-fungible-supply)
 
-19. [Upgrading Collection Contract](#upgrading-collection-contract)
+19. [Changing Account Security Permissions](#changing-account-security-permissions)
+
+20. [Setting Modalities](#setting-modalities)
+
+21. [Upgrading Collection Contract](#upgrading-collection-contract)
 
 ## Minting a Token
 
-The following command will invoke the `mint` entrypoint on your instance of CEP-85, directing it to mint the given amount of a specified token ID to the recipient address. The account sending this deploy must be on the `minter_list`.
+The following command will invoke the `mint` entrypoint on your instance of CEP-85, directing it to mint the given amount of a specified token ID to the recipient address. The account sending this deploy must be on the `minter_list` or `admin_list`.
 
 ```json
 
@@ -100,7 +104,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "id:u256='2'" \
 // The amount of the specified CEP-85 token you are sending to the receiving account.
 --session-arg "amount:u256='10'" \
-// An optional uri for the token
+// An optional uri for the token if different from global uri set during installation
 --session-arg "uri:string='https://test-cdn-domain/{id}.json'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "1000000000"
@@ -120,7 +124,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "recipient:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
 --session-arg "id:u256='2'" \
 --session-arg "amount:u256='10'" \
---session-arg "uri:string='https://test-cdn-domain/{id}.json'" \ // Optional, defaults to global uri
+--session-arg "uri:string='https://test-cdn-domain/{id}.json'" \
 --payment-amount "1000000000"
 
 ```
@@ -129,7 +133,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 ## Batch Minting Tokens
 
-The following command will invoke the `batch_mint` entrypoint on your instance of CEP-85, directing it to mint the given amount of several token IDs to the recipient address. The account sending this deploy must be on the `minter_list`.
+The following command will invoke the `batch_mint` entrypoint on your instance of CEP-85, directing it to mint the given amount of several token IDs to the recipient address. The account sending this deploy must be on the `minter_list` or `admin_list`.
 
 ```json
 
@@ -149,7 +153,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 {"name":"ids","type":{"List":"U256"},"value":[3,5]},
 // The amounts of the specified CEP-85 tokens you are sending to the receiving account.
 {"name":"amounts","type":{"List":"U256"},"value":[10,25]},
-// An optional uri for the tokens
+// An optional uri for the tokens if different from global uri set during installation
 {"name":"uri","type":"String","value":"https://test-cdn-domain/{id}.json"}
 ]' \
 // The gas payment you are allotting, in motes.
@@ -181,7 +185,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 ## Burning a Token
 
-The following command will invoke the `burn` entrypoint on your instance of CEP-85, directing it to burn the given amount of tokens at the owner address. The account sending this deploy must be on the `burner_list`.
+The following command will invoke the `burn` entrypoint on your instance of CEP-85, directing it to burn the given amount of tokens at the owner address. The account sending this deploy must be on the `burner_list` or `admin_list`.
 
 ```json
 
@@ -226,7 +230,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 ## Batch Burning Tokens
 
-The following command will invoke the `batch_burn` entrypoint on your instance of CEP-85, directing it to burn the given amount of several token IDs at the owner address. The account sending this deploy must be on the `burner_list`.
+The following command will invoke the `batch_burn` entrypoint on your instance of CEP-85, directing it to burn the given amount of several token IDs at the owner address. The account sending this deploy must be on the `burner_list` or `admin_list.
 
 ```json
 
@@ -265,349 +269,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 {"name":"owner","type":"Key","value":"account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b"},
 {"name":"ids","type":{"List":"U256"},"value":[3,5]},
 {"name":"amounts","type":{"List":"U256"},"value":[10,25]}
-]' \
---payment-amount "10000000000"
-
-```
-
-</details>
-
-## Checking the Balance of a Single Token ID
-
-The following command will invoke the `balance_of` entrypoint on your instance of CEP-85.
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
-// The chain name of the Casper network on which your CEP-85 instance was installed.
---chain-name <CHAIN NAME> \
-// The local path to your account's secret key.
---secret-key ~/casper/demo/user_a/secret_key.pem \
-// The contract hash of your CEP-85 contract instance.
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
-// The name of the entrypoint you are invoking.
---session-entry-point "balance_of" \
-// The account hash of the account that you are querying the balance of.
---session-arg "account:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
-// The ID of the CEP-85 token you are querying the balance of.
---session-arg "id:U256='2'" \
-// The gas payment you are allotting, in motes.
---payment-amount "10000000000"
-
-```
-
-<details>
-<summary><b>Casper client command without comments</b></summary>
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
---chain-name <CHAIN NAME> \
---secret-key ~/casper/demo/user_a/secret_key.pem \
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
---session-entry-point "balance_of" \
---session-arg "account:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
---session-arg "id:U256='2'" \
---payment-amount "10000000000"
-
-```
-
-</details>
-
-After sending this command, you will need to query the `balance` URef within the `NamedKeys` of your CEP-85 contract instance.
-
-You can use the following command to query global state for the `balance` URef.
-
-```json
-casper-client query-global-state -n http://<NODE IP>:<PORT> \
-// This is the `balance` URef location from your CEP-85 contract's `NamedKeys`.
---key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
-// This is the current state-root-hash for the Casper network your contract is installed on.
---state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
-```
-
-<details>
-<summary><b>Casper client command without comments</b></summary>
-
-```bash
-casper-client query-global-state -n http://<NODE IP>:<PORT> \
---key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
---state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
-```
-
-</details>
-
-## Checking the Balance of Multiple Token IDs
-
-The following command will invoke the `balance_of_batch` entrypoint on your instance of CEP-85.
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
-// The chain name of the Casper network on which your CEP-85 instance was installed.
---chain-name <CHAIN NAME> \
-// The local path to your account's secret key.
---secret-key ~/casper/demo/user_a/secret_key.pem \
-// The contract hash of your CEP-85 contract instance.
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
-// The name of the entrypoint you are invoking.
---session-entry-point "balance_of_batch" \
-// The account hash of the account that you are querying the balances of.
---session-arg "account:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
-// The ID of the CEP-85 tokens you are querying the balance of.
---session-arg "ids:string='2, 5'" \
-// The gas payment you are allotting, in motes.
---payment-amount "10000000000"
-
-```
-
-<details>
-<summary><b>Casper client command without comments</b></summary>
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
---chain-name <CHAIN NAME> \
---secret-key ~/casper/demo/user_a/secret_key.pem \
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
---session-entry-point "balance_of_batch" \
---session-arg "account:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
---session-arg "ids:string='2, 5'" \
---payment-amount "10000000000"
-
-```
-
-</details>
-
-After sending this command, you will need to query the `batch_balances` URef within the `NamedKeys` of your CEP-85 contract instance.
-
-You can use the following command to query global state for the `batch_balances` URef.
-
-```json
-casper-client query-global-state -n http://<NODE IP>:<PORT> \
-// This is the `batch_balances` URef location from your CEP-85 contract's `NamedKeys`.
---key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
-// This is the current state-root-hash for the Casper network your contract is installed on.
---state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
-```
-
-<details>
-<summary><b>Casper client command without comments</b></summary>
-
-```bash
-casper-client query-global-state -n http://<NODE IP>:<PORT> \
---key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
---state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
-```
-
-</details>
-
-## Approving An Operator to Transfer Tokens
-
-The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to approve or remove a given `operator`s ability to transfer the calling account's tokens.
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
-// The chain name of the Casper network on which your CEP-85 instance was installed.
---chain-name <CHAIN NAME> \
-// The local path to your account's secret key.
---secret-key ~/casper/demo/user_a/secret_key.pem \
-// The contract hash of your CEP-85 contract instance.
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
-// The name of the entrypoint you are invoking.
---session-entry-point "set_approval_for_all" \
-// The account hash of the account that you are approving/removing as an operator.
---session-arg "operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
-// A boolean representing approval (True) or removal (False).
---session-arg "approved:bool='true'" \
-// The gas payment you are allotting, in motes.
---payment-amount "500000000"
-
-```
-
-<details>
-<summary><b>Casper client command without comments</b></summary>
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
---chain-name <CHAIN NAME> \
---secret-key ~/casper/demo/user_a/secret_key.pem \
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
---session-entry-point "set_approval_for_all" \
---session-arg "operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
---session-arg "approved:bool='true'" \
---payment-amount "500000000"
-
-```
-
-</details>
-
-## Checking Approval Status of an Account
-
-The following command will invoke the `is_approved_for_all` entrypoint of your instance of CEP-85, verifying if the provided `operator` key is approved to transfer tokens from the balance of the given `account`.
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
-// The chain name of the Casper network on which your CEP-85 instance was installed.
---chain-name <CHAIN NAME> \
-// The local path to your account's secret key.
---secret-key ~/casper/demo/user_a/secret_key.pem \
-// The contract hash of your CEP-85 contract instance.
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
-// The name of the entrypoint you are invoking.
---session-entry-point "is_approved_for_all" \
-// The account hash of the account that you are checking the operator approval status of.
---session-arg "operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
-// The account hash of the account that holds the tokens that the operator may be approved to transfer.
---session-arg "account:key='account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd'" \
-// The gas payment you are allotting, in motes.
---payment-amount "10000000000"
-
-```
-
-<details>
-<summary><b>Casper client command without comments</b></summary>
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
---chain-name <CHAIN NAME> \
---secret-key ~/casper/demo/user_a/secret_key.pem \
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
---session-entry-point "is_approved_for_all" \
---session-arg "operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
---session-arg "account:key='account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd'" \
---payment-amount "10000000000"
-
-```
-
-</details>
-
-After sending this command, you will need to query the `is_approved_for_all` URef within the `NamedKeys` of your CEP-85 contract instance.
-
-You can use the following command to query global state for the `is_approved_for_all` URef.
-
-```json
-casper-client query-global-state -n http://<NODE IP>:<PORT> \
-// This is the `is_approved_for_all` URef location from your CEP-85 contract's `NamedKeys`.
---key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
-// This is the current state-root-hash for the Casper network your contract is installed on.
---state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
-```
-
-<details>
-<summary><b>Casper client command without comments</b></summary>
-
-```bash
-casper-client query-global-state -n http://<NODE IP>:<PORT> \
---key uref-a46ad389b53715d9991a513c8ca48e1502facc4c563c0700a31e830c4cb8a7d4-007 \
---state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
-```
-
-</details>
-
-## Transferring a Token
-
-The following command will invoke the `safe_transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amount of a specified token ID from one account to another.
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
-// The chain name of the Casper network on which your CEP-85 instance was installed.
---chain-name <CHAIN NAME> \
-// The local path to your account's secret key.
---secret-key ~/casper/demo/user_a/secret_key.pem \
-// The contract hash of your CEP-85 contract instance.
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
-// The name of the entrypoint you are invoking.
---session-entry-point "safe_transfer_from" \
-// The account hash of the account sending the tokens.
---session-arg "from:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
-// The account hash of the account receiving the tokens.
---session-arg "to:key='account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd'" \
-// The ID of the CEP-85 token you are sending to the receiving account.
---session-arg "id:u256='2'" \
-// The amount of the specified CEP-85 token you are sending to the receiving account.
---session-arg "amount:u256='10'" \
-// "DATA is an optional argument passed as a bytes array that allows the inclusion of custom bytes. These are sent to `before_token_transfer` and can be used to pass values to a transfer filter contract."
---session-arg "data:byte_list=''" \
-// The gas payment you are allotting, in motes.
---payment-amount "10000000000"
-
-```
-
-<details>
-<summary><b>Casper client command without comments</b></summary>
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
---chain-name <CHAIN NAME> \
---secret-key ~/casper/demo/user_a/secret_key.pem \
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
---session-entry-point "safe_transfer_from" \
---session-arg "from:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
---session-arg "to:key='account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd'" \
---session-arg "id:u256='2'" \
---session-arg "amount:u256='10'" \
---session-arg "data:byte_list=''" \
---payment-amount "10000000000"
-
-```
-
-</details>
-
-## Transferring a Batch of Tokens
-
-The following command will invoke the `safe_batch_transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amounts of the specified token IDs from one account to another.
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
-// The chain name of the Casper network on which your CEP-85 instance was installed.
---chain-name <CHAIN NAME> \
-// The local path to your account's secret key.
---secret-key ~/casper/demo/user_a/secret_key.pem \
-// The contract hash of your CEP-85 contract instance.
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
-// The name of the entrypoint you are invoking.
---session-entry-point "safe_batch_transfer_from" \
---session-args-json '[
-// The account hash of the account sending the tokens.
-{"name":"from","type":"Key","value":"account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b"},
-// The account hash of the account receiving the tokens.
-{"name":"to","type":"Key","value":"account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd"},
-// The IDs of the CEP-85 tokens you are sending to the receiving account.
-{"name":"ids","type":{"List":"U256"},"value":[3,5]},
-// The amounts of the specified CEP-85 tokens you are sending to the receiving account.
-{"name":"amounts","type":{"List":"U256"},"value":[10,25]},
-// "DATA is an optional argument passed as a string that allows the inclusion of custom bytes. These are sent to `before_token_transfer` and can be used to pass values to a transfer filter contract."
-{"name":"data","type":{"List":"U8"},"value":"0102ff"}
-]' \
-// The gas payment you are allotting, in motes.
---payment-amount "10000000000"
-
-```
-
-<details>
-<summary><b>Casper client command without comments</b></summary>
-
-```json
-
-casper-client put-deploy -n http://<node IP>:<PORT> \
---chain-name <CHAIN NAME> \
---secret-key ~/casper/demo/user_a/secret_key.pem \
---session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
---session-entry-point "safe_batch_transfer_from" \
---session-args-json '[
-{"name":"from","type":"Key","value":"account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b"},
-{"name":"to","type":"Key","value":"account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd"},
-{"name":"ids","type":{"List":"U256"},"value":[3,5]},
-{"name":"amounts","type":{"List":"U256"},"value":[10,25]},
-{"name":"data","type":{"List":"U8"},"value":"0102ff"}
 ]' \
 --payment-amount "10000000000"
 
@@ -687,7 +348,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 
 ## Setting the Total Supply of a Token
 
-The following command will invoke the `set_total_supply_of` entrypoint of your instance of CEP-85, setting the total supply of the provided token ID. The new total supply provided must be larger than the previous total supply.
+The following command will invoke the `set_total_supply_of` entrypoint of your instance of CEP-85, setting the total supply of the provided token ID. The new total supply provided must be larger than the previous total supply. The account sending this deploy must be on the `admin_list`.
 
 ```json
 
@@ -729,7 +390,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 ## Setting the Total Supply of a Batch of Tokens
 
-The following command will invoke the `set_total_supply_of_batch` entrypoint of your instance of CEP-85, setting the total supplies of the provided token IDs. The new total supplies provided must be larger than the previous total supplies.
+The following command will invoke the `set_total_supply_of_batch` entrypoint of your instance of CEP-85, setting the total supplies of the provided token IDs. The new total supplies provided must be larger than the previous total supplies. The account sending this deploy must be on the `admin_list`.
 
 ```json
 
@@ -773,6 +434,395 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 </details>
 
+## Checking the Balance of a Single Token ID
+
+Unlike checking the supply of a token, checking state balance of an owner for a token requires two information combined, the owner key and the token id in the form of an dictionary item key hash.
+
+The following command will invoke the `make_dictionary_item_key` session entrypoint on your instance of CEP-85, wrtting for you the hash key in your account context.
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+// The chain name of the Casper network on which your CEP-85 instance was installed.
+--chain-name <CHAIN NAME> \
+// The local path to your account's secret key.
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+// The contract hash of your CEP-85 contract instance.
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+// The name of the entrypoint you are invoking.
+--session-entry-point "make_dictionary_item_key" \
+// The account hash of the account that you are querying as an owner.
+--session-arg "owner:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
+// The ID of the CEP-85 token you are querying.
+--session-arg "id:u256='2'" \
+// An optional name argument can be set to specify the name of the key in your account
+// "name:string='my_custom_result_key'" \
+// The gas payment you are allotting, in motes.
+--payment-amount "500000000"
+
+```
+
+<details>
+<summary><b>Casper client command without comments</b></summary>
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+--chain-name <CHAIN NAME> \
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+--session-entry-point "make_dictionary_item_key" \
+--session-arg "owner:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
+--session-arg "id:u256='2'" \
+--payment-amount "500000000"
+
+```
+
+</details><br>
+
+After sending this command to the contract entry point, you will need to query the value of this dictionary item key `cep85_dictionary_item_key` (or a custom one if provided during previous command) within the `NamedKeys` of your account.
+
+You can use the following command to query the new named key to get the dictionary item key.
+
+```json
+casper-client query-global-state -n http://<NODE IP>:<PORT> \
+// This is your `account` hash location from your `NamedKeys`.
+--key account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b \
+// This is the current state-root-hash for the Casper network your contract is installed on.
+--query-path "cep85_dictionary_item_key" \
+// This is the current state-root-hash for the Casper network your contract is installed on.
+--state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
+```
+
+<summary><b>Casper client command without comments</b></summary>
+
+```bash
+casper-client query-global-state -n http://<NODE IP>:<PORT> \
+--key account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b \
+--query-path "cep85_dictionary_item_key" \
+--state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
+```
+
+Result of this query shall be as a CLValue, copy the parsed value to the next command to get balance.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": -8867683794280721261,
+  "result": {
+    "api_version": "1.0.0",
+    "block_header": null,
+    "stored_value": {
+      "CLValue": {
+        "cl_type": "String",
+        "bytes": "4000000065643932633330346238333230393835653261623936626434353535313261643534353939306639386164623065353639626136333363313637393164356564",
+        "parsed": "ed92c304b8320985e2ab96bd455512ad545990f98adb0e569ba633c16791d5ed"
+      }
+    },
+    "merkle_proof": "[7356 hex chars]"
+  }
+}
+```
+
+</details>
+
+> Use the JS client to get a dictionary item key without deploy [makeDictionaryItemKey](#casper/client-js/)
+
+The following command will query the `balances` dictionary of your instance of CEP-85, verifying the balance of the provided owners key and token ID with its corresponding dictionary item key. As this dictionary item key combining an entity key and an id will never change, for further balances checks you can reuse this dictionary item key again in your queries.
+
+```json
+
+casper-client get-dictionary-item -n http://<node IP>:<PORT> \
+// The state root hash
+--state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
+// The contract hash of your CEP-85 contract instance.
+--contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+// The name of the entrypoint you are invoking.
+--dictionary-name "balances" \
+// The Key/Id hash of the CEP-85 token you are checking the supply of.
+--dictionary-item-key "ed92c304b8320985e2ab96bd455512ad545990f98adb0e569ba633c16791d5ed"
+
+```
+
+<details>
+<summary><b>Casper client command without comments</b></summary>
+
+```json
+
+casper-client get-dictionary-item -n http://<node IP>:<PORT> \
+--state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538
+--contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+--dictionary-name "balances" \
+--dictionary-item-key "ed92c304b8320985e2ab96bd455512ad545990f98adb0e569ba633c16791d5ed"
+
+```
+
+</details><br>
+
+> Use the JS client [getBalanceOf](#casper/client-js/)
+
+## Checking the Balance of Multiple Token IDs
+
+> Use the JS client [getBalanceOfBatch](#casper/client-js/)
+
+## Approving An Operator to Transfer Tokens
+
+The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to approve or remove a given `operator`s ability to transfer (or burn) the calling account's tokens.
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+// The chain name of the Casper network on which your CEP-85 instance was installed.
+--chain-name <CHAIN NAME> \
+// The local path to your account's secret key.
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+// The contract hash of your CEP-85 contract instance.
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+// The name of the entrypoint you are invoking.
+--session-entry-point "set_approval_for_all" \
+// The account hash of the account that you are approving/removing as an operator.
+--session-arg "operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
+// A boolean representing approval (True) or removal (False).
+--session-arg "approved:bool='true'" \
+// The gas payment you are allotting, in motes.
+--payment-amount "500000000"
+
+```
+
+<details>
+<summary><b>Casper client command without comments</b></summary>
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+--chain-name <CHAIN NAME> \
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+--session-entry-point "set_approval_for_all" \
+--session-arg "operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
+--session-arg "approved:bool='true'" \
+--payment-amount "500000000"
+
+```
+
+</details>
+
+## Checking Approval Status of an Account
+
+Unlike checking the supply of a token, checking state operator for an owner requires two information combined, the owner key and the operator key in the form of an dictionary item key hash.
+
+The following command will invoke the `make_dictionary_item_key` session entrypoint on your instance of CEP-85, wrtting for you the hash key in your account context.
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+// The chain name of the Casper network on which your CEP-85 instance was installed.
+--chain-name <CHAIN NAME> \
+// The local path to your account's secret key.
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+// The contract hash of your CEP-85 contract instance.
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+// The name of the entrypoint you are invoking.
+--session-entry-point "make_dictionary_item_key" \
+// The account hash of the account that you are querying as an owner.
+--session-arg "owner:key='account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd'" \
+// The account hash of the account that you are querying as an operator.
+--session-arg "operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
+// An optional name argument can be set to specify the name of the key in your account
+// "name:string='my_custom_result_key'" \
+// The gas payment you are allotting, in motes.
+--payment-amount "500000000"
+
+```
+
+<details>
+<summary><b>Casper client command without comments</b></summary>
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+--chain-name <CHAIN NAME> \
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+--session-entry-point "make_dictionary_item_key" \
+--session-arg "owner:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
+--session-arg "operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
+--payment-amount "500000000"
+
+```
+
+</details><br>
+
+After sending this command to the contract entry point, you will need to query the value of this dictionary item key `cep85_dictionary_item_key` (or a custom one if provided during previous command with `name` arg) within the `NamedKeys` of your account.
+
+You can use the following command to query the new named key to get the dictionary item key.
+
+```json
+casper-client query-global-state -n http://<NODE IP>:<PORT> \
+// This is your `account` hash location from your `NamedKeys`.
+--key account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b \
+// This is the current state-root-hash for the Casper network your contract is installed on.
+--query-path "cep85_dictionary_item_key" \
+// This is the current state-root-hash for the Casper network your contract is installed on.
+--state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
+```
+
+<summary><b>Casper client command without comments</b></summary>
+
+```bash
+casper-client query-global-state -n http://<NODE IP>:<PORT> \
+--key account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b \
+--query-path "cep85_dictionary_item_key" \
+--state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
+```
+
+Result of this query shall be as a CLValue, copy the parsed value to the next command to get an operators approval.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": -1688620587857799264,
+  "result": {
+    "api_version": "1.0.0",
+    "block_header": null,
+    "stored_value": {
+      "CLValue": {
+        "cl_type": "String",
+        "bytes": "4000000032656234333365343834633163366161396262356539643938626436636461373966386537623037363964616630656434353938393133646634356430643763",
+        "parsed": "2eb433e484c1c6aa9bb5e9d98bd6cda79f8e7b0769daf0ed4598913df45d0d7c"
+      }
+    },
+    "merkle_proof": "[7560 hex chars]"
+  }
+}
+```
+
+</details>
+
+> Use the JS client to get a dictionary item key without deploy [makeDictionaryItemKey](#casper/client-js/)
+
+The following command will query the `operators` dictionary of your instance of CEP-85, verifying the approval of the provided owners key and operators id with its corresponding dictionary item key. As this dictionary item key combining two entity keys will never change, for further aprovals checks of this approval you can reuse this dictionary item key again in your queries.
+
+```json
+
+casper-client get-dictionary-item -n http://<node IP>:<PORT> \
+// The state root hash
+--state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
+// The contract hash of your CEP-85 contract instance.
+--contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+// The name of the entrypoint you are invoking.
+--dictionary-name "operators" \
+// The Key/Key hash of the CEP-85 approval you are checking.
+--dictionary-item-key "2eb433e484c1c6aa9bb5e9d98bd6cda79f8e7b0769daf0ed4598913df45d0d7c"
+
+```
+
+## Transferring a Token
+
+The following command will invoke the `safe_transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amount of a specified token ID from one account to another.
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+// The chain name of the Casper network on which your CEP-85 instance was installed.
+--chain-name <CHAIN NAME> \
+// The local path to your account's secret key.
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+// The contract hash of your CEP-85 contract instance.
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+// The name of the entrypoint you are invoking.
+--session-entry-point "safe_transfer_from" \
+// The account hash of the account sending the tokens.
+--session-arg "from:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
+// The account hash of the account receiving the tokens.
+--session-arg "to:key='account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd'" \
+// The ID of the CEP-85 token you are sending to the receiving account.
+--session-arg "id:u256='2'" \
+// The amount of the specified CEP-85 token you are sending to the receiving account.
+--session-arg "amount:u256='10'" \
+// "DATA is an optional argument passed as a byte array that allows the inclusion of custom bytes. These are sent to `before_token_transfer` and can be used to pass values to a transfer filter contract."
+--session-arg "data:byte_list=''" \
+// The gas payment you are allotting, in motes.
+--payment-amount "10000000000"
+
+```
+
+<details>
+<summary><b>Casper client command without comments</b></summary>
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+--chain-name <CHAIN NAME> \
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+--session-entry-point "safe_transfer_from" \
+--session-arg "from:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
+--session-arg "to:key='account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd'" \
+--session-arg "id:u256='2'" \
+--session-arg "amount:u256='10'" \
+--session-arg "data:byte_list=''" \
+--payment-amount "10000000000"
+
+```
+
+</details>
+
+## Transferring a Batch of Tokens
+
+The following command will invoke the `safe_batch_transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amounts of the specified token IDs from one account to another.
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+// The chain name of the Casper network on which your CEP-85 instance was installed.
+--chain-name <CHAIN NAME> \
+// The local path to your account's secret key.
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+// The contract hash of your CEP-85 contract instance.
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+// The name of the entrypoint you are invoking.
+--session-entry-point "safe_batch_transfer_from" \
+--session-args-json '[
+// The account hash of the account sending the tokens.
+{"name":"from","type":"Key","value":"account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b"},
+// The account hash of the account receiving the tokens.
+{"name":"to","type":"Key","value":"account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd"},
+// The IDs of the CEP-85 tokens you are sending to the receiving account.
+{"name":"ids","type":{"List":"U256"},"value":[3,5]},
+// The amounts of the specified CEP-85 tokens you are sending to the receiving account.
+{"name":"amounts","type":{"List":"U256"},"value":[10,25]},
+// "DATA is an optional argument passed as a byte array that allows the inclusion of custom bytes. These are sent to `before_token_transfer` and can be used to pass values to a transfer filter contract."
+{"name":"data","type":{"List":"U8"},"value":"0102ff"}
+]' \
+// The gas payment you are allotting, in motes.
+--payment-amount "10000000000"
+
+```
+
+<details>
+<summary><b>Casper client command without comments</b></summary>
+
+```json
+
+casper-client put-deploy -n http://<node IP>:<PORT> \
+--chain-name <CHAIN NAME> \
+--secret-key ~/casper/demo/user_a/secret_key.pem \
+--session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+--session-entry-point "safe_batch_transfer_from" \
+--session-args-json '[
+{"name":"from","type":"Key","value":"account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b"},
+{"name":"to","type":"Key","value":"account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd"},
+{"name":"ids","type":{"List":"U256"},"value":[3,5]},
+{"name":"amounts","type":{"List":"U256"},"value":[10,25]},
+{"name":"data","type":{"List":"U8"},"value":"0102ff"}
+]' \
+--payment-amount "10000000000"
+
+```
+
+</details>
+
 ## Checking the URI for a Token
 
 The following command will invoke the `uri` entrypoint of your instance of CEP-85, returning the associated URI for the provided token ID.
@@ -780,6 +830,8 @@ The following command will invoke the `uri` entrypoint of your instance of CEP-8
 ```json
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
+// The state root hash
+--state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
 // The contract hash of your CEP-85 contract instance.
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 // The name of the entrypoint you are invoking.
@@ -795,6 +847,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 ```json
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
+--state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 --dictionary-name "token_uri" \
 --dictionary-item-key "2"
@@ -805,7 +858,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 
 ## Setting the URI of a Token
 
-The following command will invoke the `set_uri` entrypoint of your instance of CEP-85, setting the URI of the provided token ID.
+The following command will invoke the `set_uri` entrypoint of your instance of CEP-85, setting the URI of the provided token ID. The account sending this deploy must be on the `admin_list`.
 
 ```json
 
@@ -849,9 +902,13 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 Check if total_supply is equal to 1 with [Checking the Total Supply of a Token](#checking-the-total-supply-of-a-token)
 
+Or use the JS client [getIsNonFungible](#casper/client-js/)
+
 ## Checking a Token's Total Fungible Supply
 
-Check if total_supply susctracted of supply is positive with [Checking the Total Supply of a Token](#checking-the-total-supply-of-a-token) and [Checking the Supply of a Token](#checking-the-supply-of-a-token)
+Check if total_supply substracted of supply is positive with [Checking the Total Supply of a Token](#checking-the-total-supply-of-a-token) and [Checking the Supply of a Token](#checking-the-supply-of-a-token)
+
+Or use the JS client [getTotalFungibleSupply](#casper/client-js/)
 
 ## Changing Account Security Permissions
 
@@ -895,7 +952,7 @@ casper-client put-deploy -n http://<NODE IP>:<PORT> \
 
 ## Setting modalities
 
-The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to set a modality of the contract instance.
+The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to set a modality of the contract instance. The account sending this deploy must be on the `admin_list`.
 
 ```json
 
