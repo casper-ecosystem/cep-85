@@ -88,6 +88,10 @@ pub enum Cep85Error {
     TransferFilterContractDenied = 75,
     UnexpectedKeyVariant = 76,
     InvalidUpgradeFlag = 77,
+    MissingKey = 78,
+    InvalidKeyName = 79,
+    InvalidValue = 80,
+    MissingValue = 81,
 }
 
 impl From<Cep85Error> for ApiError {

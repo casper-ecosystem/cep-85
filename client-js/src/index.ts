@@ -510,9 +510,10 @@ export class CEP85Client {
  * @returns The balance as a string, or "0" if an error occurs or the balance is not found.
  */
   private async queryBalance(account: CLPublicKey, id: string): Promise<string> {
-    const accountHash = new CLAccountHash(account.toAccountHash());
-    const key = new CLKey(accountHash);
-    const dictionaryItemKey = CEP85Client.makeDictionaryItemKey(key, new CLU256(id));
+    const dictionaryItemKey = CEP85Client.makeDictionaryItemKey(
+      CLValueBuilder.key(account),
+      new CLU256(id)
+    );
     try {
       const result = await this.contractClient.queryContractDictionary(
         "balances",

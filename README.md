@@ -223,3 +223,7 @@ The expected behavior of the multi-token contract implementation is asserted by 
 | 75   | TransferFilterContractDenied  |
 | 76   | UnexpectedKeyVariant          |
 | 77   | InvalidUpgradeFlag            |
+| 78   | MissingKey                    |
+| 79   | InvalidKeyName                |
+| 80   | InvalidValue                  |
+| 81   | MissingValue                  |

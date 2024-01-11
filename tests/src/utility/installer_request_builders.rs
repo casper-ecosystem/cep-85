@@ -25,13 +25,13 @@ use cep85::{
     constants::{
         ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA,
         ARG_ENABLE_BURN, ARG_EVENTS_MODE, ARG_FROM, ARG_IDS, ARG_NAME, ARG_OPERATOR, ARG_OWNER,
-        ARG_RECIPIENT, ARG_TOKEN_CONTRACT, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_URI,
-        BURNER_LIST, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT, ENTRY_POINT_BURN,
-        ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
-        ENTRY_POINT_SAFE_TRANSFER_FROM, ENTRY_POINT_SET_APPROVAL_FOR_ALL,
-        ENTRY_POINT_SET_MODALITIES, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
-        ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST,
-        NONE_LIST,
+        ARG_RECIPIENT, ARG_SESSION_NAMED_KEY_NAME, ARG_TOKEN_CONTRACT, ARG_TOTAL_SUPPLIES,
+        ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT,
+        ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MAKE_DICTIONARY_ITEM_KEY,
+        ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
+        ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_MODALITIES,
+        ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH,
+        ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST,
     },
     modalities::EventsMode,
 };
@@ -516,6 +516,44 @@ pub fn cep85_check_is_approved(
     .build();
     builder.exec(exec_request).expect_success().commit();
     get_test_result(builder, *contract_package_hash)
+}
+
+pub fn cep85_make_dictionary_item_key(
+    builder: &mut InMemoryWasmTestBuilder,
+    cep85_token: &ContractHash,
+    key: &Key,
+    id: Option<U256>,
+    operator: Option<Key>,
+    session_named_key_name: Option<String>,
+) {
+    let mut args = runtime_args! {
+        ARG_OWNER => *key,
+    };
+    let _ = match id {
+        Some(id) => args.insert(ARG_ID, id),
+        None => Ok(()),
+    };
+    let _ = match operator {
+        Some(operator) => args.insert(ARG_OPERATOR, operator),
+        None => Ok(()),
+    };
+    let _ = match session_named_key_name {
+        Some(session_named_key_name) => {
+            args.insert(ARG_SESSION_NAMED_KEY_NAME, session_named_key_name)
+        }
+        None => Ok(()),
+    };
+    let dictionary_item_key_request = ExecuteRequestBuilder::contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        *cep85_token,
+        ENTRY_POINT_MAKE_DICTIONARY_ITEM_KEY,
+        args,
+    )
+    .build();
+    builder
+        .exec(dictionary_item_key_request)
+        .expect_success()
+        .commit();
 }
 
 pub struct TransferData<'a> {

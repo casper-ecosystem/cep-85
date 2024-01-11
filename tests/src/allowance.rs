@@ -1,14 +1,14 @@
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
 use casper_types::{bytesrepr::Bytes, Key, U256};
-use cep85::error::Cep85Error;
+use cep85::{constants::DEFAULT_DICT_ITEM_KEY_NAME, error::Cep85Error};
 
 use crate::utility::{
     constants::{ACCOUNT_USER_1, ACCOUNT_USER_2},
     installer_request_builders::{
         cep85_batch_mint, cep85_batch_transfer_from, cep85_batch_transfer_from_as_contract,
-        cep85_check_balance_of, cep85_check_balance_of_batch, cep85_check_is_approved, cep85_mint,
-        cep85_set_approval_for_all, cep85_transfer_from, cep85_transfer_from_as_contract, setup,
-        TestContext, TransferData,
+        cep85_check_balance_of, cep85_check_balance_of_batch, cep85_check_is_approved,
+        cep85_make_dictionary_item_key, cep85_mint, cep85_set_approval_for_all,
+        cep85_transfer_from, cep85_transfer_from_as_contract, setup, TestContext, TransferData,
     },
     support::assert_expected_error,
 };
@@ -1414,4 +1414,41 @@ fn should_batch_transfer_from_account_to_contract_through_package_with_allowance
     );
 
     assert_eq!(actual_balances_after, expected_balances_after);
+}
+
+#[test]
+fn should_make_dictionary_item_key_for_dict_operators_queries() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            test_accounts,
+            ..
+        },
+    ) = setup();
+
+    let key = Key::from(*DEFAULT_ACCOUNT_ADDR);
+    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let value = Key::from(account_user_1);
+
+    cep85_make_dictionary_item_key(&mut builder, &cep85_token, &key, None, Some(value), None);
+
+    let dictionary_item_key = builder
+        .query(
+            None,
+            Key::from(*DEFAULT_ACCOUNT_ADDR),
+            &[DEFAULT_DICT_ITEM_KEY_NAME.to_string()],
+        )
+        .unwrap()
+        .as_cl_value()
+        .unwrap()
+        .to_owned()
+        .into_t::<String>()
+        .unwrap();
+
+    // This is the dictionary item key to query operators dictionary with casper-client-rs
+    assert_eq!(
+        dictionary_item_key,
+        "b0abf6fee8caa5d4b683c1dfcd9af88d5166c483c7dc90540bb29ad3461af31f".to_string()
+    );
 }

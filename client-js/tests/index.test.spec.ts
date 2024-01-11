@@ -603,4 +603,20 @@ describe("CEP85Client", () => {
     expect(events_mode).toBe(EventsMode[EventsMode.CES] as keyof typeof EventsMode);
   });
 
+  it('should generate a valid dictionary item key for balances dict', () => {
+    // Call the function with actual input
+    const owner = CLValueBuilder.key(MOCKED_OWNER_PUBKEY);
+    const id = CLValueBuilder.u256(1);
+    const dictionary_item_key_for_balances_dict = CEP85Client.makeDictionaryItemKey(owner, id);
+    expect(dictionary_item_key_for_balances_dict).toBe("bb0a3d6e53ffeaa21385ff2c9a5ed057b5c12bcdb3df7c30e89c924f17eccf9b");
+  });
+
+  it('should generate a valid dictionary item key for operators dict', () => {
+    // Call the function with actual input
+    const owner = CLValueBuilder.key(MOCKED_OWNER_PUBKEY);
+    const operator = CLValueBuilder.key(MOCKED_RECIPIENT_PUBKEY);
+    const dictionary_item_key_for_operators_dict = CEP85Client.makeDictionaryItemKey(owner, operator);
+    expect(dictionary_item_key_for_operators_dict).toBe("d6a8988bc9827114c64fcc0d7950c4fab1727207a3609cfc5ae635667f7b2e49");
+  });
+
 });

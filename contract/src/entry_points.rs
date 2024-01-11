@@ -1,25 +1,23 @@
 //! Contains definition of the entry points.
-use alloc::{boxed::Box, vec};
-
-use casper_types::{
-    bytesrepr::Bytes, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Parameter,
-};
-
 use crate::constants::{
     ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED,
     ARG_CONTRACT_HASH, ARG_DATA, ARG_ENABLE_BURN, ARG_EVENTS_MODE, ARG_FROM, ARG_ID, ARG_IDS,
-    ARG_OPERATOR, ARG_OWNER, ARG_PACKAGE_HASH, ARG_RECIPIENT, ARG_TO, ARG_TOTAL_SUPPLIES,
+    ARG_NAME, ARG_OPERATOR, ARG_OWNER, ARG_PACKAGE_HASH, ARG_RECIPIENT, ARG_TO, ARG_TOTAL_SUPPLIES,
     ARG_TOTAL_SUPPLY, ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD, ARG_URI,
     BURNER_LIST, ENTRY_POINT_BALANCE_OF, ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_BATCH_BURN,
     ENTRY_POINT_BATCH_MINT, ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_INIT,
-    ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE, ENTRY_POINT_MINT,
-    ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
-    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_MODALITIES, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
-    ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI, ENTRY_POINT_SUPPLY_OF,
-    ENTRY_POINT_SUPPLY_OF_BATCH, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_TOTAL_SUPPLY_OF,
-    ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_UPGRADE, ENTRY_POINT_URI, META_LIST,
-    MINTER_LIST, NONE_LIST,
+    ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE,
+    ENTRY_POINT_MAKE_DICTIONARY_ITEM_KEY, ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
+    ENTRY_POINT_SAFE_TRANSFER_FROM, ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_MODALITIES,
+    ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI,
+    ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_SUPPLY_OF_BATCH, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
+    ENTRY_POINT_TOTAL_SUPPLY_OF, ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_UPGRADE,
+    ENTRY_POINT_URI, META_LIST, MINTER_LIST, NONE_LIST,
+};
+use alloc::{boxed::Box, vec};
+use casper_types::{
+    bytesrepr::Bytes, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
+    Parameter,
 };
 
 pub fn init() -> EntryPoint {
@@ -338,6 +336,21 @@ pub fn set_modalities() -> EntryPoint {
     )
 }
 
+pub fn make_dictionary_item_key() -> EntryPoint {
+    EntryPoint::new(
+        ENTRY_POINT_MAKE_DICTIONARY_ITEM_KEY,
+        vec![
+            Parameter::new(ARG_OWNER, CLType::Key),
+            Parameter::new(ARG_ID, CLType::U256),
+            Parameter::new(ARG_OPERATOR, CLType::Key),
+            Parameter::new(ARG_NAME, CLType::String),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Session,
+    )
+}
+
 /// Returns the default set of CEP85 token entry points.
 pub fn generate_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -365,5 +378,6 @@ pub fn generate_entry_points() -> EntryPoints {
     entry_points.add_entry_point(total_fungible_supply());
     entry_points.add_entry_point(change_security());
     entry_points.add_entry_point(set_modalities());
+    entry_points.add_entry_point(make_dictionary_item_key());
     entry_points
 }

@@ -34,13 +34,13 @@ use cep85::{
     constants::{
         ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED,
         ARG_CONTRACT_HASH, ARG_DATA, ARG_ENABLE_BURN, ARG_EVENTS_MODE, ARG_FROM, ARG_ID, ARG_IDS,
-        ARG_NAME, ARG_OPERATOR, ARG_OWNER, ARG_PACKAGE_HASH, ARG_RECIPIENT, ARG_TO,
-        ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_TRANSFER_FILTER_CONTRACT,
-        ARG_TRANSFER_FILTER_METHOD, ARG_UPGRADE_FLAG, ARG_URI, BURNER_LIST, DICT_BALANCES,
-        DICT_OPERATORS, DICT_SECURITY_BADGES, DICT_SUPPLY, DICT_TOKEN_URI, DICT_TOTAL_SUPPLY,
-        ENTRY_POINT_INIT, ENTRY_POINT_UPGRADE, META_LIST, MINTER_LIST, NONE_LIST,
-        PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
-        PREFIX_CONTRACT_VERSION,
+        ARG_NAME, ARG_OPERATOR, ARG_OWNER, ARG_PACKAGE_HASH, ARG_RECIPIENT,
+        ARG_SESSION_NAMED_KEY_NAME, ARG_TO, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY,
+        ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD, ARG_UPGRADE_FLAG, ARG_URI,
+        BURNER_LIST, DEFAULT_DICT_ITEM_KEY_NAME, DICT_BALANCES, DICT_OPERATORS,
+        DICT_SECURITY_BADGES, DICT_SUPPLY, DICT_TOKEN_URI, DICT_TOTAL_SUPPLY, ENTRY_POINT_INIT,
+        ENTRY_POINT_UPGRADE, META_LIST, MINTER_LIST, NONE_LIST, PREFIX_ACCESS_KEY_NAME,
+        PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME, PREFIX_CONTRACT_VERSION,
     },
     entry_points::generate_entry_points,
     error::Cep85Error,
@@ -57,6 +57,7 @@ use cep85::{
         get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
         get_stored_value_with_user_errors, get_transfer_filter_contract,
         get_transfer_filter_method, get_verified_caller,
+        make_dictionary_item_key as utils_make_dictionary_item_key,
     },
 };
 
@@ -243,6 +244,42 @@ pub extern "C" fn is_approved_for_all() {
     let is_approved_for_all: bool = read_operator(&owner, &operator);
 
     runtime::ret(CLValue::from_t(is_approved_for_all).unwrap_or_revert());
+}
+
+#[no_mangle]
+pub extern "C" fn make_dictionary_item_key() {
+    let owner: Key =
+        get_named_arg_with_user_errors(ARG_OWNER, Cep85Error::MissingKey, Cep85Error::InvalidKey)
+            .unwrap_or_revert();
+
+    let id: Option<U256> =
+        get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidValue);
+
+    let dictionary_item_key: String = match id {
+        Some(id) => utils_make_dictionary_item_key(&owner, &id),
+        None => {
+            let operator: Option<Key> =
+                get_optional_named_arg_with_user_errors(ARG_OPERATOR, Cep85Error::InvalidOperator);
+            let dictionary_item_key = match operator {
+                Some(operator) => utils_make_dictionary_item_key(&owner, &operator),
+                None => revert(Cep85Error::InvalidOperator),
+            };
+            dictionary_item_key
+        }
+    };
+
+    let session_named_key_name: Option<String> = get_optional_named_arg_with_user_errors(
+        ARG_SESSION_NAMED_KEY_NAME,
+        Cep85Error::InvalidValue,
+    );
+    let session_named_key_name: &str = session_named_key_name
+        .as_deref()
+        .unwrap_or(DEFAULT_DICT_ITEM_KEY_NAME);
+
+    put_key(
+        session_named_key_name,
+        storage::new_uref(dictionary_item_key).into(),
+    );
 }
 
 #[no_mangle]

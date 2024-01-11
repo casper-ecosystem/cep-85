@@ -21,10 +21,15 @@ import {
   EventStream,
   EventName,
   CasperServiceByJsonRPC,
+  CLAccountHash,
+  CLKey,
+  CLU256,
+  CLValueBuilder,
 } from "casper-js-sdk";
 import { install } from "./install";
 import { utf8ToBytes } from "@noble/hashes/utils";
 import { assert } from "console";
+import { BigNumber } from "@ethersproject/bignumber";
 
 const { NODE_URL, EVENT_STREAM_ADDRESS } = process.env;
 
@@ -84,7 +89,7 @@ const usage = async () => {
     console.log(`... Account Info: `);
     console.log(JSON.stringify(accountInfo, null, 2));
 
-    const contractHash = await getAccountNamedKeyValue(
+    let contractHash = await getAccountNamedKeyValue(
       accountInfo,
       `cep85_contract_hash_${name}`
     );
@@ -362,7 +367,32 @@ const usage = async () => {
     console.log(`> Events mode ${events_mode}`);
 
 
-    /* Set Modalities */
+    // Instantiate a Casper RPC Client to do some state queries like getting state root hash
+    const casperClientRPC = new CasperServiceByJsonRPC(NODE_URL as string);
+    let stateRootHash = await casperClientRPC.getStateRootHash();
+
+    /* Make Dictionary Item Key */
+    printHeader("Make Dictionary Item Key");
+
+    // owner as key, id as value
+    let dictionaryItemKey = CEP85Client.makeDictionaryItemKey(
+      CLValueBuilder.key(FAUCET_KEYS.publicKey),
+      new CLU256(id)
+    );
+
+    let balance = await casperClientRPC.getDictionaryItemByName(stateRootHash, contractHash, "balances", dictionaryItemKey);
+
+    console.log(`... Balances Dictionary Item Key for key ${FAUCET_KEYS.publicKey.toAccountHashStr()} and value token id ${id} : ${dictionaryItemKey}`);
+    console.log(`... Balance for ${FAUCET_KEYS.publicKey.toAccountHashStr()} and token id ${id} : ${balance.CLValue?.toJSON() as BigNumber}`);
+
+    dictionaryItemKey = CEP85Client.makeDictionaryItemKey(CLValueBuilder.key(USER1_KEYS.publicKey), CLValueBuilder.key(FAUCET_KEYS.publicKey)); // owner as key, operator as value
+
+    let is_approved_for_all = await casperClientRPC.getDictionaryItemByName(stateRootHash, contractHash, "operators", dictionaryItemKey);
+
+    console.log(`... Operators Dictionary Item Key for key ${USER1_KEYS.publicKey.toAccountHashStr()} and value ${FAUCET_KEYS.publicKey.toAccountHashStr()} : ${dictionaryItemKey}`);
+    console.log(`... Is ${FAUCET_KEYS.publicKey.toAccountHashStr()} approved for all as operator of owner ${USER1_KEYS.publicKey.toAccountHashStr()} : ${is_approved_for_all.CLValue?.toJSON() as boolean}`);
+
+    /* Upgrade */
     printHeader("Upgrade");
     accountInfo = await getAccountInfo(NODE_URL!, FAUCET_KEYS.publicKey);
     const currentContractHash = await getAccountNamedKeyValue(
@@ -374,8 +404,6 @@ const usage = async () => {
       `cep85_contract_version_${name}`
     );
 
-    const casperClientRPC = new CasperServiceByJsonRPC(NODE_URL as string);
-    let stateRootHash = await casperClientRPC.getStateRootHash();
     const currentContractVersionStoredValue = await casperClientRPC.getBlockState(stateRootHash, currentContractVersionUref, []);
 
     console.log(`... Contract Hash before Upgrade: ${currentContractHash}`);
@@ -411,6 +439,7 @@ const usage = async () => {
     console.log(`... Contract Version after Upgrade: ${upgradedContractVersionStoredValue.CLValue?.toJSON() as string}`);
 
     es.stop();
+
 
   } catch (error) {
     console.error("Error in usage:", error);
