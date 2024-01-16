@@ -43,6 +43,7 @@ As a good starting point, you can look into the [TUTORIAL](https://github.com/ca
 
 ```
 NODE_URL=http://localhost:11101/rpc
+EVENT_STREAM_ADDRESS='http://localhost:18101/events/main'
 NETWORK_NAME=casper-net-1
 MASTER_KEY_PAIR_PATH=/Users/someuser/.casper/casper-node/utils/nctl/assets/net-1/faucet
 USER1_KEY_PAIR_PATH=/Users/someuser/.casper/casper-node/utils/nctl/assets/net-1/users/user-1
@@ -71,30 +72,47 @@ Run Integration tests:
 npm run test
 ```
 
-## Events Handling
+## Event Handling
 
-As CEP-85 1.0 supports one events modes - `CES` we have one parsers as a part of this SDK.
+CEP-85 tokens support the [Casper Event Standard (CES)](https://github.com/make-software/casper-event-standard), and tokens can be installed with or without event logging as described [here](../cep85/README.md#eventsmode). If you install a token with the EventsMode set to CES, you can listen to token events using the `EventStream` from the `casper-js-sdk`. To consume token events, you should also install the `@make-software/ces-js-parser` by running this command:
 
-- Example usage of CES parser
-
+```bash
+npm install @make-software/ces-js-parser
 ```
-import { EventStream, EventName, CasperServiceByJsonRPC } from 'casper-js-sdk';
-import { CESEventParserFactory } from 'casper-cep85-js-sdk';
 
-const casperClient = new CasperServiceByJsonRPC(NODE_URL);
+Set up the `EventStream`:
 
-const cesEventParser = CESEventParserFactory({
-  contractHashes: [contractHash],
-  casperClient,
-});
+```ts
+import { EventStream } from 'casper-js-sdk';
+import { CEP85Client } from 'casper-cep85-js-client';
 
-const es = new EventStream(EVENT_STREAM_ADDRESS);
-es.subscribe(EventName.DeployProcessed, async (event) => {
-  const parsedEvents = await cesEventParser(event);
+const cep85 = new CEP85Client(
+  'http://localhost:11101/rpc', // Node address
+  'casper-net-1' // Network name
+);
+CEP85Client.setContractHash(
+  `hash-0885c63f5f25ec5b6f3b57338fae5849aea5f1a2c96fc61411f2bfc5e432de5a`
+);
+await CEP85Client.setupEventStream(
+  new EventStream('http://localhost:18101/events/main')
+);
+```
 
-  if (parsedEvents?.success) {
-    console.log(parsedEvents.data);
-  }
-});
-es.start();
+Here is how you can consume events using event listeners.
+
+- Add an event listener:
+
+```ts
+const listener = (event) => {
+  console.log(event.name); // 'Burn'
+  console.log(event.data); // Burn event info
+};
+
+cep85.on('Burn', listener);
+```
+
+- Remove an event listener:
+
+```ts
+cep85.off('Burn', listener);
 ```

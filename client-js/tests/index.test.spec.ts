@@ -1,17 +1,17 @@
 import {
-  CEP85Client, EventsMode,
-} from "../src/index";
-
-import {
   Keys,
   DeployUtil,
   CLPublicKey,
   CLKey,
-  Contracts,
   CLValueBuilder,
   CLValue,
-  CLU256,
+  Contracts
 } from "casper-js-sdk";
+import { utf8ToBytes } from "@noble/hashes/utils";
+import { BigNumber } from "@ethersproject/bignumber";
+import {
+  CEP85Client, EventsMode,
+} from "../src/index";
 
 import INSTALL_ARGS_JSON from "./jsons/install-args.json";
 import INSTALL_ARGS_JSON_BURNER_LIST from "./jsons/install-args-burner_list.json";
@@ -29,9 +29,19 @@ import SET_TOTAL_SUPPLY_OF_JSON from "./jsons/set_total_supply_of-args.json";
 import SET_TOTAL_SUPPLY_OF_BATCH_JSON from "./jsons/set_total_supply_of_batch-args.json";
 import SET_URI_JSON from "./jsons/set_uri-args.json";
 import CHANGE_SECURITY_JSON from "./jsons/change_security-args.json";
-import { utf8ToBytes } from "@noble/hashes/utils";
-import { BigNumber } from "@ethersproject/bignumber";
 
+interface DeployJson {
+  deploy: {
+    session: {
+      ModuleBytes: {
+        args: string[];
+      };
+      StoredContractByHash: {
+        entry_point: string;
+      };
+    };
+  };
+}
 
 const name = "casper_test";
 const uri = "https://test-cdn-domain/{id}.json";
@@ -65,12 +75,12 @@ describe("CEP85Client", () => {
     jest.restoreAllMocks(); // Reset all mocks after each test
   });
 
-  it("Should correctly initialize itself when correct hash is provided", async () => {
+  it("Should correctly initialize itself when correct hash is provided", () => {
     expect(cc.contractClient).toBeInstanceOf(Contracts.Contract);
     expect(cc.contractHashKey).toBeInstanceOf(CLKey);
   });
 
-  it("Should correctly construct contract install deploy", async () => {
+  it("Should correctly construct contract install deploy", () => {
     const installDeploy = cc.install(
       {
         name,
@@ -81,15 +91,14 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(installDeploy) as any;
-
     expect(installDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.ModuleBytes.args.sort()).toEqual(
+    const deployJson = (DeployUtil.deployToJson(installDeploy) as DeployJson).deploy;
+    expect(deployJson.session.ModuleBytes.args.sort()).toEqual(
       INSTALL_ARGS_JSON.sort()
     );
   });
 
-  it("Should correctly construct contract install deploy with burner list", async () => {
+  it("Should correctly construct contract install deploy with burner list", () => {
     const installDeploy = cc.install(
       {
         name,
@@ -102,15 +111,14 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(installDeploy) as any;
-
     expect(installDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.ModuleBytes.args.sort()).toEqual(
+    const deployJson = (DeployUtil.deployToJson(installDeploy) as DeployJson).deploy;
+    expect(deployJson.session.ModuleBytes.args.sort()).toEqual(
       INSTALL_ARGS_JSON_BURNER_LIST.sort()
     );
   });
 
-  it("Should correctly construct deploy for 'setUri'", async () => {
+  it("Should correctly construct deploy for 'setUri'", () => {
     const burnDeploy = cc.setUri(
       {
         id,
@@ -120,18 +128,17 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(burnDeploy) as any;
-
     expect(burnDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    const deployJson = (DeployUtil.deployToJson(burnDeploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "set_uri"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       SET_URI_JSON
     );
   });
 
-  it("Should correctly construct deploy for 'mint'", async () => {
+  it("Should correctly construct deploy for 'mint'", () => {
     const mintDeploy = cc.mint(
       {
         recipient: MOCKED_OWNER_PUBKEY,
@@ -142,18 +149,17 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(mintDeploy) as any;
-
     expect(mintDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    const deployJson = (DeployUtil.deployToJson(mintDeploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "mint"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       MINT_DEPLOY_ARGS_JSON
     );
   });
 
-  it("Should correctly construct deploy for 'batchMint'", async () => {
+  it("Should correctly construct deploy for 'batchMint'", () => {
     const mintDeploy = cc.batchMint(
       {
         recipient: MOCKED_OWNER_PUBKEY,
@@ -164,18 +170,17 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(mintDeploy) as any;
-
     expect(mintDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    const deployJson = (DeployUtil.deployToJson(mintDeploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "batch_mint"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       BATCH_MINT_DEPLOY_ARGS_JSON
     );
   });
 
-  it("Should correctly construct deploy for 'transfer'", async () => {
+  it("Should correctly construct deploy for 'transfer'", () => {
     const transferDeploy = cc.transfer(
       {
         from: MOCKED_OWNER_PUBKEY,
@@ -188,18 +193,17 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(transferDeploy) as any;
-
     expect(transferDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    const deployJson = (DeployUtil.deployToJson(transferDeploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "safe_transfer_from"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       TRANSFER_DEPLOY_ARGS_JSON
     );
   });
 
-  it("Should correctly construct deploy for 'batchTransfer'", async () => {
+  it("Should correctly construct deploy for 'batchTransfer'", () => {
     const transferDeploy = cc.batchTransfer(
       {
         from: MOCKED_OWNER_PUBKEY,
@@ -212,18 +216,17 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(transferDeploy) as any;
-
     expect(transferDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    const deployJson = (DeployUtil.deployToJson(transferDeploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "safe_batch_transfer_from"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       BATCH_TRANSFER_DEPLOY_ARGS_JSON
     );
   });
 
-  it("Should correctly construct deploy for 'burn'", async () => {
+  it("Should correctly construct deploy for 'burn'", () => {
     const burnDeploy = cc.burn(
       {
         owner: MOCKED_RECIPIENT_PUBKEY,
@@ -234,18 +237,17 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(burnDeploy) as any;
-
     expect(burnDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    const deployJson = (DeployUtil.deployToJson(burnDeploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "burn"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       BURN_DEPLOY_ARGS_JSON
     );
   });
 
-  it("Should correctly construct deploy for 'batchBurn'", async () => {
+  it("Should correctly construct deploy for 'batchBurn'", () => {
     const burnDeploy = cc.batchBurn(
       {
         owner: MOCKED_RECIPIENT_PUBKEY,
@@ -256,19 +258,18 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(burnDeploy) as any;
-
     expect(burnDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    const deployJson = (DeployUtil.deployToJson(burnDeploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "batch_burn"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       BATCH_DEPLOY_ARGS_JSON
     );
   });
 
-  it("Should correctly construct deploy for 'setApprovalForAll'", async () => {
-    const burnDeploy = cc.setApprovalForAll(
+  it("Should correctly construct deploy for 'setApprovalForAll'", () => {
+    const deploy = cc.setApprovalForAll(
       {
         operator: MOCKED_RECIPIENT_PUBKEY,
         approved: true,
@@ -277,19 +278,18 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(burnDeploy) as any;
-
-    expect(burnDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    expect(deploy).toBeInstanceOf(DeployUtil.Deploy);
+    const deployJson = (DeployUtil.deployToJson(deploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "set_approval_for_all"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       SET_APPROVAL_FOR_ALL_JSON
     );
   });
 
-  it("Should correctly construct deploy for 'setTotalSupplyOf'", async () => {
-    const burnDeploy = cc.setTotalSupplyOf(
+  it("Should correctly construct deploy for 'setTotalSupplyOf'", () => {
+    const deploy = cc.setTotalSupplyOf(
       {
         id,
         total_supply: totalSupply,
@@ -298,19 +298,18 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(burnDeploy) as any;
-
-    expect(burnDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    expect(deploy).toBeInstanceOf(DeployUtil.Deploy);
+    const deployJson = (DeployUtil.deployToJson(deploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "set_total_supply_of"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       SET_TOTAL_SUPPLY_OF_JSON
     );
   });
 
-  it("Should correctly construct deploy for 'setTotalSupplyOfBatch'", async () => {
-    const burnDeploy = cc.setTotalSupplyOfBatch(
+  it("Should correctly construct deploy for 'setTotalSupplyOfBatch'", () => {
+    const deploy = cc.setTotalSupplyOfBatch(
       {
         ids,
         total_supplies: [totalSupply, totalSupply],
@@ -319,19 +318,18 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(burnDeploy) as any;
-
-    expect(burnDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    expect(deploy).toBeInstanceOf(DeployUtil.Deploy);
+    const deployJson = (DeployUtil.deployToJson(deploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "set_total_supply_of_batch"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       SET_TOTAL_SUPPLY_OF_BATCH_JSON
     );
   });
 
-  it("Should correctly construct deploy for 'changeSecurity'", async () => {
-    const burnDeploy = cc.changeSecurity(
+  it("Should correctly construct deploy for 'changeSecurity'", () => {
+    const deploy = cc.changeSecurity(
       {
         admin_list: [MOCKED_RECIPIENT_PUBKEY],
         minter_list: [MOCKED_RECIPIENT_PUBKEY],
@@ -343,18 +341,17 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(burnDeploy) as any;
-
-    expect(burnDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    expect(deploy).toBeInstanceOf(DeployUtil.Deploy);
+    const deployJson = (DeployUtil.deployToJson(deploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "change_security"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       CHANGE_SECURITY_JSON
     );
   });
 
-  it("Should correctly construct deploy for 'setModalities'", async () => {
+  it("Should correctly construct deploy for 'setModalities'", () => {
     const setModalitiesDeploy = cc.setModalities(
       {
         events_mode: EventsMode.NoEvents,
@@ -364,19 +361,18 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(setModalitiesDeploy) as any;
-
     expect(setModalitiesDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.StoredContractByHash.entry_point).toEqual(
+    const deployJson = (DeployUtil.deployToJson(setModalitiesDeploy) as DeployJson).deploy;
+    expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
       "set_modalities"
     );
-    expect(JSONDeploy.deploy.session).toEqual(
+    expect(deployJson.session).toEqual(
       SET_MODALITIES_JSON
     );
   });
 
-  it("Should correctly construct contract upgrade deploy", async () => {
-    const upgradeDeploy = await cc.upgrade(
+  it("Should correctly construct contract upgrade deploy", () => {
+    const upgradeDeploy = cc.upgrade(
       {
         name
       },
@@ -384,10 +380,9 @@ describe("CEP85Client", () => {
       keyPair.publicKey
     );
 
-    const JSONDeploy = DeployUtil.deployToJson(upgradeDeploy) as any;
-
     expect(upgradeDeploy).toBeInstanceOf(DeployUtil.Deploy);
-    expect(JSONDeploy.deploy.session.ModuleBytes.args.sort()).toEqual(
+    const deployJson = (DeployUtil.deployToJson(upgradeDeploy) as DeployJson).deploy;
+    expect(deployJson.session.ModuleBytes.args.sort()).toEqual(
       UPGRADE_ARGS_JSON.sort()
     );
   });
@@ -528,18 +523,17 @@ describe("CEP85Client", () => {
   });
 
   it("Should correctly return for 'getURI'", async () => {
-    let uri = await cc.getURI(
+    let actualUri = await cc.getURI(
       id
     );
-    expect(uri).toBe(uri);
-
+    expect(actualUri).toBe("");
     const mockValue = uri.replace('test', 'usage');
     const mockResult = CLValueBuilder.string(mockValue) as CLValue;
     jest.spyOn(cc.contractClient, 'queryContractDictionary').mockResolvedValue(mockResult);
-    uri = await cc.getURI(
+    actualUri = await cc.getURI(
       id
     );
-    expect(uri).toBe(mockValue);
+    expect(actualUri).toBe(mockValue.replace('{id}', id));
   });
 
   it("Should correctly return for 'getIsNonFungible'", async () => {
@@ -558,18 +552,18 @@ describe("CEP85Client", () => {
   });
 
   it("Should correctly return for 'getTotalFungibleSupply'", async () => {
-    let fungible_supply = await cc.getTotalFungibleSupply(
+    let fungibleSupply = await cc.getTotalFungibleSupply(
       id
     );
-    expect(fungible_supply).toBe('0');
+    expect(fungibleSupply).toBe('0');
 
     const mockValue = '10';
     const mockResult = CLValueBuilder.u256(mockValue) as CLValue;
     jest.spyOn(cc.contractClient, 'queryContractDictionary').mockResolvedValue(mockResult);
-    fungible_supply = await cc.getTotalFungibleSupply(
+    fungibleSupply = await cc.getTotalFungibleSupply(
       id
     );
-    expect(fungible_supply).toBe('0');
+    expect(fungibleSupply).toBe('0');
   });
 
   it("Should correctly return for 'collectionName'", async () => {
@@ -593,30 +587,29 @@ describe("CEP85Client", () => {
   });
 
   it("Should correctly return for 'getEventsMode'", async () => {
-    let events_mode = await cc.getEventsMode();
-    expect(events_mode).toBe(EventsMode[EventsMode.NoEvents] as keyof typeof EventsMode);
+    let actualEventsMode = await cc.getEventsMode();
+    expect(actualEventsMode).toBe(EventsMode[EventsMode.NoEvents] as keyof typeof EventsMode);
 
     const mockValue = BigNumber.from(EventsMode.CES);
     jest.spyOn(cc.contractClient, 'queryContractData').mockResolvedValue(mockValue);
-    events_mode = await cc.getEventsMode();
-    console.log(events_mode);
-    expect(events_mode).toBe(EventsMode[EventsMode.CES] as keyof typeof EventsMode);
+    actualEventsMode = await cc.getEventsMode();
+    expect(actualEventsMode).toBe(EventsMode[EventsMode.CES] as keyof typeof EventsMode);
   });
 
   it('should generate a valid dictionary item key for balances dict', () => {
     // Call the function with actual input
     const owner = CLValueBuilder.key(MOCKED_OWNER_PUBKEY);
-    const id = CLValueBuilder.u256(1);
-    const dictionary_item_key_for_balances_dict = CEP85Client.makeDictionaryItemKey(owner, id);
-    expect(dictionary_item_key_for_balances_dict).toBe("bb0a3d6e53ffeaa21385ff2c9a5ed057b5c12bcdb3df7c30e89c924f17eccf9b");
+    const tokenID = CLValueBuilder.u256(1);
+    const dictionaryItemKeyForBalancesDict = CEP85Client.makeDictionaryItemKey(owner, tokenID);
+    expect(dictionaryItemKeyForBalancesDict).toBe("bb0a3d6e53ffeaa21385ff2c9a5ed057b5c12bcdb3df7c30e89c924f17eccf9b");
   });
 
   it('should generate a valid dictionary item key for operators dict', () => {
     // Call the function with actual input
     const owner = CLValueBuilder.key(MOCKED_OWNER_PUBKEY);
     const operator = CLValueBuilder.key(MOCKED_RECIPIENT_PUBKEY);
-    const dictionary_item_key_for_operators_dict = CEP85Client.makeDictionaryItemKey(owner, operator);
-    expect(dictionary_item_key_for_operators_dict).toBe("d6a8988bc9827114c64fcc0d7950c4fab1727207a3609cfc5ae635667f7b2e49");
+    const dictionaryItemKeyForOperatorsDict = CEP85Client.makeDictionaryItemKey(owner, operator);
+    expect(dictionaryItemKeyForOperatorsDict).toBe("d6a8988bc9827114c64fcc0d7950c4fab1727207a3609cfc5ae635667f7b2e49");
   });
 
 });

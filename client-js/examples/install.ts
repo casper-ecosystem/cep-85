@@ -1,4 +1,6 @@
-import { CLString, CLValueBuilder } from "casper-js-sdk";
+/* eslint-disable eslint-comments/disable-enable-pair */
+/* eslint-disable no-console */
+
 import {
   CEP85Client,
   EventsMode
@@ -11,11 +13,13 @@ import {
   getAccountNamedKeyValue,
   USER1_KEYS,
   name,
-  uri
+  uri,
+  NETWORK_NAME,
+  NODE_URL
 } from "./common";
 
 const install = async () => {
-  const cc = new CEP85Client(process.env.NODE_URL!, process.env.NETWORK_NAME!);
+  const cc = new CEP85Client(NODE_URL, NETWORK_NAME);
 
   const installDeploy = cc.install(
     {
@@ -30,28 +34,28 @@ const install = async () => {
     [FAUCET_KEYS]
   );
 
-  const hash = await installDeploy.send(process.env.NODE_URL!);
+  const hash = await installDeploy.send(NODE_URL);
 
   console.log(`... Contract installation deployHash: ${hash}`);
 
-  await getDeploy(process.env.NODE_URL!, hash);
+  await getDeploy(NODE_URL, hash);
 
   console.log(`... Contract installed successfully.`);
 
   const accountInfo = await getAccountInfo(
-    process.env.NODE_URL!,
+    NODE_URL,
     FAUCET_KEYS.publicKey
   );
 
   console.log(`... Account Info: `);
   console.log(JSON.stringify(accountInfo, null, 2));
 
-  const contractHash = await getAccountNamedKeyValue(
+  const contractHash = getAccountNamedKeyValue(
     accountInfo,
     `cep85_contract_hash_${name}`
   );
 
-  const contractPackageHash = await getAccountNamedKeyValue(
+  const contractPackageHash = getAccountNamedKeyValue(
     accountInfo,
     `cep85_contract_package_hash_${name}`
   );

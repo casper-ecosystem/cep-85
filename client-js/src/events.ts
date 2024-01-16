@@ -1,31 +1,39 @@
-import {
-  CasperServiceByJsonRPC,
-} from "casper-js-sdk";
+import { CLKey, CLU256, CLValue } from 'casper-js-sdk';
 
-import { Parser } from "@make-software/ces-js-parser";
+export type Event<E extends Record<string, CLValue>> = {
+  name: string;
+  contractHash: `hash-${string}`;
+  contractPackageHash: `hash-${string}`;
+  data: E;
+};
 
-import { EventItem } from "./types";
+export interface DeployInfo {
+  deployHash: string;
+  timestamp: string;
+}
 
-export const CESEventParserFactory =
-  ({
-    contractHashes,
-    // TODO: IDEALLY in future I would love to have here a schema as an argument instead of casperClient. That way the whole thing can be initialized offline as the whole client.
-    casperClient,
-  }: {
-    contractHashes: string[];
-    casperClient: CasperServiceByJsonRPC;
-  }) =>
-    async (event: EventItem) => {
-      const validatedHashes = contractHashes.map((hash) =>
-        hash.startsWith("hash-") ? hash.slice(5) : hash
-      );
-      const parser = await Parser.create(casperClient, validatedHashes);
+export type WithDeployInfo<E> = E & { deployInfo: DeployInfo; };
 
-      try {
-        const toParse = event.body.DeployProcessed.execution_result;
-        const events = parser.parseExecutionResult(toParse);
-        return { error: null, success: !!events.length, data: events };
-      } catch (error: unknown) {
-        return { error, success: false, data: null };
-      }
-    };
+export type CEP85EventWithDeployInfo = WithDeployInfo<CEP85Event>;
+
+export type CEP85Event = Event<
+  | Mint
+  | Burn
+>;
+
+export type EventsMap = {
+  Mint: Event<Mint>;
+  Burn: Event<Burn>;
+};
+
+export type Mint = {
+  id: CLU256;
+  recipient: CLKey;
+  amount: CLU256;
+};
+
+export type Burn = {
+  id: CLU256;
+  owner: CLKey;
+  amount: CLU256;
+};
