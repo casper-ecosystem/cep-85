@@ -405,7 +405,7 @@ const usage = async () => {
       {
         name
       },
-      "175000000000",
+      "200000000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
