@@ -36,6 +36,9 @@ export default class EventEnabledContract {
   }
 
   stopEventStream() {
+    if (!this.eventStream) {
+      return;
+    }
     this.eventStream.unsubscribe(EventName.DeployProcessed);
     this.eventStream.stop();
   }

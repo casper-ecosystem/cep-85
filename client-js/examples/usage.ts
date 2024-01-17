@@ -79,9 +79,10 @@ const usage = async () => {
 
     cep85.setContractHash(contractHash, contractPackageHash);
 
-    if (EVENT_STREAM_ADDRESS) {
-      await cep85.setupEventStream(new EventStream(EVENT_STREAM_ADDRESS));
-    }
+    // TODO FIX
+    // if (EVENT_STREAM_ADDRESS) {
+    //   await cep85.setupEventStream(new EventStream(EVENT_STREAM_ADDRESS));
+    // }
 
     const listener = (eventEmitted: { name: string; data: unknown; }) => {
       console.info(`-----> Event emitted: ${eventEmitted.name}`);
