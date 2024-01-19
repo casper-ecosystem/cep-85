@@ -1,40 +1,40 @@
 # CEP-85 JavaScript Client Tutorial
 
-This tutorial outlines the usage of the JavaScript client available for the CEP-85 Standard.
+This tutorial outlines use of the JavaScript client developed for the CEP-85 Casper Multi-Token Standard.
 
-Further information on the CEP-85 Standard can be found [here](https://github.com/casper-ecosystem/cep-85).
+Further information on CEP-85 can be found [here](https://github.com/casper-ecosystem/cep-85).
 
 The client is available in _npm_ as [casper-cep85-js-client](https://www.npmjs.com/package/casper-cep85-js-client).
 
 ## Client Installation
 
-The client can be installed in a project you have built using TypeScript / Javascript.
+The JavaScript client can be installed in your project using TypeScript/Javascript.
 
 ## Usage
 
-1. To install, run:
+1. To install, run the following command:
 
    ```bash
    npm i -S casper-cep85-js-client
    ```
 
-2. Import the contract in your code:
+2. Import the CEP-85 contract in the code for your project:
 
    `import { CEP85Client } from 'casper-cep85-js-client'`
 
-3. If you want to install it, look at the `install` method and all of the possible configuration options (`InstallArgs`).
+3. If you want to install an instance of CEP-85 to a Casper network, familiarize yourself with the `install` method and all possible configuration options (`InstallArgs`).
 
-4. If you want to start working with a previously installed contract, use the `setContractHash(contractHash)` method.
+4. If you want to start working with a previously installed instance of CEP-85, use the `setContractHash(contractHash)` method and include the existing `Contract Hash` for that instance of CEP-85.
 
-NOTE: If you are using npm version `<7` you may need to install both peer dependencies manually.
+NOTE: If you are using npm version `<7` you may need to install both peer dependencies manually using the following command:
 
 ```bash
 npm install casper-js-sdk @make-software/ces-js-parser casper-cep85-js-client
 ```
 
-## Using a CEP-85 Contract using the JavaScript Client
+## Using the JavaScript Client to Interact with an Existing CEP-85 Contract
 
-Set the contract hash (a unique identifier for the network) for instance:
+Using the `.setContractHash()` method, include the contract hash for the pre-existing CEP-85 instance as follows:
 
 ```ts
 cep85.setContractHash(
@@ -52,10 +52,10 @@ const uri = await cep85.collectionUri();
 const events_mode = await cep85.getEventsMode();
 ```
 
-## Installing a CEP-85 Contract using the JavaScript Client
+## Installing CEP-85 using the JavaScript Client
 
-The `install` method crafts a [Deploy](https://docs.casperlabs.io/design/casper-design/#execution-semantics-deploys) using `InstallArgs`.
-As with every deploy created by the SDK, you can send it using the `.send(rpcUrl)` method providing the RPC URL that you want to use. It will return deployHash.
+The `install` method crafts a [Deploy](https://docs.casperlabs.io/design/casper-design/#execution-semantics-deploys) using the provided `InstallArgs`.
+As with every deploy created by the SDK, you can send it using the `.send(rpcUrl)` method providing the RPC URL that you want to use. It will return a `deployHash`.
 
 ```ts
 const cc = new CEP85Client(process.env.NODE_URL!, process.env.NETWORK_NAME!);
@@ -82,13 +82,13 @@ const hash = await installDeploy.send(process.env.NODE_URL!);
 
 `InstallArgs` are specified as follows:
 
-- `name` - The name of the collection, passed in as a `String`. **This parameter is required and cannot be changed post installation**.
+- `name` - The name of the collection, passed in as a `String`. **This parameter is required and cannot be changed after installation**.
 
-- `uri` - The uri representing a global given uri for the collection, passed in as a `String`. **This parameter is required and can be changed post installation, or set per token via set_uri entrypoint**.
+- `uri` - The URI representing a global given URI for the collection, passed in as a `String`. **This parameter is required and can be changed after installation, or set per token via the `set_uri` entrypoint**.
 
-- `events_mode` - The `EventsMode` modality that dictates the events behavior of the contract. This optional argument is passed in as a `u8` value and default to no events. **This parameter and can be changed post installation via set_modalities entrypoint**.
+- `events_mode` - The `EventsMode` modality that dictates the events behavior of the contract. This optional argument is passed in as a `u8` value and defaults to no events. **This parameter can be changed post installation via the `set_modalities` entrypoint**.
 
-- `enable_burn` - The `BurnMode` modality dictates whether minted tokens can be burned. This optional parameter will not allow tokens to be burnt by default. **This parameter can be changed once the contract has been installed via set_modalities entrypoin**.
+- `enable_burn` - The `BurnMode` modality dictates whether minted tokens can be burned. This optional parameter will not allow tokens to be burnt by default. **This parameter can be changed once the contract has been installed via `set_modalities` entrypoint**.
 
 - `admin_list` : A list of users with `admin` access to this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
 - `minter_list` : A list of users that can mint tokens using this contract instance. Passed in as a string consisting of a list of `PublicKeys`.
@@ -96,17 +96,17 @@ const hash = await installDeploy.send(process.env.NODE_URL!);
 - `meta_list` : A list of users that have access to the `set_uri` entrypoint. Passed in as a string consisting of a list of `PublicKeys`.
 - `none_list` : A list of users without (banned of) special access to the contract instance. Passed in as a string consisting of a list of `PublicKeys`.
 
-**These security parameters can be changed once the contract has been installed via change_security entrypoint**.
+**These security parameters can be changed after contract installation via the `change_security` entrypoint**.
 
-Further information on CEP-85 modality options can be found in the base [cep-85](https://github.com/casper-ecosystem/cep-85) repository on GitHub.
+Further information on CEP-85 modality options can be found in the base [CEP-85](https://github.com/casper-ecosystem/cep-85) repository on GitHub.
 
 ## Examples
 
-This example will acquire the contract's hash and package hash, prior to sending three separate deploys to perform several function tests as follows:
+This example will acquire the contract's hash and package hash. It will then send three separate deploys to perform several function tests as follows:
 
 - `Mint` - The example will attempt to mint a token using the installation account.
 
-- `Transfer` - The example will transfer the previously minted token to a second account (USER1 as defined in the variables.)
+- `Transfer` - The example will transfer the previously minted token to a second account (`USER1` as defined in the variables.)
 
 - `Burn` - The example will burn the minted token.
 
@@ -138,7 +138,7 @@ Minting accepts the following arguments:
 
 - `id` - The sequential ID assigned to a token in mint order.
 
-- `amount` - The amount of supply (and thus total supply) the minted token has.
+- `amount` - The amount of tokens to mint.
 
 ## Transferring a Token
 
@@ -169,11 +169,11 @@ Transferring accepts the following arguments:
 
 - `to` - The account receiving the transferred token.
 
-- `amount` - The amount of supply receiving the transferred token.
+- `amount` - The amount of tokens to transfer.
 
 ## Burning a Token
 
-The following code shows how to decrease supply of a token as an owner or as operator with burner rights
+The following code shows how to decrease supply of a token as an owner, or as an operator with burner rights:
 
 ```ts
 const burnDeploy = await contractClient.burn(
@@ -190,13 +190,13 @@ const burnDeploy = await contractClient.burn(
 const burnDeployHash = await burnDeploy.send(process.env.NODE_URL!);
 ```
 
-## More examples
+## Further Examples
 
-### Running an Install Example
+### Running the Install Example
 
 This repository includes an example script for installing a CEP-85 contract instance.
 
-You will need to define the following variables in the `.env` file:
+You will need to define the following variables in a `.env` file:
 
 - `NODE_URL` - The address of a node. If you are testing using [NCTL](https://docs.casperlabs.io/dapp-dev-guide/building-dapps/setup-nctl/), this will be `http://localhost:11101/rpc`.
 
@@ -214,11 +214,11 @@ npm run example:install
 
 The example will then return the installation's `deployHash`, and inform you when the installation is successful.
 
-The example will then provide the installing account's information, which will include the CEP-85 contract's hash and package hash.
+It will then provide the installing account's information, which will include the CEP-85 contract's hash and package hash.
 
-### Running an Usage Example
+### Running the Usage Example
 
-A usage example uses the same variables as the Install example above, but tests the basic functionality of the contract after installation.
+The usage example uses the same variables as the Install example above, but tests the basic functionality of the contract after installation.
 
 The usage example can be run using the following command:
 
