@@ -1,6 +1,6 @@
 # CEP-85 JavaScript Client Tutorial
 
-This tutorial outlines use of the JavaScript client developed for the CEP-85 Casper Multi-Token Standard.
+This tutorial outlines the use of a JavaScript client developed for the CEP-85 Casper Multi-Token Standard.
 
 Further information on CEP-85 can be found [here](https://github.com/casper-ecosystem/cep-85).
 
