@@ -21,14 +21,19 @@ use casper_types::{
     system::mint::{ARG_ID, ARG_TO},
     CLTyped, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
 };
-use cep85::constants::{
-    ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA, ARG_FROM, ARG_IDS,
-    ARG_NAME, ARG_OPERATOR, ARG_OWNER, ARG_RECIPIENT, ARG_TOKEN_CONTRACT, ARG_TOTAL_SUPPLIES,
-    ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT,
-    ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MINT,
-    ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
-    ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
-    ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST,
+use cep85::{
+    constants::{
+        ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_APPROVED, ARG_DATA,
+        ARG_ENABLE_BURN, ARG_EVENTS_MODE, ARG_FROM, ARG_IDS, ARG_NAME, ARG_OPERATOR, ARG_OWNER,
+        ARG_RECIPIENT, ARG_SESSION_NAMED_KEY_NAME, ARG_TOKEN_CONTRACT, ARG_TOTAL_SUPPLIES,
+        ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT,
+        ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MAKE_DICTIONARY_ITEM_KEY,
+        ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
+        ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_MODALITIES,
+        ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH,
+        ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST,
+    },
+    modalities::EventsMode,
 };
 use cep85_test_contract::constants::{
     CEP85_TEST_CONTRACT_NAME, CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF,
@@ -210,18 +215,23 @@ pub fn cep85_mint<'a>(
     recipient: &Key,
     id: &U256,
     amount: &U256,
+    uri: Option<&str>,
 ) -> &'a mut casper_engine_test_support::WasmTestBuilder<
     casper_execution_engine::storage::global_state::in_memory::InMemoryGlobalState,
 > {
+    let mut mint_args = runtime_args! {
+        ARG_RECIPIENT => *recipient,
+        ARG_ID => *id,
+        ARG_AMOUNT => *amount,
+    };
+    if uri.is_some() {
+        let _ = mint_args.insert(ARG_URI, uri.unwrap_or_default());
+    }
     let mint_request = ExecuteRequestBuilder::contract_call_by_hash(
         *minting_account,
         *cep85_token,
         ENTRY_POINT_MINT,
-        runtime_args! {
-            ARG_RECIPIENT => *recipient,
-            ARG_ID => *id,
-            ARG_AMOUNT => *amount,
-        },
+        mint_args,
     )
     .build();
     builder.exec(mint_request)
@@ -234,16 +244,21 @@ pub fn cep85_batch_mint<'a>(
     recipient: &Key,
     ids: Vec<U256>,
     amounts: Vec<U256>,
+    uri: Option<&str>,
 ) -> &'a mut InMemoryWasmTestBuilder {
+    let mut batch_mint_args = runtime_args! {
+        ARG_RECIPIENT => *recipient,
+        ARG_IDS => ids,
+        ARG_AMOUNTS => amounts,
+    };
+    if uri.is_some() {
+        let _ = batch_mint_args.insert(ARG_URI, uri.unwrap_or_default());
+    }
     let mint_request = ExecuteRequestBuilder::contract_call_by_hash(
         *minting_account,
         *cep85_token,
         ENTRY_POINT_BATCH_MINT,
-        runtime_args! {
-            ARG_RECIPIENT => *recipient,
-            ARG_IDS => ids,
-            ARG_AMOUNTS => amounts,
-        },
+        batch_mint_args,
     )
     .build();
     builder.exec(mint_request)
@@ -503,12 +518,50 @@ pub fn cep85_check_is_approved(
     get_test_result(builder, *contract_package_hash)
 }
 
+pub fn cep85_make_dictionary_item_key(
+    builder: &mut InMemoryWasmTestBuilder,
+    cep85_token: &ContractHash,
+    key: &Key,
+    id: Option<U256>,
+    operator: Option<Key>,
+    session_named_key_name: Option<String>,
+) {
+    let mut args = runtime_args! {
+        ARG_OWNER => *key,
+    };
+    let _ = match id {
+        Some(id) => args.insert(ARG_ID, id),
+        None => Ok(()),
+    };
+    let _ = match operator {
+        Some(operator) => args.insert(ARG_OPERATOR, operator),
+        None => Ok(()),
+    };
+    let _ = match session_named_key_name {
+        Some(session_named_key_name) => {
+            args.insert(ARG_SESSION_NAMED_KEY_NAME, session_named_key_name)
+        }
+        None => Ok(()),
+    };
+    let dictionary_item_key_request = ExecuteRequestBuilder::contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        *cep85_token,
+        ENTRY_POINT_MAKE_DICTIONARY_ITEM_KEY,
+        args,
+    )
+    .build();
+    builder
+        .exec(dictionary_item_key_request)
+        .expect_success()
+        .commit();
+}
+
 pub struct TransferData<'a> {
     pub from: &'a Key,
     pub to: &'a Key,
     pub ids: Vec<U256>,
     pub amounts: Vec<U256>,
-    pub data: Vec<Bytes>,
+    pub data: Option<Bytes>,
 }
 
 pub fn cep85_transfer_from<'a>(
@@ -527,54 +580,66 @@ pub fn cep85_transfer_from<'a>(
     } = transfer_data;
 
     let transfer_request = match from {
-        Key::Account(_hash) => ExecuteRequestBuilder::contract_call_by_hash(
-            *sender, // We do not use above _hash here because from and sender could be different
-            *cep85_token,
-            ENTRY_POINT_SAFE_TRANSFER_FROM,
-            runtime_args! {
+        Key::Account(_hash) => {
+            let mut args = runtime_args! {
                 ARG_FROM => *from,
                 ARG_TO => *to,
                 ARG_ID => ids[0],
                 ARG_AMOUNT => amounts[0],
-                ARG_DATA => data,
-            },
-        )
-        .build(),
+            };
+
+            if let Some(data) = data {
+                let _ = args.insert(ARG_DATA, data);
+            }
+
+            ExecuteRequestBuilder::contract_call_by_hash(
+                *sender, /* We do not use above _hash here because from and sender could be
+                          * different */
+                *cep85_token,
+                ENTRY_POINT_SAFE_TRANSFER_FROM,
+                args,
+            )
+            .build()
+        }
         Key::Hash(hash) => {
             let hash_bytes: &[u8; 32] = hash.as_slice().try_into().expect("Hash must be 32 bytes");
             let call_package =
                 direct_call_test_contract.is_none() || direct_call_test_contract == Some(false);
             if call_package {
                 if let Ok(contract_package_hash) = ContractPackageHash::try_from(*hash_bytes) {
+                    let args = runtime_args! {
+                        ARG_FROM => *from,
+                        ARG_TO => *to,
+                        ARG_ID => ids[0],
+                        ARG_AMOUNT => amounts[0],
+                        ARG_DATA => data,
+                    };
+
                     ExecuteRequestBuilder::versioned_contract_call_by_hash(
                         *sender,
                         contract_package_hash,
                         None,
                         ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
-                        runtime_args! {
-                            ARG_FROM => *from,
-                            ARG_TO => *to,
-                            ARG_ID => ids[0],
-                            ARG_AMOUNT => amounts[0],
-                            ARG_DATA => data,
-                        },
+                        args,
                     )
                     .build()
                 } else {
                     panic!("Unknown variant");
                 }
             } else if let Ok(contract_hash) = ContractHash::try_from(*hash_bytes) {
+                let args = runtime_args! {
+                    ARG_FROM => *from,
+                    ARG_TO => *to,
+                    ARG_ID => ids[0],
+                    ARG_AMOUNT => amounts[0],
+                    ARG_DATA => data,
+                };
+
                 ExecuteRequestBuilder::contract_call_by_hash(
                     *sender,
                     contract_hash,
                     ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
-                    runtime_args! {
-                        ARG_FROM => *from,
-                        ARG_TO => *to,
-                        ARG_ID => ids[0],
-                        ARG_AMOUNT => amounts[0],
-                        ARG_DATA => data,
-                    },
+                    args,
                 )
                 .build()
             } else {
@@ -634,19 +699,26 @@ pub fn cep85_batch_transfer_from<'a>(
     } = transfer_data;
 
     let transfer_request = match from {
-        Key::Account(_hash) => ExecuteRequestBuilder::contract_call_by_hash(
-            *sender, // We do not use above _hash here because from and sender could be different
-            *cep85_token,
-            ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
-            runtime_args! {
+        Key::Account(_hash) => {
+            let mut args = runtime_args! {
                 ARG_FROM => *from,
                 ARG_TO => *to,
                 ARG_IDS => ids,
                 ARG_AMOUNTS => amounts,
-                ARG_DATA => data,
-            },
-        )
-        .build(),
+            };
+
+            if let Some(data) = data {
+                let _ = args.insert(ARG_DATA, data);
+            }
+            ExecuteRequestBuilder::contract_call_by_hash(
+                *sender, /* We do not use above _hash here because from and sender could be
+                          * different */
+                *cep85_token,
+                ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
+                args,
+            )
+            .build()
+        }
         Key::Hash(hash) => {
             let hash_bytes: &[u8; 32] = hash.as_slice().try_into().expect("Hash must be 32 bytes");
             let call_package =
@@ -764,6 +836,30 @@ pub fn cep85_check_total_fungible_supply(
     .build();
     builder.exec(exec_request).expect_success().commit();
     get_test_result(builder, *contract_package_hash)
+}
+
+pub fn cep85_set_modalities<'a>(
+    builder: &'a mut InMemoryWasmTestBuilder,
+    cep85_token: &'a ContractHash,
+    owner: &'a AccountHash,
+    burn_enable: Option<bool>,
+    events_mode: Option<EventsMode>,
+) -> &'a mut InMemoryWasmTestBuilder {
+    let mut args = runtime_args! {};
+    if let Some(burn_enable) = burn_enable {
+        let _ = args.insert(ARG_ENABLE_BURN, burn_enable);
+    };
+    if let Some(events_mode) = events_mode {
+        let _ = args.insert(ARG_EVENTS_MODE, events_mode as u8);
+    };
+    let set_modalities_request = ExecuteRequestBuilder::contract_call_by_hash(
+        *owner,
+        *cep85_token,
+        ENTRY_POINT_SET_MODALITIES,
+        args,
+    )
+    .build();
+    builder.exec(set_modalities_request)
 }
 
 pub struct SecurityLists {

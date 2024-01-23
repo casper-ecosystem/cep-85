@@ -8,6 +8,8 @@ compile_error!("target arch should be wasm32: compile with '--target wasm32-unkn
 // `no_std` environment.
 extern crate alloc;
 
+use core::convert::TryInto;
+
 use alloc::{
     borrow::ToOwned,
     collections::BTreeMap,
@@ -32,20 +34,21 @@ use cep85::{
     constants::{
         ADMIN_LIST, ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNT, ARG_AMOUNTS, ARG_APPROVED,
         ARG_CONTRACT_HASH, ARG_DATA, ARG_ENABLE_BURN, ARG_EVENTS_MODE, ARG_FROM, ARG_ID, ARG_IDS,
-        ARG_NAME, ARG_OPERATOR, ARG_OWNER, ARG_PACKAGE_HASH, ARG_RECIPIENT, ARG_TO,
-        ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY, ARG_TRANSFER_FILTER_CONTRACT,
-        ARG_TRANSFER_FILTER_METHOD, ARG_URI, BURNER_LIST, DICT_BALANCES, DICT_OPERATORS,
+        ARG_NAME, ARG_OPERATOR, ARG_OWNER, ARG_PACKAGE_HASH, ARG_RECIPIENT,
+        ARG_SESSION_NAMED_KEY_NAME, ARG_TO, ARG_TOTAL_SUPPLIES, ARG_TOTAL_SUPPLY,
+        ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD, ARG_UPGRADE_FLAG, ARG_URI,
+        BURNER_LIST, DEFAULT_DICT_ITEM_KEY_NAME, DICT_BALANCES, DICT_OPERATORS,
         DICT_SECURITY_BADGES, DICT_SUPPLY, DICT_TOKEN_URI, DICT_TOTAL_SUPPLY, ENTRY_POINT_INIT,
-        META_LIST, MINTER_LIST, NONE_LIST, PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME,
-        PREFIX_CONTRACT_PACKAGE_NAME, PREFIX_CONTRACT_VERSION,
+        ENTRY_POINT_UPGRADE, META_LIST, MINTER_LIST, NONE_LIST, PREFIX_ACCESS_KEY_NAME,
+        PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME, PREFIX_CONTRACT_VERSION,
     },
     entry_points::generate_entry_points,
     error::Cep85Error,
     events::{
         init_events, record_event_dictionary, ApprovalForAll, Burn, ChangeSecurity, Event, Mint,
-        SetTotalSupply, TransferBatch, TransferSingle, Uri,
+        SetModalities, SetTotalSupply, TransferBatch, TransferSingle, Upgrade, Uri,
     },
-    modalities::TransferFilterContractResult,
+    modalities::{EventsMode, TransferFilterContractResult},
     operators::{read_operator, write_operator},
     security::{change_sec_badge, sec_check, SecurityBadge},
     supply::{read_supply_of, read_total_supply_of, write_supply_of, write_total_supply_of},
@@ -54,6 +57,7 @@ use cep85::{
         get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
         get_stored_value_with_user_errors, get_transfer_filter_contract,
         get_transfer_filter_method, get_verified_caller,
+        make_dictionary_item_key as utils_make_dictionary_item_key,
     },
 };
 
@@ -243,6 +247,42 @@ pub extern "C" fn is_approved_for_all() {
 }
 
 #[no_mangle]
+pub extern "C" fn make_dictionary_item_key() {
+    let owner: Key =
+        get_named_arg_with_user_errors(ARG_OWNER, Cep85Error::MissingKey, Cep85Error::InvalidKey)
+            .unwrap_or_revert();
+
+    let id: Option<U256> =
+        get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidValue);
+
+    let dictionary_item_key: String = match id {
+        Some(id) => utils_make_dictionary_item_key(&owner, &id),
+        None => {
+            let operator: Option<Key> =
+                get_optional_named_arg_with_user_errors(ARG_OPERATOR, Cep85Error::InvalidOperator);
+            let dictionary_item_key = match operator {
+                Some(operator) => utils_make_dictionary_item_key(&owner, &operator),
+                None => revert(Cep85Error::InvalidOperator),
+            };
+            dictionary_item_key
+        }
+    };
+
+    let session_named_key_name: Option<String> = get_optional_named_arg_with_user_errors(
+        ARG_SESSION_NAMED_KEY_NAME,
+        Cep85Error::InvalidValue,
+    );
+    let session_named_key_name: &str = session_named_key_name
+        .as_deref()
+        .unwrap_or(DEFAULT_DICT_ITEM_KEY_NAME);
+
+    put_key(
+        session_named_key_name,
+        storage::new_uref(dictionary_item_key).into(),
+    );
+}
+
+#[no_mangle]
 pub extern "C" fn set_approval_for_all() {
     let operator: Key = get_named_arg_with_user_errors(
         ARG_OPERATOR,
@@ -319,11 +359,10 @@ pub extern "C" fn safe_transfer_from() {
     )
     .unwrap_or_revert();
 
-    let data: Vec<Bytes> =
-        get_named_arg_with_user_errors(ARG_DATA, Cep85Error::MissingData, Cep85Error::InvalidData)
-            .unwrap_or_revert();
+    let data: Option<Bytes> =
+        get_optional_named_arg_with_user_errors(ARG_DATA, Cep85Error::InvalidData);
 
-    before_token_transfer(&caller, &from, &to, &[id], &[amount], &data);
+    before_token_transfer(&caller, &from, &to, &[id], &[amount], data);
 
     transfer_balance(&from, &to, &id, &amount)
         .unwrap_or_revert_with(Cep85Error::FailToTransferBalance);
@@ -381,11 +420,10 @@ pub extern "C" fn safe_batch_transfer_from() {
         get_named_arg_with_user_errors(ARG_TO, Cep85Error::MissingTo, Cep85Error::InvalidTo)
             .unwrap_or_revert();
 
-    let data: Vec<Bytes> =
-        get_named_arg_with_user_errors(ARG_DATA, Cep85Error::MissingData, Cep85Error::InvalidData)
-            .unwrap_or_revert();
+    let data: Option<Bytes> =
+        get_optional_named_arg_with_user_errors(ARG_DATA, Cep85Error::InvalidData);
 
-    before_token_transfer(&caller, &from, &to, &ids, &amounts, &data);
+    before_token_transfer(&caller, &from, &to, &ids, &amounts, data);
 
     batch_transfer_balance(&from, &to, &ids, &amounts)
         .unwrap_or_revert_with(Cep85Error::FailToBatchTransferBalance);
@@ -429,15 +467,27 @@ pub extern "C" fn mint() {
         .checked_add(amount)
         .unwrap_or_revert_with(Cep85Error::OverflowMint);
     let total_max_supply = read_total_supply_of(&id);
-    if new_supply > total_max_supply {
-        revert(Cep85Error::ExceededMaxTotalSupply);
+
+    if total_max_supply != U256::zero() {
+        if new_supply > total_max_supply {
+            revert(Cep85Error::ExceededMaxTotalSupply);
+        }
+    } else {
+        write_total_supply_of(&id, &new_supply);
     }
 
     write_supply_of(&id, &new_supply);
     write_balance_to(&recipient, &id, &new_recipient_balance);
 
-    let uri: String =
-        get_stored_value_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri);
+    let mint_uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
+        .unwrap_or_default();
+
+    let uri: String = if mint_uri.is_empty() {
+        get_stored_value_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
+    } else {
+        mint_uri
+    };
+
     write_uri_of(&id, &uri);
 
     record_event_dictionary(Event::Mint(Mint {
@@ -475,6 +525,15 @@ pub extern "C" fn batch_mint() {
     )
     .unwrap_or_revert();
 
+    let mint_uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
+        .unwrap_or_default();
+
+    let uri = if mint_uri.is_empty() {
+        get_stored_value_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
+    } else {
+        mint_uri
+    };
+
     if ids.len() != amounts.len() {
         revert(Cep85Error::MismatchParamsLength);
     }
@@ -490,18 +549,17 @@ pub extern "C" fn batch_mint() {
         let new_supply = supply
             .checked_add(amount)
             .unwrap_or_revert_with(Cep85Error::OverflowBatchMint);
-        if new_supply > total_max_supply {
-            revert(Cep85Error::ExceededMaxTotalSupply);
+
+        if total_max_supply != U256::zero() {
+            if new_supply > total_max_supply {
+                revert(Cep85Error::ExceededMaxTotalSupply);
+            }
+        } else {
+            write_total_supply_of(&id, &new_supply);
         }
 
         write_supply_of(&id, &new_supply);
         write_balance_to(&recipient, &id, &new_recipient_balance);
-
-        let uri: String = get_stored_value_with_user_errors(
-            ARG_URI,
-            Cep85Error::MissingUri,
-            Cep85Error::InvalidUri,
-        );
         write_uri_of(&id, &uri);
 
         record_event_dictionary(Event::Mint(Mint {
@@ -512,20 +570,18 @@ pub extern "C" fn batch_mint() {
 
         record_event_dictionary(Event::Uri(Uri {
             id: Some(id),
-            value: uri,
+            value: uri.to_string(),
         }));
     }
 }
 
 #[no_mangle]
 pub extern "C" fn burn() {
-    if 0_u8
-        == get_stored_value_with_user_errors::<u8>(
-            ARG_ENABLE_BURN,
-            Cep85Error::MissingEnableMBFlag,
-            Cep85Error::InvalidEnableMBFlag,
-        )
-    {
+    if !get_stored_value_with_user_errors::<bool>(
+        ARG_ENABLE_BURN,
+        Cep85Error::MissingEnableMBFlag,
+        Cep85Error::InvalidEnableBurnFlag,
+    ) {
         revert(Cep85Error::BurnDisabled);
     };
 
@@ -582,13 +638,11 @@ pub extern "C" fn burn() {
 
 #[no_mangle]
 pub extern "C" fn batch_burn() {
-    if 0_u8
-        == get_stored_value_with_user_errors::<u8>(
-            ARG_ENABLE_BURN,
-            Cep85Error::MissingEnableMBFlag,
-            Cep85Error::InvalidEnableMBFlag,
-        )
-    {
+    if !get_stored_value_with_user_errors::<bool>(
+        ARG_ENABLE_BURN,
+        Cep85Error::MissingEnableMBFlag,
+        Cep85Error::InvalidEnableBurnFlag,
+    ) {
         revert(Cep85Error::BurnDisabled);
     };
 
@@ -782,12 +836,9 @@ pub extern "C" fn set_uri() {
 
     let id: Option<U256> = get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId);
 
-    let uri: String = get_named_arg_with_user_errors(
-        ARG_URI,
-        Cep85Error::MissingAccount,
-        Cep85Error::InvalidAccount,
-    )
-    .unwrap_or_revert();
+    let uri: String =
+        get_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
+            .unwrap_or_revert();
     match id {
         Some(id) => write_uri_of(&id, &uri),
         None => put_key(ARG_URI, storage::new_uref(uri.to_owned()).into()),
@@ -849,13 +900,11 @@ pub extern "C" fn change_security() {
         get_optional_named_arg_with_user_errors(NONE_LIST, Cep85Error::InvalidNoneList);
 
     let mut badge_map: BTreeMap<Key, SecurityBadge> = BTreeMap::new();
-    if 1_u8
-        == get_stored_value_with_user_errors::<u8>(
-            ARG_ENABLE_BURN,
-            Cep85Error::MissingEnableMBFlag,
-            Cep85Error::InvalidEnableMBFlag,
-        )
-    {
+    if get_stored_value_with_user_errors::<bool>(
+        ARG_ENABLE_BURN,
+        Cep85Error::MissingEnableMBFlag,
+        Cep85Error::InvalidEnableBurnFlag,
+    ) {
         let burner_list: Option<Vec<Key>> =
             get_optional_named_arg_with_user_errors(BURNER_LIST, Cep85Error::InvalidBurnerList);
         if let Some(burner_list) = burner_list {
@@ -897,6 +946,65 @@ pub extern "C" fn change_security() {
     }));
 }
 
+// set_modalities allows the user to set any variable or any combination of variables
+// simultaneously.
+#[no_mangle]
+pub extern "C" fn set_modalities() {
+    // Only the installing account can change the mutable variables.
+    sec_check(vec![SecurityBadge::Admin]);
+
+    if let Some(enable_burn) = get_optional_named_arg_with_user_errors::<bool>(
+        ARG_ENABLE_BURN,
+        Cep85Error::InvalidEventsMode,
+    ) {
+        runtime::put_key(ARG_ENABLE_BURN, storage::new_uref(enable_burn).into());
+    }
+
+    if let Some(optional_events_mode) = get_optional_named_arg_with_user_errors::<u8>(
+        ARG_EVENTS_MODE,
+        Cep85Error::InvalidEventsMode,
+    ) {
+        let old_events_mode: EventsMode = get_stored_value_with_user_errors::<u8>(
+            ARG_EVENTS_MODE,
+            Cep85Error::MissingEventsMode,
+            Cep85Error::InvalidEventsMode,
+        )
+        .try_into()
+        .unwrap_or_revert();
+
+        runtime::put_key(
+            ARG_EVENTS_MODE,
+            storage::new_uref(optional_events_mode).into(),
+        );
+
+        let new_events_mode: EventsMode = optional_events_mode
+            .try_into()
+            .unwrap_or_revert_with(Cep85Error::InvalidEventsMode);
+
+        // Check if current_events_mode and requested_events_mode are both CES
+        if old_events_mode != EventsMode::CES && new_events_mode == EventsMode::CES {
+            // Initialize events structures
+            init_events();
+        }
+    }
+
+    record_event_dictionary(Event::SetModalities(SetModalities {}));
+}
+
+#[no_mangle]
+pub extern "C" fn upgrade() {
+    put_key(
+        ARG_CONTRACT_HASH,
+        get_named_arg_with_user_errors::<Key>(
+            ARG_CONTRACT_HASH,
+            Cep85Error::MissingContractHash,
+            Cep85Error::InvalidContractHash,
+        )
+        .unwrap_or_revert(),
+    );
+    record_event_dictionary(Event::Upgrade(Upgrade {}))
+}
+
 fn install_contract() {
     let name: String = get_named_arg_with_user_errors(
         ARG_NAME,
@@ -916,8 +1024,8 @@ fn install_contract() {
         get_optional_named_arg_with_user_errors(ARG_EVENTS_MODE, Cep85Error::InvalidEventsMode)
             .unwrap_or_default();
 
-    let enable_burn: u8 =
-        get_optional_named_arg_with_user_errors(ARG_ENABLE_BURN, Cep85Error::InvalidEnableMBFlag)
+    let enable_burn: bool =
+        get_optional_named_arg_with_user_errors(ARG_ENABLE_BURN, Cep85Error::InvalidEnableBurnFlag)
             .unwrap_or_default();
 
     let transfer_filter_contract_key: Option<Key> = get_optional_named_arg_with_user_errors(
@@ -1005,13 +1113,38 @@ fn install_contract() {
     runtime::call_contract::<()>(contract_hash, ENTRY_POINT_INIT, init_args);
 }
 
+fn upgrade_contract(name: &str, contract_package_hash: Key) {
+    let (contract_hash, contract_version) = storage::add_contract_version(
+        contract_package_hash
+            .into_hash()
+            .unwrap_or_revert_with(Cep85Error::InvalidPackageHash)
+            .into(),
+        generate_entry_points(),
+        NamedKeys::new(),
+    );
+
+    let contract_hash_key = Key::from(contract_hash);
+
+    runtime::put_key(&format!("{PREFIX_CONTRACT_NAME}_{name}"), contract_hash_key);
+    runtime::put_key(
+        &format!("{PREFIX_CONTRACT_VERSION}_{name}"),
+        storage::new_uref(contract_version).into(),
+    );
+
+    let runtime_args = runtime_args! {
+        ARG_CONTRACT_HASH => contract_hash_key,
+    };
+
+    runtime::call_contract::<()>(contract_hash, ENTRY_POINT_UPGRADE, runtime_args);
+}
+
 fn before_token_transfer(
     operator: &Key,
     from: &Key,
     to: &Key,
     ids: &[U256],
     amounts: &[U256],
-    data: &Vec<Bytes>,
+    data: Option<Bytes>,
 ) {
     if amounts.len() != ids.len() {
         runtime::revert(Cep85Error::MismatchParamsLength);
@@ -1036,7 +1169,7 @@ fn before_token_transfer(
                 .unwrap_or_revert_with(Cep85Error::FailedToCreateArg);
             args.insert(ARG_AMOUNTS, amounts.to_owned())
                 .unwrap_or_revert_with(Cep85Error::FailedToCreateArg);
-            args.insert(ARG_DATA, data.to_owned())
+            args.insert(ARG_DATA, data)
                 .unwrap_or_revert_with(Cep85Error::FailedToCreateArg);
 
             let result: TransferFilterContractResult =
@@ -1051,5 +1184,18 @@ fn before_token_transfer(
 
 #[no_mangle]
 pub extern "C" fn call() {
-    install_contract()
+    let upgrade_flag: Option<bool> =
+        get_optional_named_arg_with_user_errors(ARG_UPGRADE_FLAG, Cep85Error::InvalidUpgradeFlag);
+
+    if upgrade_flag.is_some() && upgrade_flag.unwrap() {
+        let name: String =
+            get_optional_named_arg_with_user_errors(ARG_NAME, Cep85Error::MissingCollectionName)
+                .unwrap_or_revert_with(Cep85Error::InvalidCollectionName);
+        let contract_package_hash: Key =
+            get_key(&format!("{PREFIX_CONTRACT_PACKAGE_NAME}_{}", name))
+                .unwrap_or_revert_with(Cep85Error::MissingPackageHash);
+        upgrade_contract(&name, contract_package_hash)
+    } else {
+        install_contract()
+    }
 }

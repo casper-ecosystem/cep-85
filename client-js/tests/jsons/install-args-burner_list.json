@@ -1,0 +1,39 @@
+[
+   [
+      "burner_list",
+      {
+         "bytes": "010000000055e148e54479bbf8e38a10939b113d1cde7f558761022c32601684c5a00547ad",
+         "cl_type": {
+            "List": "Key"
+         }
+      }
+   ],
+   [
+      "enable_burn",
+      {
+         "bytes": "01",
+         "cl_type": "Bool"
+      }
+   ],
+   [
+      "events_mode",
+      {
+         "bytes": "01",
+         "cl_type": "U8"
+      }
+   ],
+   [
+      "name",
+      {
+         "bytes": "0b0000006361737065725f74657374",
+         "cl_type": "String"
+      }
+   ],
+   [
+      "uri",
+      {
+         "bytes": "2100000068747470733a2f2f746573742d63646e2d646f6d61696e2f7b69647d2e6a736f6e",
+         "cl_type": "String"
+      }
+   ]
+]

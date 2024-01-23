@@ -71,7 +71,7 @@ pub extern "C" fn can_transfer() {
     let _to: Key = get_named_arg(ARG_FROM);
     let _ids: Vec<U256> = get_named_arg(ARG_IDS);
     let _amounts: Vec<U256> = get_named_arg(ARG_AMOUNTS);
-    let _data: Vec<Bytes> = get_named_arg(ARG_DATA);
+    let _data: Option<Bytes> = get_named_arg(ARG_DATA);
 
     let key = get_key(ARG_FILTER_CONTRACT_RETURN_VALUE);
     if key.is_none() {
@@ -169,7 +169,7 @@ pub extern "C" fn check_safe_transfer_from() {
     let to: Key = get_named_arg(ARG_TO);
     let id: U256 = get_named_arg(ARG_ID);
     let amount: U256 = get_named_arg(ARG_AMOUNT);
-    let data: Vec<Bytes> = get_named_arg(ARG_DATA);
+    let data: Option<Bytes> = get_named_arg(ARG_DATA);
     let safe_transfer_from_args = runtime_args! {
         ARG_FROM => from,
         ARG_TO => to,
@@ -191,7 +191,7 @@ pub extern "C" fn check_safe_batch_transfer_from() {
     let to: Key = get_named_arg(ARG_TO);
     let ids: Vec<U256> = get_named_arg(ARG_IDS);
     let amounts: Vec<U256> = get_named_arg(ARG_AMOUNTS);
-    let data: Vec<Bytes> = get_named_arg(ARG_DATA);
+    let data: Option<Bytes> = get_named_arg(ARG_DATA);
     let safe_batch_transfer_from_args = runtime_args! {
         ARG_FROM => from,
         ARG_TO => to,
@@ -339,7 +339,7 @@ pub extern "C" fn call() {
             Parameter::new(ARG_TO, CLType::Key),
             Parameter::new(ARG_IDS, CLType::List(Box::new(CLType::U256))),
             Parameter::new(ARG_AMOUNTS, CLType::List(Box::new(CLType::U256))),
-            Parameter::new(ARG_DATA, CLType::List(Box::new(Bytes::cl_type()))),
+            Parameter::new(ARG_DATA, CLType::Option(Box::new(Bytes::cl_type()))),
         ],
         TransferFilterContractResult::cl_type(),
         EntryPointAccess::Public,

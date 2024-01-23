@@ -124,7 +124,6 @@ pub fn stringify_key<T: CLTyped>(key: Key) -> String {
     }
 }
 
-#[inline]
 pub fn make_dictionary_item_key<T: CLTyped + ToBytes, V: CLTyped + ToBytes>(
     key: &T,
     value: &V,
@@ -184,7 +183,7 @@ pub fn get_transfer_filter_method() -> Option<String> {
 }
 
 pub fn replace_token_id_in_uri(raw_uri: &str, id: &U256) -> String {
-    raw_uri.replace("{id}", &format!("{id}"))
+    raw_uri.replace("{id}", &format!("{}", id))
 }
 
 fn get_uref(name: &str) -> URef {

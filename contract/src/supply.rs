@@ -19,6 +19,5 @@ pub fn write_total_supply_of(id: &U256, amount: &U256) {
 }
 
 pub fn read_total_supply_of(id: &U256) -> U256 {
-    // We set max supply to 1 if the token is not already in the dict TOTAL_SUPPLY
-    get_dictionary_value_from_key(DICT_TOTAL_SUPPLY, &id.to_string()).unwrap_or(U256::from(1_u32))
+    get_dictionary_value_from_key(DICT_TOTAL_SUPPLY, &id.to_string()).unwrap_or_default()
 }

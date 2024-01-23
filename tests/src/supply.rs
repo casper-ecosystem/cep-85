@@ -84,6 +84,7 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -139,12 +140,12 @@ fn should_set_total_supply_batch_for_ids() {
 
     set_total_supply_of_batch_call.expect_success().commit();
 
-    let actual_total_supply =
+    let actual_total_supplies =
         cep85_check_total_supply_of_batch(&mut builder, &cep85_test_contract_package, ids);
 
-    assert_eq!(actual_total_supply.len(), 2);
-    assert_eq!(actual_total_supply[0], total_supplies[0]);
-    assert_eq!(actual_total_supply[1], total_supplies[1]);
+    assert_eq!(actual_total_supplies.len(), 2);
+    assert_eq!(actual_total_supplies[0], total_supplies[0]);
+    assert_eq!(actual_total_supplies[1], total_supplies[1]);
 }
 
 #[test]
@@ -184,6 +185,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
         &minting_recipient,
         ids.clone(),
         amounts,
+        None,
     );
     batch_mint_call.expect_success().commit();
 
@@ -253,6 +255,7 @@ fn should_get_supply_of_id() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -260,6 +263,10 @@ fn should_get_supply_of_id() {
     let actual_supply = cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id);
 
     assert_eq!(actual_supply, mint_amount);
+
+    let actual_total_supply =
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
+    assert_eq!(actual_total_supply, total_supply);
 }
 
 #[test]
@@ -280,7 +287,7 @@ fn should_get_supply_of_batch_for_ids() {
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let ids = vec![U256::one(), U256::from(2)];
     let minting_recipient: Key = minting_account.into();
-    let mint_amount = U256::from(2);
+    let mint_amounts = vec![U256::from(2), U256::from(3)];
     let total_supplies = vec![U256::from(2), U256::from(3)];
 
     // Set total supply for each ID using batch function
@@ -289,11 +296,9 @@ fn should_get_supply_of_batch_for_ids() {
         &cep85_token,
         &minting_account,
         ids.clone(),
-        total_supplies,
+        total_supplies.clone(),
     );
     set_total_supply_of_batch_call.expect_success().commit();
-
-    let mint_amounts = vec![mint_amount; ids.len()];
 
     // Mint tokens for each ID using batch function
     let batch_mint_call = cep85_batch_mint(
@@ -302,7 +307,8 @@ fn should_get_supply_of_batch_for_ids() {
         &minting_account,
         &minting_recipient,
         ids.clone(),
-        mint_amounts,
+        mint_amounts.clone(),
+        None,
     );
 
     batch_mint_call.expect_success().commit();
@@ -312,9 +318,9 @@ fn should_get_supply_of_batch_for_ids() {
         cep85_check_supply_of_batch(&mut builder, &cep85_test_contract_package, ids.clone());
 
     // Verify the supplies
-    for (index, _) in ids.iter().enumerate() {
-        assert_eq!(actual_supplies[index], mint_amount);
-    }
+    assert_eq!(actual_supplies.len(), 2);
+    assert_eq!(actual_supplies[0], mint_amounts[0]);
+    assert_eq!(actual_supplies[1], mint_amounts[1]);
 
     let burning_account = minting_account;
     // Owner is now last recipient
@@ -327,7 +333,7 @@ fn should_get_supply_of_batch_for_ids() {
         &burning_account,
         &owner,
         ids.clone(),
-        vec![mint_amount; ids.len()],
+        mint_amounts,
     );
     batch_burn_call.expect_success().commit();
 
@@ -339,4 +345,66 @@ fn should_get_supply_of_batch_for_ids() {
     for (index, _) in ids.iter().enumerate() {
         assert_eq!(actual_supplies[index], U256::zero());
     }
+
+    let actual_total_supplies =
+        cep85_check_total_supply_of_batch(&mut builder, &cep85_test_contract_package, ids);
+
+    assert_eq!(actual_total_supplies.len(), 2);
+    assert_eq!(actual_total_supplies[0], total_supplies[0]);
+    assert_eq!(actual_total_supplies[1], total_supplies[1]);
+}
+
+#[test]
+fn should_get_no_supplies_of_non_existent_id() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup();
+
+    let id = U256::one();
+
+    let actual_supply = cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id);
+
+    assert_eq!(actual_supply, U256::zero());
+
+    let actual_total_supply =
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
+    assert_eq!(actual_total_supply, U256::zero());
+}
+
+#[test]
+fn should_get_no_supplies_of_batch_for_non_existent_ids() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_ENABLE_BURN => true,
+        },
+        None,
+    );
+
+    let ids = vec![U256::one(), U256::from(2)];
+
+    // Get the supply of each ID using batch function
+    let actual_supplies =
+        cep85_check_supply_of_batch(&mut builder, &cep85_test_contract_package, ids.clone());
+
+    // Verify the supplies equal zero
+    for (index, _) in ids.iter().enumerate() {
+        assert_eq!(actual_supplies[index], U256::zero());
+    }
+
+    let actual_total_supplies =
+        cep85_check_total_supply_of_batch(&mut builder, &cep85_test_contract_package, ids);
+
+    assert_eq!(actual_total_supplies.len(), 2);
+    assert_eq!(actual_total_supplies[0], U256::zero());
+    assert_eq!(actual_total_supplies[1], U256::zero());
 }

@@ -1,0 +1,33 @@
+{
+  "StoredContractByHash": {
+    "hash": "0c0f9056626a55273bd8238f595908f2e4d78acc2546bf1f78f39f814bc60fe4",
+    "entry_point": "batch_mint",
+    "args": [
+      [
+        "recipient",
+        {
+          "bytes": "007894d8458c82388f6d276c07c1c52033ac37b175fa722b9cc40e7a0157ce17fc",
+          "cl_type": "Key"
+        }
+      ],
+      [
+        "ids",
+        {
+          "bytes": "0200000001030104",
+          "cl_type": {
+            "List": "U256"
+          }
+        }
+      ],
+      [
+        "amounts",
+        {
+          "bytes": "0200000001140114",
+          "cl_type": {
+            "List": "U256"
+          }
+        }
+      ]
+    ]
+  }
+}

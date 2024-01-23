@@ -36,3 +36,9 @@ mod filter;
 
 #[cfg(test)]
 mod allowance;
+
+#[cfg(test)]
+mod modalities;
+
+#[cfg(test)]
+mod upgrade;

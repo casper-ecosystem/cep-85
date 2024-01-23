@@ -45,6 +45,7 @@ fn should_test_security_no_rights() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     // minting account is not in minter nor admin list
@@ -67,6 +68,7 @@ fn should_test_security_no_rights() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     // default address is in admin list by default
@@ -133,6 +135,7 @@ fn should_test_security_meta_rights() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -226,6 +229,7 @@ fn should_test_security_minter_rights() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -241,6 +245,7 @@ fn should_test_security_minter_rights() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     failing_mint_call.expect_failure();
@@ -304,6 +309,7 @@ fn should_test_security_burner_rights() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     mint_call.expect_success().commit();
@@ -405,6 +411,7 @@ fn should_test_change_security() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     // account_user_1 is in admin list
@@ -434,6 +441,7 @@ fn should_test_change_security() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     // account_user_2 is in minter list
@@ -459,6 +467,7 @@ fn should_test_change_security() {
         &minting_recipient,
         &id,
         &mint_amount,
+        None,
     );
 
     // minting account is in none list now, so the same mint request should fail

@@ -1,0 +1,22 @@
+{
+  "StoredContractByHash": {
+    "hash": "0c0f9056626a55273bd8238f595908f2e4d78acc2546bf1f78f39f814bc60fe4",
+    "entry_point": "set_total_supply_of",
+    "args": [
+      [
+        "id",
+        {
+          "bytes": "0101",
+          "cl_type": "U256"
+        }
+      ],
+      [
+        "total_supply",
+        {
+          "bytes": "0128",
+          "cl_type": "U256"
+        }
+      ]
+    ]
+  }
+}
