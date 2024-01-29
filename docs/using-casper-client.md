@@ -104,7 +104,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "id:u256='2'" \
 // The amount of the specified CEP-85 token you are sending to the receiving account.
 --session-arg "amount:u256='10'" \
-// An optional uri for the token if different from global uri set during installation
+// An optional URI for the token if different from global URI set during installation.
 --session-arg "uri:string='https://test-cdn-domain/{id}.json'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "1000000000"
@@ -153,7 +153,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 {"name":"ids","type":{"List":"U256"},"value":[3,5]},
 // The amounts of the specified CEP-85 tokens you are sending to the receiving account.
 {"name":"amounts","type":{"List":"U256"},"value":[10,25]},
-// An optional uri for the tokens if different from global uri set during installation
+// An optional URI for the tokens if different from global URI set during installation.
 {"name":"uri","type":"String","value":"https://test-cdn-domain/{id}.json"}
 ]' \
 // The gas payment you are allotting, in motes.
@@ -198,7 +198,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 // The name of the entrypoint you are invoking.
 --session-entry-point "burn" \
-// The account hash of the account that you are burning CEP-85 tokens from.
+// The account hash of the account from which you are burning CEP-85 tokens.
 --session-arg "owner:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
 // The IDs of the CEP-85 tokens you are burning from the owner account.
 --session-arg "id:U256='2'" \
@@ -244,7 +244,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 // The name of the entrypoint you are invoking.
 --session-entry-point "batch_burn" \
 --session-args-json '[
-// The account hash of the account that you are burning CEP-85 tokens from.
+// The account hash of the account from which you are burning CEP-85 tokens.
 {"name":"owner","type":"Key","value":"account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b"},
 // The IDs of the CEP-85 tokens you are removing from the owning account.
 {"name":"ids","type":{"List":"U256"},"value":[3,5]},
@@ -278,18 +278,24 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 ## Checking the Supply of a Token
 
+<!-- TODO check these 2 sections re. supply and total_supply. What is the difference? -->
+
+There are two ways of checking the token supply. The first is to query a dictionary, and the second is to query an entrypoint.
+
+### Option 1: Query the `supply` dictionary
+
 The following command will query the `supply` dictionary of your instance of CEP-85, verifying the supply of the provided token ID.
 
 ```json
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
-// The state root hash
+// The current state root hash.
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
 // The contract hash of your CEP-85 contract instance.
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 // The name of the entrypoint you are invoking.
 --dictionary-name "supply" \
-// The ID of the CEP-85 token you are checking the supply of.
+// The ID of the CEP-85 token for which you are checking the supply.
 --dictionary-item-key "2"
 
 ```
@@ -311,7 +317,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 
 </details>
 
-## Checking the Total Supply of a Token
+### Option 2: Query the `total_supply_of` entrypoint
 
 The following command will invoke the `total_supply_of` entrypoint of your instance of CEP-85, verifying the total supply of the provided token ID.
 
@@ -324,7 +330,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 // The name of the entrypoint you are invoking.
 --dictionary-name "total_supply" \
-// The ID of the CEP-85 token you are checking the supply of.
+// The ID of the CEP-85 token for which you are checking the supply.
 --dictionary-item-key "2"
 
 ```
@@ -436,9 +442,9 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 ## Checking the Balance of a Single Token ID
 
-Unlike checking the supply of a token, checking state balance of an owner for a token requires two information combined, the owner key and the token id in the form of an dictionary item key hash.
+Checking an owner's token balance requires two pieces of information combined: the key identifying the owner and the token ID in the form of a hash key to a dictionary item.
 
-The following command will invoke the `make_dictionary_item_key` session entrypoint on your instance of CEP-85, wrtting for you the hash key in your account context.
+The following command will invoke the `make_dictionary_item_key` session entrypoint on your instance of CEP-85 and write the hash key to your account context.
 
 ```json
 
@@ -456,7 +462,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 // The ID of the CEP-85 token you are querying.
 --session-arg "id:u256='2'" \
 // An optional name argument can be set to specify the name of the key in your account
-// "name:string='my_custom_result_key'" \
+// --session-arg "name:string='my_custom_result_key'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "500000000"
 
@@ -480,20 +486,21 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 </details><br>
 
-After sending this command to the contract entry point, you will need to query the value of this dictionary item key `cep85_dictionary_item_key` (or a custom one if provided during previous command) within the `NamedKeys` of your account.
+After sending this command to the contract entrypoint, you must query the value of the dictionary item key `cep85_dictionary_item_key` within your account's `NamedKeys`. If you provided a custom key in the previous command, you will need to use it instead. If you provided a custom key in the previous command, you will need to use it instead.
 
-You can use the following command to query the new named key to get the dictionary item key.
+Query the new named key using the following command to retrieve the dictionary item key:
 
 ```json
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
 // This is your `account` hash location from your `NamedKeys`.
 --key account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b \
-// This is the current state-root-hash for the Casper network your contract is installed on.
+// This is the name of the dictionary item from your `NamedKeys`.
 --query-path "cep85_dictionary_item_key" \
-// This is the current state-root-hash for the Casper network your contract is installed on.
+// This is the current state root hash for the Casper network where your contract is installed.
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
 ```
 
+<details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```bash
@@ -503,7 +510,7 @@ casper-client query-global-state -n http://<NODE IP>:<PORT> \
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
 ```
 
-Result of this query shall be as a CLValue, copy the parsed value to the next command to get balance.
+The result of this query will be as a CLValue. Copy the "parsed" value and use it in the following command to get the token balance.
 
 ```json
 {
@@ -524,22 +531,22 @@ Result of this query shall be as a CLValue, copy the parsed value to the next co
 }
 ```
 
-</details>
+</details><br>
 
-> Use the JS client to get a dictionary item key without deploy [makeDictionaryItemKey](#casper/client-js/)
+> You can use the JS client to get a dictionary item key without sending a deploy. Use `makeDictionaryItemKey` in the [CEP85Client.ts](../client-js/src/CEP85Client.ts).
 
 The following command will query the `balances` dictionary of your instance of CEP-85, verifying the balance of the provided owners key and token ID with its corresponding dictionary item key. As this dictionary item key combining an entity key and an id will never change, for further balances checks you can reuse this dictionary item key again in your queries.
 
 ```json
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
-// The state root hash
+// The current state root hash.
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
 // The contract hash of your CEP-85 contract instance.
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 // The name of the entrypoint you are invoking.
 --dictionary-name "balances" \
-// The Key/Id hash of the CEP-85 token you are checking the supply of.
+// The Key/ID hash of the CEP-85 token for which you are checking the supply.
 --dictionary-item-key "ed92c304b8320985e2ab96bd455512ad545990f98adb0e569ba633c16791d5ed"
 
 ```
@@ -559,15 +566,15 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 
 </details><br>
 
-> Use the JS client [getBalanceOf](#casper/client-js/)
+> You can also use the [JS client](../client-js/src/CEP85Client.ts) and calling `getBalanceOf`.
 
 ## Checking the Balance of Multiple Token IDs
 
-> Use the JS client [getBalanceOfBatch](#casper/client-js/)
+For checking the balance of multiple token IDs, we recommend using the [JS client](../client-js/src/CEP85Client.ts) and calling `getBalanceOfBatch`.
 
-## Approving An Operator to Transfer Tokens
+## Approving an Operator to Transfer Tokens
 
-The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to approve or remove a given `operator`s ability to transfer (or burn) the calling account's tokens.
+The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to approve or remove a given operator's ability to transfer (or burn) the calling account's tokens.
 
 ```json
 
@@ -607,11 +614,11 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 </details>
 
-## Checking Approval Status of an Account
+## Checking the Approval Status of an Operator
 
-Unlike checking the supply of a token, checking state operator for an owner requires two information combined, the owner key and the operator key in the form of an dictionary item key hash.
+Checking an operator's approval status requires two pieces of information: the key identifying the owner and the key identifying the operator, which is a hash key to a dictionary item.
 
-The following command will invoke the `make_dictionary_item_key` session entrypoint on your instance of CEP-85, wrtting for you the hash key in your account context.
+The following command will invoke the `make_dictionary_item_key` session entrypoint on your instance of CEP-85 and write the hash key to your account context.
 
 ```json
 
@@ -628,8 +635,8 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "owner:key='account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd'" \
 // The account hash of the account that you are querying as an operator.
 --session-arg "operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
-// An optional name argument can be set to specify the name of the key in your account
-// "name:string='my_custom_result_key'" \
+// An optional name argument can be set to specify the name of the key in your account.
+// --session-arg "name:string='my_custom_result_key'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "500000000"
 
@@ -653,20 +660,21 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 </details><br>
 
-After sending this command to the contract entry point, you will need to query the value of this dictionary item key `cep85_dictionary_item_key` (or a custom one if provided during previous command with `name` arg) within the `NamedKeys` of your account.
+After sending this command to the contract entrypoint, you must query the value of the dictionary item key `cep85_dictionary_item_key` within your account's `NamedKeys`. If you provided a custom key in the previous command, you will need to use it instead.
 
-You can use the following command to query the new named key to get the dictionary item key.
+Query the new named key using the following command to retrieve the dictionary item key:
 
 ```json
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
 // This is your `account` hash location from your `NamedKeys`.
 --key account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b \
-// This is the current state-root-hash for the Casper network your contract is installed on.
+// This is the current state root hash for the Casper network where your contract is installed.
 --query-path "cep85_dictionary_item_key" \
-// This is the current state-root-hash for the Casper network your contract is installed on.
+// This is the current state root hash for the Casper network where your contract is installed.
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
 ```
 
+<details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```bash
@@ -676,7 +684,7 @@ casper-client query-global-state -n http://<NODE IP>:<PORT> \
 --state-root-hash 3aecd0e4b6ec29ee7c1eed701132eabfe6e66a1e0f1595c9c65bfed447e474f7
 ```
 
-Result of this query shall be as a CLValue, copy the parsed value to the next command to get an operators approval.
+The result of this query will be as a CLValue. Copy the "parsed" value and use it in the following command to get the operator's approval status.
 
 ```json
 {
@@ -697,16 +705,16 @@ Result of this query shall be as a CLValue, copy the parsed value to the next co
 }
 ```
 
-</details>
+</details><br>
 
-> Use the JS client to get a dictionary item key without deploy [makeDictionaryItemKey](#casper/client-js/)
+> You can use the JS client to get a dictionary item key without sending a deploy. Use `makeDictionaryItemKey` in the [CEP85Client.ts](../client-js/src/CEP85Client.ts).
 
-The following command will query the `operators` dictionary of your instance of CEP-85, verifying the approval of the provided owners key and operators id with its corresponding dictionary item key. As this dictionary item key combining two entity keys will never change, for further aprovals checks of this approval you can reuse this dictionary item key again in your queries.
+The following command will query the `operators` dictionary in your instance of CEP-85, verifying the owner and operator's approval. Since the dictionary item key combines the two corresponding keys and will not change, you can reuse it in your queries for further approval checks.
 
 ```json
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
-// The state root hash
+// The current state root hash.
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
 // The contract hash of your CEP-85 contract instance.
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
@@ -823,7 +831,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 </details>
 
-## Checking the URI for a Token
+## Checking the URI of a Token
 
 The following command will invoke the `uri` entrypoint of your instance of CEP-85, returning the associated URI for the provided token ID.
 
@@ -836,7 +844,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 // The name of the entrypoint you are invoking.
 --dictionary-name "token_uri" \
-// The ID of the CEP-85 token you are checking the URI of.
+// The ID of the CEP-85 token whose URI you are checking.
 --dictionary-item-key "2"
 
 ```
@@ -871,7 +879,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 // The name of the entrypoint you are invoking.
 --session-entry-point "set_uri" \
-// The ID of the CEP-85 token you are setting the URI of.
+// The ID of the CEP-85 token whose URI you are setting.
 --session-arg "id:u256='2'" \
 // The new URI for the token.
 --session-arg "uri:string='https://docs.casper.network/test-{id}.json'" \
@@ -898,25 +906,23 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 </details>
 
-## Checking a Token's Fungibility
+<!-- TODO check these 2 sections re. supply and total_supply. What is the difference? -->
 
-Check if total_supply is equal to 1 with [Checking the Total Supply of a Token](#checking-the-total-supply-of-a-token)
+## Checking if a Token is Fungibile
 
-Or use the JS client [getIsNonFungible](#casper/client-js/)
+Check if the [total_supply](#checking-the-total-supply-of-a-token) equals 1. Or, use the [JS client](../client-js/src/CEP85Client.ts) and calling `getIsNonFungible`.
 
 ## Checking a Token's Total Fungible Supply
 
-Check if total_supply substracted of supply is positive with [Checking the Total Supply of a Token](#checking-the-total-supply-of-a-token) and [Checking the Supply of a Token](#checking-the-supply-of-a-token)
-
-Or use the JS client [getTotalFungibleSupply](#casper/client-js/)
+Subtract the token [supply](#checking-the-supply-of-a-token) from the [total_supply](#checking-the-total-supply-of-a-token) and check if the result is positive. Or, use the [JS client](../client-js/src/CEP85Client.ts) and calling `getTotalFungibleSupply`.
 
 ## Changing Account Security Permissions
 
 The `change_security` entrypoint can be used by an account with `admin` access to alter the security level of other accounts.
 
-There are five security levels, with the strongest level taking precedence over any other assigned levels. In order of highest strength to lowest:
+There are five security levels, with the strongest level taking precedence over other assigned levels. In order of highest strength to lowest:
 
-1. `None` - `None` overrides other security levels and removes all admin, minting and burning access of an account.
+1. `None` - `None` overrides other security levels and removes all admin, minting, and burning access to an account.
 
 2. `Admin` - Allows the account full access and control over the CEP-85 contract.
 
@@ -930,7 +936,7 @@ Here is an example of a `session-arg` that provides a list of account hashes to 
 --session-args-json '[{"name":"minter_list","type":{"List":"Key"},"value":["account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd"]}]'
 ```
 
-**Be aware that removing all admin accounts will lock out all admin functionality.**
+> **Be aware that removing all admin accounts will lock out all admin functionality.**
 
 The following command can be supplied with any of the optional arguments above:
 
@@ -950,7 +956,7 @@ casper-client put-deploy -n http://<NODE IP>:<PORT> \
 --payment-amount 500000000
 ```
 
-## Setting modalities
+## Setting Modalities
 
 The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to set a modality of the contract instance. The account sending this deploy must be on the `admin_list`.
 
@@ -992,7 +998,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 </details>
 
-## Upgrading Collection Contract
+## Upgrading the Contract
 
 The following command will invoke the `call` entrypoint on your instance of CEP-85, directing it to upgrade the instance to a new version.
 
@@ -1001,7 +1007,7 @@ The following command will invoke the `call` entrypoint on your instance of CEP-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
-// The local path to cep85.wasm
+// The local path to the cep85.wasm.
 --session-path ~/casper/cep-85/target/wasm32-unknown-unknown/release/cep85.wasm \
 // The local path to your account's secret key.
 --secret-key ~/casper/demo/user_a/secret_key.pem \
