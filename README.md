@@ -2,7 +2,7 @@
 
 ## Design Goals
 
-This repository adheres to the following design goals for the CEP-85 Multi-Token Standard:
+This repository adheres to the following design goals for the CEP-85 multi-token standard:
 
 - DApp developers attempting to create a multi-token contract should be able to install the contract as is, with modalities as required for their needs.
 - This reference implementation showcases modalities and options for installation and entrypoints for use after installation.
@@ -129,9 +129,9 @@ This parameter is optional and cannot be changed after installation.
 
 You can find instructions on installing an instance of the CEP-85 contract using the [Rust CLI Casper client](/docs/using-casper-client.md).
 
-### Example Installation
+### Example
 
-The following is an example of installing the CEP-85 contract via a deploy using the Rust CLI Casper client. You can find more examples [here](/docs/using-casper-client.md).
+The following is an example of installing the CEP-85 contract via a deploy using the Rust CLI Casper client.
 
 ```bash
 casper-client put-deploy -n https://rpc.testnet.casperlabs.io/ \
@@ -178,7 +178,7 @@ The expected behavior of the multi-token contract implementation is asserted by 
 | 19   | InvalidCollectionName         |
 | 20   | InvalidContractHash           |
 | 21   | InvalidData                   |
-| 22   | InvalidEnableBurnFlag           |
+| 22   | InvalidEnableBurnFlag         |
 | 23   | InvalidEventsMode             |
 | 24   | InvalidFrom                   |
 | 25   | InvalidId                     |
