@@ -4,7 +4,7 @@ This documentation will guide you through installing and interacting with an ins
 
 ## Installing the Contract
 
-Installing the multi-token contract to global state requires the use of a [Deploy](https://docs.casper.network/developers/dapps/sending-deploys/). In this case, the session code can be compiled to Wasm by running the `make test` command provided in the Makefile at the top level. The Wasm will be found in the `target/wasm32-unknown-unknown/release` directory as `cep85.wasm`.
+Installing the multi-token contract to global state requires the use of a [Deploy](https://docs.casper.network/developers/cli/sending-deploys/). In this case, the session code can be compiled to Wasm by running the `make test` command provided in the Makefile at the top level. The Wasm will be found in the `target/wasm32-unknown-unknown/release` directory as `cep85.wasm`.
 
 Below is an example of a `casper-client` command that provides all required session arguments to install a valid instance of the CEP-85 contract on global state.
 
@@ -276,15 +276,9 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 </details>
 
-## Checking the Supply of a Token
+## Checking the Current Supply of a Token
 
-<!-- TODO check these 2 sections re. supply and total_supply. What is the difference? -->
-
-There are two ways of checking the token supply. The first is to query a dictionary, and the second is to query an entrypoint.
-
-### Option 1: Query the `supply` dictionary
-
-The following command will query the `supply` dictionary of your instance of CEP-85, verifying the supply of the provided token ID.
+The following command will query the `supply` dictionary of your instance of CEP-85, verifying the current supply of the provided token ID.
 
 ```json
 
@@ -293,7 +287,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
 // The contract hash of your CEP-85 contract instance.
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
-// The name of the entrypoint you are invoking.
+// The name of the dictionary you are invoking.
 --dictionary-name "supply" \
 // The ID of the CEP-85 token for which you are checking the supply.
 --dictionary-item-key "2"
@@ -317,9 +311,9 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 
 </details>
 
-### Option 2: Query the `total_supply_of` entrypoint
+## Checking the Total Supply of a Token
 
-The following command will invoke the `total_supply_of` entrypoint of your instance of CEP-85, verifying the total supply of the provided token ID.
+The following command will query the `total_supply` dictionary of your instance of CEP-85, verifying the total supply of the provided token ID.
 
 ```json
 
@@ -328,7 +322,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
 // The contract hash of your CEP-85 contract instance.
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
-// The name of the entrypoint you are invoking.
+// The name of the dictionary you are invoking.
 --dictionary-name "total_supply" \
 // The ID of the CEP-85 token for which you are checking the supply.
 --dictionary-item-key "2"
@@ -544,7 +538,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
 // The contract hash of your CEP-85 contract instance.
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
-// The name of the entrypoint you are invoking.
+// The name of the dictionary you are invoking.
 --dictionary-name "balances" \
 // The Key/ID hash of the CEP-85 token for which you are checking the supply.
 --dictionary-item-key "ed92c304b8320985e2ab96bd455512ad545990f98adb0e569ba633c16791d5ed"
@@ -718,7 +712,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
 // The contract hash of your CEP-85 contract instance.
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
-// The name of the entrypoint you are invoking.
+// The name of the dictionary you are invoking.
 --dictionary-name "operators" \
 // The Key/Key hash of the CEP-85 approval you are checking.
 --dictionary-item-key "2eb433e484c1c6aa9bb5e9d98bd6cda79f8e7b0769daf0ed4598913df45d0d7c"
@@ -842,7 +836,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
 // The contract hash of your CEP-85 contract instance.
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
-// The name of the entrypoint you are invoking.
+// The name of the dictionary you are invoking.
 --dictionary-name "token_uri" \
 // The ID of the CEP-85 token whose URI you are checking.
 --dictionary-item-key "2"
