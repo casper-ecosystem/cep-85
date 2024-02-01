@@ -211,7 +211,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
     assert_expected_error(
         error,
         Cep85Error::InvalidTotalSupply as u16,
-        "should not allow to set total supply below curcirculatingrent supply",
+        "should not allow to set total supply below circulating supply",
     );
 
     let actual_total_supplies =
