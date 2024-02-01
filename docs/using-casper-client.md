@@ -265,6 +265,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
 --session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
+--session-entry-point "batch_burn" \
 --session-args-json '[
 {"name":"owner","type":"Key","value":"account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b"},
 {"name":"ids","type":{"List":"U256"},"value":[3,5]},
@@ -551,7 +552,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 ```json
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
---state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538
+--state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 --dictionary-name "balances" \
 --dictionary-item-key "ed92c304b8320985e2ab96bd455512ad545990f98adb0e569ba633c16791d5ed"
