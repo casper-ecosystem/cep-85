@@ -2,7 +2,7 @@
 
 ## Design Goals
 
-This repository adheres to the following design goals for the CEP-85 multi-token standard:
+This repository adheres to the following design goals for the [CEP-85 multi-token standard](https://github.com/casper-network/ceps/blob/multi-token-standard/text/0085-multi-token-standard.md):
 
 - DApp developers attempting to create a multi-token contract should be able to install the contract as is, with modalities as required for their needs.
 - This reference implementation showcases modalities and options for installation and entrypoints for use after installation.
