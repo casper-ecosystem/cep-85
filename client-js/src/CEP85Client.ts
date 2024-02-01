@@ -549,9 +549,9 @@ export class CEP85Client extends TypedContract {
   }
 
   /**
- * Queries the current supply of a specific token.
- * @param id The token ID for which to retrieve the current supply.
- * @returns A promise that resolves to the current supply as a string. If an error occurs, "0" is returned.
+ * Queries the circulating supply of a specific token.
+ * @param id The token ID for which to retrieve the circulating supply.
+ * @returns A promise that resolves to the circulating supply as a string. If an error occurs, "0" is returned.
  */
   private async querySupply(id: string): Promise<string> {
     try {
@@ -567,18 +567,18 @@ export class CEP85Client extends TypedContract {
   }
 
   /**
- * Retrieves the current supply of a specific token.
- * @param id The token ID for which to retrieve the current supply.
- * @returns A promise that resolves to the current supply as a string. If an error occurs, "0" is returned.
+ * Retrieves the circulating supply of a specific token.
+ * @param id The token ID for which to retrieve the circulating supply.
+ * @returns A promise that resolves to the circulating supply as a string. If an error occurs, "0" is returned.
  */
   public async getSupplyOf(id: string): Promise<string> {
     return this.querySupply(id);
   }
 
   /**
- * Retrieves the current supply of multiple tokens in batch.
- * @param ids An array of token IDs for which to retrieve the current supply.
- * @returns A promise that resolves to an array of current supplies as strings. If an error occurs, an empty array is returned.
+ * Retrieves the circulating supply of multiple tokens in batch.
+ * @param ids An array of token IDs for which to retrieve the circulating supply.
+ * @returns A promise that resolves to an array of circulating supplies as strings. If an error occurs, an empty array is returned.
  */
   public async getSupplyOfBatch(ids: string[]): Promise<string[]> {
     const supplyPromises = ids.map((id) => this.getSupplyOf(id));

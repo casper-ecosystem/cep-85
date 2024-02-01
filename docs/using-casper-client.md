@@ -276,9 +276,9 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 </details>
 
-## Checking the Current Supply of a Token
+## Checking the Circulating Supply of a Token
 
-The following command will query the `supply` dictionary of your instance of CEP-85, verifying the current supply of the provided token ID.
+The following command will query the `supply` dictionary of your instance of CEP-85, verifying the circulating supply of the provided token ID.
 
 ```json
 

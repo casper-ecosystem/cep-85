@@ -106,7 +106,7 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
     assert_expected_error(
         error,
         Cep85Error::InvalidTotalSupply as u16,
-        "should not allow to set total supply below current supply",
+        "should not allow to set total supply below circulating supply",
     );
 
     let actual_total_supply =
@@ -194,7 +194,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
 
     assert_eq!(actual_total_supplies, total_supplies);
 
-    // Attempt to set total supply below current supply should fail
+    // Attempt to set total supply below circulating supply should fail
     let new_total_supplies = vec![U256::from(1)];
     let failing_set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
@@ -211,7 +211,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
     assert_expected_error(
         error,
         Cep85Error::InvalidTotalSupply as u16,
-        "should not allow to set total supply below current supply",
+        "should not allow to set total supply below curcirculatingrent supply",
     );
 
     let actual_total_supplies =
