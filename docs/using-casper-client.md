@@ -901,8 +901,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 </details>
 
-<!-- TODO check these 2 sections re. supply and total_supply. What is the difference? -->
-
 ## Checking if a Token is Fungibile
 
 Check if the [total_supply](#checking-the-total-supply-of-a-token) equals 1. Or, use the [JS client](../client-js/src/CEP85Client.ts) and calling `getIsNonFungible`.
