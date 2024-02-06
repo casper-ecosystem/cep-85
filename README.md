@@ -2,11 +2,13 @@
 
 ## Design Goals
 
+This repository adheres to the following design goals for the [CEP-85 multi-token standard](https://github.com/casper-network/ceps/blob/multi-token-standard/text/0085-multi-token-standard.md):
+
 - DApp developers attempting to create a multi-token contract should be able to install the contract as is, with modalities as required for their needs.
-- Reference implementation should showcase modalities and options for installation and entrypoints for use after installation.
-- CEP-85 reference implementation should be self-contained within a single repo, including all tests and documentation for Casper Labs provided SDKs.
-- Should adhere to the publicly perceived expected behavior of a multi-token standard.
-- Standard session code should be provided to interact with the installed contract, allowing DApp developers to access normal functions without writing new Wasm-producing logic.
+- This reference implementation showcases modalities and options for installation and entrypoints for use after installation.
+- The reference implementation is self-contained within a single repository, including all tests and documentation for the SDKs provided.
+- The implementation adheres to a multi-token standard's publicly perceived expected behavior.
+- Standard session code is provided to interact with the installed contract, allowing dApp developers to access normal functions without writing new Wasm-producing logic.
 
 ## Table of Contents
 
@@ -28,25 +30,30 @@
 
 ## Building the Contract
 
-The `main.rs` file within the contract provides the installer for the multi-token contract. Users can compile the contract to Wasm alongside support tests using the `make prepare` and `make test` commands from the Makefile provided.
+The `main.rs` file within the contract provides the installer for the multi-token contract. Users can compile the contract to Wasm alongside support tests using the following commands from the Makefile provided:
 
-The pre-built Wasm for the contract and all other utility session code can be found as part of the most current release. Users wishing to build the Wasm themselves can pull the code and use the `make build-contract` command provided in the Makefile. Please note, however, that you must install `wasm-strip` to build the contract.
+```sh
+make prepare
+make test
+```
 
-The `call` method will install the contract with the necessary entrypoints and call the `init()` entrypoint, which allows the contract to self-initialize and set up the necessary state variables for operation.d
+The pre-built Wasm for the contract and all other utility session code can be found in the most current release. Users wishing to build the Wasm themselves can pull the code and use the `make build-contract` command provided in the Makefile. Please note, however, that you must install `wasm-strip` to build the contract.
+
+The `call` method will install the contract with the necessary entrypoints and call the `init()` entrypoint, which allows the contract to self-initialize and set up the necessary state variables for operation.
 
 ## Required Runtime Arguments
 
-The following are the required runtime arguments that must be passed to the installer session code to correctly install the multi-token contract.
+The following are the required runtime arguments to be passed to the installer session code to install the multi-token contract correctly.
 
-- `"name"`: The name of the multi-token collection, passed in as a `String`. This parameter is required and cannot be changed post installation.
+- `"name"`: The name of the multi-token collection, passed in as a `String`. This parameter is required and cannot be changed after installation.
 - `"uri"`: A string URI for any off-chain resource associated with the collection.
 
-The following are the optional parameters that can be passed in at the time of installation.
+The following are the optional parameters that can be passed in during installation.
 
 - `"events_mode"`: The [`EventsMode`](#eventsmode) modality that selects the event schema used to record any changes that occur to tokens issued by the contract instance. This argument is passed in as a `u8` value.
-- `"enable_burn"`: The [`EnableBurn`](#enableburn) modality dictates whether the contract instance will allow approved entities to permanently burn tokens. This argument is passed in as a `bool` value.
+- `"enable_burn"`: The [`EnableBurn`](#enableburn) modality dictates whether the contract instance will allow approved entities to burn tokens permanently. This argument is passed in as a `bool` value.
 - `"transfer_filter_contract"`: This argument dictates a secondary contract instance that will serve as a transfer filter for the installing instance of CEP-85. Passing an argument with a value of type `Key` will enable this feature.
-- `"transfer_filter_method"`: This argument outlines the name of the entrypoint on the transfer filter contract that is used to process the filter. It is passed as an `String`.
+- `"transfer_filter_method"`: This argument outlines the name of the entrypoint on the transfer filter contract that is used to process the filter. It is passed as a `String`.
 
 In addition, the following arguments may be passed to establish their associated user lists.
 
@@ -109,34 +116,38 @@ For this CEP-85 reference implementation, the events schema is as follows:
 
 #### Transfer Filter Hook
 
-The transfer filter modality, if enabled, specifies a contract package hash pointing to a contract that will be called when the `safe_transfer_from` or `safe_batch_transfer_from` methods are invoked on the contract. CEP-85 will call the transfer filter method on the specified callback contract, which is expected to return a value of `TransferFilterContractResult`, represented as a u8.
+If enabled, the transfer filter modality specifies a contract package hash pointing to a contract that will be called when the `safe_transfer_from` or `safe_batch_transfer_from` methods are invoked on the contract. CEP-85 will call the transfer filter method on the specified callback contract, which is expected to return a value of `TransferFilterContractResult`, represented as a u8.
 
 - `TransferFilterContractResult::DenyTransfer` will block the transfer regardless of the outcome of other checks
 - `TransferFilterContractResult::ProceedTransfer` will allow the transfer to proceed if other checks also pass
 
 The transfer filter can be enabled by passing an `ARG_TRANSFER_FILTER_CONTRACT` argument to the install method, with a value of type `Key`. The transfer filter method can be defined with the `ARG_TRANSFER_FILTER_METHOD` argument.
 
-This parameter is optional and cannot be changed post installation.
-
-### Example deploy
-
-The following is an example of installing the CEP-85 contract via a deploy using the Rust CLI Casper client. You can find more examples [here](/docs/using-casper-client.md).
-
-```bash
-casper-client put-deploy -n https://rpc.testnet.casperlabs.io/ --chain-name "casper-test" --payment-amount 500000000000 -k keys/secret_key.pem --session-path target/wasm32-unknown-unknown/release/cep85.wasm \
---session-arg "name:string='multi-token-1'" \
---session-arg "uri:string='https://docs.casper.network/'" \
---session-arg "events_mode:u8='0'" \
---session-arg "enable_burn:bool='true'" \
-```
+This parameter is optional and cannot be changed after installation.
 
 ## Installing and Interacting with the Contract using the Rust Casper Client
 
-You can find instructions on installing an instance of the CEP-85 contract using the Rust CLI Casper client [here](/docs/using-casper-client.md).
+You can find instructions on installing an instance of the CEP-85 contract using the [Rust CLI Casper client](/docs/using-casper-client.md).
 
-## Installing and Interacting with the Contract using the JS Casper Client
+### Example
 
-You can find instructions on installing an instance of the CEP-85 contract using the JS Casper client [here](/client-js/README.md)
+The following is an example of installing the CEP-85 contract via a deploy using the Rust CLI Casper client.
+
+```bash
+casper-client put-deploy -n https://rpc.testnet.casperlabs.io/ \
+--chain-name "casper-test" \
+--payment-amount 500000000000 \
+-k keys/secret_key.pem \
+--session-path target/wasm32-unknown-unknown/release/cep85.wasm \
+--session-arg "name:string='multi-token-1'" \
+--session-arg "uri:string='https://docs.casper.network/'" \
+--session-arg "events_mode:u8='0'" \
+--session-arg "enable_burn:bool='true'"
+```
+
+## Installing and Interacting with the Contract using the JavaScript Casper Client
+
+You can find instructions on installing an instance of the CEP-85 contract using the [JS Casper client](/client-js/README.md).
 
 ## Test Suite and Specification
 
@@ -167,7 +178,7 @@ The expected behavior of the multi-token contract implementation is asserted by 
 | 19   | InvalidCollectionName         |
 | 20   | InvalidContractHash           |
 | 21   | InvalidData                   |
-| 22   | InvalidEnableMBFlag           |
+| 22   | InvalidEnableBurnFlag         |
 | 23   | InvalidEventsMode             |
 | 24   | InvalidFrom                   |
 | 25   | InvalidId                     |

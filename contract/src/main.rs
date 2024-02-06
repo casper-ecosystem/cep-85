@@ -859,7 +859,7 @@ pub extern "C" fn is_non_fungible() {
     runtime::ret(CLValue::from_t(is_non_fungible).unwrap_or_revert());
 }
 
-/// Calculates the difference between the total supply and the current supply of a token.
+/// Calculates the difference between the total supply and the circulating supply of a token.
 /// If the token is a non-fungible token (NFT), or if total supply has been reached returns 0.
 #[no_mangle]
 pub extern "C" fn total_fungible_supply() {

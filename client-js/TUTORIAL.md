@@ -1,18 +1,12 @@
 # CEP-85 JavaScript Client Tutorial
 
-This tutorial outlines the use of a JavaScript client developed for the CEP-85 Casper Multi-Token Standard.
+This tutorial outlines the use of a JavaScript client developed for the [CEP-85 Casper multi-token standard](https://github.com/casper-ecosystem/cep-85).
 
-Further information on CEP-85 can be found [here](https://github.com/casper-ecosystem/cep-85).
-
-The client is available in _npm_ as [casper-cep85-js-client](https://www.npmjs.com/package/casper-cep85-js-client).
-
-## Client Installation
-
-The JavaScript client can be installed in your project using TypeScript/Javascript.
+The client is available in _npm_ as [casper-cep85-js-client](https://www.npmjs.com/package/casper-cep85-js-client) and can be installed in your project using TypeScript/Javascript.
 
 ## Usage
 
-1. To install, run the following command:
+1. To install the client, run the following command:
 
    ```bash
    npm i -S casper-cep85-js-client
@@ -22,17 +16,17 @@ The JavaScript client can be installed in your project using TypeScript/Javascri
 
    `import { CEP85Client } from 'casper-cep85-js-client'`
 
-3. If you want to install an instance of CEP-85 to a Casper network, familiarize yourself with the `install` method and all possible configuration options (`InstallArgs`).
+3. If you want to install an instance of CEP-85 on a Casper network, familiarize yourself with the `install` method and all possible configuration options (`InstallArgs`).
 
 4. If you want to start working with a previously installed instance of CEP-85, use the `setContractHash(contractHash)` method and include the existing `Contract Hash` for that instance of CEP-85.
 
-NOTE: If you are using npm version `<7` you may need to install both peer dependencies manually using the following command:
+> NOTE: If you are using npm version `<7` you may need to install both peer dependencies manually using the following command:
 
 ```bash
 npm install casper-js-sdk @make-software/ces-js-parser casper-cep85-js-client
 ```
 
-## Using the JavaScript Client to Interact with an Existing CEP-85 Contract
+## Interacting with an Existing CEP-85 Contract
 
 Using the `.setContractHash()` method, include the contract hash for the pre-existing CEP-85 instance as follows:
 
@@ -52,10 +46,11 @@ const uri = await cep85.collectionUri();
 const events_mode = await cep85.getEventsMode();
 ```
 
-## Installing CEP-85 using the JavaScript Client
+## Installing a CEP-85 instance using the JavaScript Client
 
-The `install` method crafts a [Deploy](https://docs.casperlabs.io/design/casper-design/#execution-semantics-deploys) using the provided `InstallArgs`.
-As with every deploy created by the SDK, you can send it using the `.send(rpcUrl)` method providing the RPC URL that you want to use. It will return a `deployHash`.
+The `install` method crafts a [Deploy](https://docs.casper.network/deploy-and-deploy-lifecycle/#execution-semantics-deploys) using the provided `InstallArgs`.
+
+As with every deploy created by the SDK, you can send it using the `.send(rpcUrl)` method providing the RPC URL you want. It will return a `deployHash`.
 
 ```ts
 const cc = new CEP85Client(process.env.NODE_URL!, process.env.NETWORK_NAME!);
@@ -82,9 +77,9 @@ const hash = await installDeploy.send(process.env.NODE_URL!);
 
 `InstallArgs` are specified as follows:
 
-- `name` - The name of the collection, passed in as a `String`. **This parameter is required and cannot be changed after installation**.
+- `name` - The collection's name, passed in as a `String`. **This parameter is required and cannot be changed after installation**.
 
-- `uri` - The URI representing a global given URI for the collection, passed in as a `String`. **This parameter is required and can be changed after installation, or set per token via the `set_uri` entrypoint**.
+- `uri` - The URI representing a global given URI for the collection, passed in as a `String`. **This parameter is required and can be changed after installation or set per token via the `set_uri` entrypoint**.
 
 - `events_mode` - The `EventsMode` modality that dictates the events behavior of the contract. This optional argument is passed in as a `u8` value and defaults to no events. **This parameter can be changed post installation via the `set_modalities` entrypoint**.
 
@@ -173,7 +168,7 @@ Transferring accepts the following arguments:
 
 ## Burning a Token
 
-The following code shows how to decrease supply of a token as an owner, or as an operator with burner rights:
+The following code shows how to decrease the token supply as an owner, or as an operator with burner rights:
 
 ```ts
 const burnDeploy = await contractClient.burn(
@@ -192,13 +187,13 @@ const burnDeployHash = await burnDeploy.send(process.env.NODE_URL!);
 
 ## Further Examples
 
-### Running the Install Example
+### Installation Example
 
 This repository includes an example script for installing a CEP-85 contract instance.
 
 You will need to define the following variables in a `.env` file:
 
-- `NODE_URL` - The address of a node. If you are testing using [NCTL](https://docs.casperlabs.io/dapp-dev-guide/building-dapps/setup-nctl/), this will be `http://localhost:11101/rpc`.
+- `NODE_URL` - The address of a node. If you are testing using [NCTL](https://docs.casper.network/developers/dapps/setup-nctl/), this will be `http://localhost:11101/rpc`.
 
 - `NETWORK_NAME` - The name of the Casper network you are operating on, `casper-net-1` when testing using a local network with NCTL.
 
@@ -212,13 +207,13 @@ This example can be run using the following command:
 npm run example:install
 ```
 
-The example will then return the installation's `deployHash`, and inform you when the installation is successful.
+The example will return the installation's `deployHash`, and inform you when the installation is successful.
 
 It will then provide the installing account's information, which will include the CEP-85 contract's hash and package hash.
 
 ### Running the Usage Example
 
-The usage example uses the same variables as the Install example above, but tests the basic functionality of the contract after installation.
+The usage example employs the same variables as the Install example above, but tests the basic functionality of the contract after installation.
 
 The usage example can be run using the following command:
 

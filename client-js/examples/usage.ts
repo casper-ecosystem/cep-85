@@ -210,7 +210,7 @@ const usage = async () => {
     let resultTotalSupply = await cep85.getTotalSupplyOf(id);
     console.log(`> Total supply for token ${id} ${resultTotalSupply}`);
     resultTotalSupply = await cep85.getSupplyOf(id);
-    console.log(`> Current supply for token ${id} ${resultTotalSupply}`);
+    console.log(`> Circulating supply for token ${id} ${resultTotalSupply}`);
 
     /* Fungible */
     printHeader("Fungible");
@@ -332,7 +332,7 @@ const usage = async () => {
     const resultTotalSupplyBatch = await cep85.getTotalSupplyOfBatch(ids);
     console.log(`> Total supply for tokens [${ids.toString()}] = [${resultTotalSupplyBatch.toString()}]`);
     const resultSupplyBatch = await cep85.getSupplyOfBatch(ids);
-    console.log(`> Current supply for tokens [${ids.toString()}] = [${resultSupplyBatch.toString()}]`);
+    console.log(`> Circulating supply for tokens [${ids.toString()}] = [${resultSupplyBatch.toString()}]`);
 
     /* Events mode */
     printHeader("Events mode");
