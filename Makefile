@@ -17,7 +17,7 @@ setup-test: build-contract
 	cp $(CONTRACT_TARGET_DIR)/cep85.wasm tests/wasm
 	cp $(CONTRACT_TARGET_DIR)/cep85_test_contract.wasm tests/wasm
 
-	test: setup-test
+test: setup-test
 	cd tests && cargo test
 
 clippy:
