@@ -12,10 +12,12 @@ build-contract:
 	cargo build --release --target wasm32-unknown-unknown $(patsubst %,-p %, $(ALL_CONTRACTS))
 	$(foreach WASM, $(ALL_CONTRACTS), wasm-strip $(CONTRACT_TARGET_DIR)/$(subst -,_,$(WASM)).wasm ;)
 
-test: build-contract
+setup-test: build-contract
 	mkdir -p tests/wasm
 	cp $(CONTRACT_TARGET_DIR)/cep85.wasm tests/wasm
 	cp $(CONTRACT_TARGET_DIR)/cep85_test_contract.wasm tests/wasm
+
+	test: setup-test
 	cd tests && cargo test
 
 clippy:
