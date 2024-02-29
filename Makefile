@@ -18,7 +18,7 @@ setup-test: build-contract
 	cp $(CONTRACT_TARGET_DIR)/cep85_test_contract.wasm tests/wasm
 
 test: setup-test
-	cd tests && cargo test
+	cd tests && cargo test -- --test-threads=1 --nocapture
 
 clippy:
 	cd contract && cargo clippy --target wasm32-unknown-unknown --bins -- -D warnings
