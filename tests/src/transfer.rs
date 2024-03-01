@@ -19,7 +19,7 @@ fn should_transfer_full_owned_amount() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -91,7 +91,7 @@ fn should_batch_transfer_full_owned_amount() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -172,7 +172,7 @@ fn should_not_transfer_more_than_owned_balance() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -252,7 +252,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -512,7 +512,7 @@ fn should_verify_zero_amount_transfer_is_noop() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -593,7 +593,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -682,7 +682,7 @@ fn should_transfer_account_to_account() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -754,7 +754,7 @@ fn should_batch_transfer_account_to_account() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -836,7 +836,7 @@ fn should_transfer_account_to_contract_package() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -908,7 +908,7 @@ fn should_batch_transfer_account_to_contract_package() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -1141,7 +1141,7 @@ fn should_transfer_account_to_contract() {
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -1214,7 +1214,7 @@ fn should_batch_transfer_account_to_contract_() {
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();

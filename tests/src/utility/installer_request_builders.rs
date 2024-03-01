@@ -53,6 +53,10 @@ pub struct TestContext {
     pub test_accounts: HashMap<[u8; 32], AccountHash>,
 }
 
+impl Drop for TestContext {
+    fn drop(&mut self) {}
+}
+
 fn default_args() -> RuntimeArgs {
     runtime_args! {
         ARG_NAME => TOKEN_NAME,

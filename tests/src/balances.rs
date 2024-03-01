@@ -20,7 +20,7 @@ fn should_check_balance_of() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -60,7 +60,7 @@ fn should_check_balance_of_batch() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -103,7 +103,7 @@ fn should_error_on_balance_of_batch_args_len_difference() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();

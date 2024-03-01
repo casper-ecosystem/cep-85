@@ -7,10 +7,9 @@ edition = "2018"
 cep85 = { path = "../contract", default-features = false }
 cep85-test-contract = { path = "../test-contract", default-features = false }
 casper-contract = { version = "3.0.0", default-features = false, features = [
-  "test-support",
   "std",
 ] }
-casper-engine-test-support = { version = "5.0.0", features = ["test-support"] }
+casper-engine-test-support = { version = "5.0.0" }
 casper-execution-engine = "5.0.0"
 casper-types = "3.0.0"
 casper-event-standard = { version = "0.4.0", default-features = false }

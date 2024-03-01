@@ -19,7 +19,7 @@ fn should_not_allow_self_approval() {
         mut builder,
         TestContext {
             cep85_token,
-            test_accounts,
+            ref test_accounts,
             cep85_test_contract_package,
             ..
         },
@@ -63,7 +63,7 @@ fn should_allow_approval_of_an_account() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -154,7 +154,7 @@ fn should_remove_approval_of_an_account() {
         mut builder,
         TestContext {
             cep85_token,
-            test_accounts,
+            ref test_accounts,
             cep85_test_contract_package,
             ..
         },
@@ -312,7 +312,7 @@ fn should_not_transfer_from_account_to_account_without_allowance() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -385,7 +385,7 @@ fn should_not_batch_transfer_from_account_to_account_without_allowance() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -455,7 +455,7 @@ fn should_transfer_from_account_to_account_with_allowance() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -532,7 +532,7 @@ fn should_batch_transfer_from_account_to_account_with_allowance() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -608,7 +608,7 @@ fn should_not_transfer_from_account_to_account_through_contract_without_allowanc
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -682,7 +682,7 @@ fn should_not_batch_transfer_from_account_to_account_through_contract_without_al
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -768,7 +768,7 @@ fn should_transfer_from_account_to_account_through_contract_with_allowance() {
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -850,7 +850,7 @@ fn should_transfer_from_account_to_account_through_package_with_allowance() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -935,7 +935,7 @@ fn should_batch_transfer_from_account_to_account_through_contract_with_allowance
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -1016,7 +1016,7 @@ fn should_batch_transfer_from_account_to_account_through_package_with_allowance(
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -1098,7 +1098,7 @@ fn should_transfer_from_account_to_contract_through_contract_with_allowance() {
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -1180,7 +1180,7 @@ fn should_transfer_from_account_to_contract_through_package_with_allowance() {
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -1262,7 +1262,7 @@ fn should_batch_transfer_from_account_to_contract_through_contract_with_allowanc
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -1343,7 +1343,7 @@ fn should_batch_transfer_from_account_to_contract_through_package_with_allowance
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -1422,7 +1422,7 @@ fn should_make_dictionary_item_key_for_dict_operators_queries() {
         mut builder,
         TestContext {
             cep85_token,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();

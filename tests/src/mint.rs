@@ -19,7 +19,7 @@ fn should_mint_nft() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -63,7 +63,7 @@ fn should_mint_fungible_token() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -108,7 +108,7 @@ fn should_batch_mint() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();
@@ -160,7 +160,7 @@ fn should_not_mint_above_total_supply() {
         mut builder,
         TestContext {
             cep85_token,
-            test_accounts,
+            ref test_accounts,
             cep85_test_contract_package,
             ..
         },
@@ -246,7 +246,7 @@ fn should_not_batch_mint_above_total_supply() {
         mut builder,
         TestContext {
             cep85_token,
-            test_accounts,
+            ref test_accounts,
             cep85_test_contract_package,
             ..
         },
