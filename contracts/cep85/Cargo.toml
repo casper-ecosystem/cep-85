@@ -1,17 +1,16 @@
 [package]
 name = "cep85"
 version = "1.0.0"
-edition = "2018"
 description = "A library for developing CEP-85 tokens for the Casper network."
-readme = "README.md"
-documentation = "https://docs.rs/casper-cep-85"
-homepage = "https://casperlabs.io"
-repository = "https://github.com/casper-ecosystem/cep-85"
-license-file = "../LICENSE"
+edition.workspace = true
+homepage.workspace = true
+license-file.workspace = true
+readme.workspace = true
+repository.workspace = true
 
 [dependencies]
-casper-contract = { version = "3.0.0", optional = true }
-casper-types = "3.0.0"
+casper-contract = { version = "3.0.0", optional = true, default-features = false }
+casper-types.workspace = true
 casper-event-standard = { version = "0.4.0", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 
@@ -23,5 +22,5 @@ doctest = false
 test = false
 
 [features]
-default = ["contract-support"]
-contract-support = ["dep:casper-contract"]
+default = ["contract-support", "casper-contract/no-std-helpers"]
+contract-support = ["casper-contract"]
