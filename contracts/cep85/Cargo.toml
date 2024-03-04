@@ -9,7 +9,7 @@ readme.workspace = true
 repository.workspace = true
 
 [dependencies]
-casper-contract = { version = "3.0.0", optional = true, default-features = false }
+casper-contract = { version = "3.0.0", optional = true }
 casper-types.workspace = true
 casper-event-standard = { version = "0.4.0", default-features = false }
 hex = { version = "0.4.3", default-features = false }
@@ -22,5 +22,5 @@ doctest = false
 test = false
 
 [features]
-default = ["contract-support", "casper-contract/no-std-helpers"]
-contract-support = ["casper-contract"]
+default = ["contract-support"]
+contract-support = ["dep:casper-contract"]
