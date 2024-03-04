@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    convert::{TryFrom, TryInto},
-};
+use std::{collections::HashMap, convert::TryInto};
 
 use super::{
     constants::{
@@ -159,8 +156,7 @@ pub fn get_test_result<T: FromBytes + CLTyped>(
     let enabled_versions = contract_package.enabled_versions();
     let (_version, contract_hash) = enabled_versions
         .iter()
-        .rev()
-        .next()
+        .next_back()
         .expect("should have latest version");
 
     builder.get_value(*contract_hash, RESULT_KEY)
@@ -610,27 +606,25 @@ pub fn cep85_transfer_from<'a>(
             let call_package =
                 direct_call_test_contract.is_none() || direct_call_test_contract == Some(false);
             if call_package {
-                if let Ok(contract_package_hash) = ContractPackageHash::try_from(*hash_bytes) {
-                    let args = runtime_args! {
-                        ARG_FROM => *from,
-                        ARG_TO => *to,
-                        ARG_ID => ids[0],
-                        ARG_AMOUNT => amounts[0],
-                        ARG_DATA => data,
-                    };
+                let contract_package_hash = ContractPackageHash::from(*hash_bytes);
+                let args = runtime_args! {
+                    ARG_FROM => *from,
+                    ARG_TO => *to,
+                    ARG_ID => ids[0],
+                    ARG_AMOUNT => amounts[0],
+                    ARG_DATA => data,
+                };
 
-                    ExecuteRequestBuilder::versioned_contract_call_by_hash(
-                        *sender,
-                        contract_package_hash,
-                        None,
-                        ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
-                        args,
-                    )
-                    .build()
-                } else {
-                    panic!("Unknown variant");
-                }
-            } else if let Ok(contract_hash) = ContractHash::try_from(*hash_bytes) {
+                ExecuteRequestBuilder::versioned_contract_call_by_hash(
+                    *sender,
+                    contract_package_hash,
+                    None,
+                    ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
+                    args,
+                )
+                .build()
+            } else {
+                let contract_hash = ContractHash::from(*hash_bytes);
                 let args = runtime_args! {
                     ARG_FROM => *from,
                     ARG_TO => *to,
@@ -646,8 +640,6 @@ pub fn cep85_transfer_from<'a>(
                     args,
                 )
                 .build()
-            } else {
-                panic!("Unknown variant");
             }
         }
         _ => panic!("Unknown variant"),
@@ -728,25 +720,23 @@ pub fn cep85_batch_transfer_from<'a>(
             let call_package =
                 direct_call_test_contract.is_none() || direct_call_test_contract == Some(false);
             if call_package {
-                if let Ok(contract_package_hash) = ContractPackageHash::try_from(*hash_bytes) {
-                    ExecuteRequestBuilder::versioned_contract_call_by_hash(
-                        *sender,
-                        contract_package_hash,
-                        None,
-                        ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
-                        runtime_args! {
-                            ARG_FROM => *from,
-                            ARG_TO => *to,
-                            ARG_IDS => ids,
-                            ARG_AMOUNTS => amounts,
-                            ARG_DATA => data,
-                        },
-                    )
-                    .build()
-                } else {
-                    panic!("Unknown variant");
-                }
-            } else if let Ok(contract_hash) = ContractHash::try_from(*hash_bytes) {
+                let contract_package_hash = ContractPackageHash::from(*hash_bytes);
+                ExecuteRequestBuilder::versioned_contract_call_by_hash(
+                    *sender,
+                    contract_package_hash,
+                    None,
+                    ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
+                    runtime_args! {
+                        ARG_FROM => *from,
+                        ARG_TO => *to,
+                        ARG_IDS => ids,
+                        ARG_AMOUNTS => amounts,
+                        ARG_DATA => data,
+                    },
+                )
+                .build()
+            } else {
+                let contract_hash = ContractHash::from(*hash_bytes);
                 ExecuteRequestBuilder::contract_call_by_hash(
                     *sender,
                     contract_hash,
@@ -760,8 +750,6 @@ pub fn cep85_batch_transfer_from<'a>(
                     },
                 )
                 .build()
-            } else {
-                panic!("Unknown variant");
             }
         }
         _ => panic!("Unknown variant"),

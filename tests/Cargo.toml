@@ -1,14 +1,11 @@
 [package]
 name = "tests"
 version = "1.0.0"
-edition = "2018"
+edition = "2021"
 
 [dev-dependencies]
-cep85 = { path = "../contract", default-features = false }
-cep85-test-contract = { path = "../test-contract" }
-casper-contract = { version = "3.0.0", default-features = false, features = [
-  "std",
-] }
+cep85 = { path = "../contracts/cep85", default-features = false }
+cep85-test-contract = { path = "../contracts/test", default-features = false }
 casper-engine-test-support = "5.0.0"
 casper-execution-engine = "5.0.0"
 casper-types = "3.0.0"

@@ -1,0 +1,17 @@
+[workspace]
+members = ["cep85", "test"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+homepage = "https://casperlabs.io"
+license-file = "../LICENSE"
+readme = "../README.md"
+repository = "https://github.com/casper-ecosystem/cep-85"
+
+[workspace.dependencies]
+casper-types = "3.0.0"
+
+[profile.release]
+codegen-units = 1
+lto = true

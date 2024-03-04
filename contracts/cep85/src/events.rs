@@ -1,11 +1,14 @@
-use crate::{
-    constants::ARG_EVENTS_MODE, modalities::EventsMode, security::SecurityBadge,
-    utils::get_stored_value,
-};
+use crate::security::SecurityBadge;
+#[cfg(feature = "contract-support")]
+use crate::{constants::ARG_EVENTS_MODE, modalities::EventsMode, utils::get_stored_value};
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
+#[cfg(feature = "contract-support")]
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_event_standard::{emit, Event, Schemas};
+use casper_event_standard::Event;
+#[cfg(feature = "contract-support")]
+use casper_event_standard::{emit, Schemas};
 use casper_types::{Key, U256};
+#[cfg(feature = "contract-support")]
 use core::convert::TryFrom;
 
 #[derive(Debug)]
@@ -22,6 +25,7 @@ pub enum Event {
     Upgrade(Upgrade),
 }
 
+#[cfg(feature = "contract-support")]
 pub fn record_event_dictionary(event: Event) {
     let events_mode: EventsMode =
         EventsMode::try_from(get_stored_value::<u8>(ARG_EVENTS_MODE)).unwrap_or_revert();
@@ -178,6 +182,7 @@ impl Upgrade {
     }
 }
 
+#[cfg(feature = "contract-support")]
 fn ces(event: Event) {
     match event {
         Event::Mint(ev) => emit(ev),
@@ -193,6 +198,7 @@ fn ces(event: Event) {
     }
 }
 
+#[cfg(feature = "contract-support")]
 pub fn init_events() {
     let events_mode =
         EventsMode::try_from(get_stored_value::<u8>(ARG_EVENTS_MODE)).unwrap_or_revert();
