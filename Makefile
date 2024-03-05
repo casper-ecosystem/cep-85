@@ -23,7 +23,7 @@ setup-test: build-all-contracts
 	cp $(CONTRACT_TARGET_DIR)/cep85_test_contract.wasm tests/wasm
 
 test: setup-test
-	cd tests && cargo test --release
+	cd tests && cargo test
 
 clippy:
 	cd contracts && cargo clippy --bins -- -D warnings
