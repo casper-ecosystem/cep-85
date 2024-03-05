@@ -5,7 +5,6 @@ use casper_types::{
 };
 
 use crate::error::Cep85Error;
-use core::convert::TryFrom;
 
 #[repr(u8)]
 #[derive(PartialEq, Eq)]

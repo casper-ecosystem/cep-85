@@ -1,5 +1,3 @@
-use std::{collections::HashMap, convert::TryInto};
-
 use super::{
     constants::{
         ACCOUNT_USER_1, ACCOUNT_USER_2, CEP85_CONTRACT_WASM, CEP85_TEST_CONTRACT_WASM,
@@ -41,6 +39,7 @@ use cep85_test_contract::constants::{
     ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
     ENTRY_POINT_CHECK_URI, RESULT_KEY,
 };
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct TestContext {
