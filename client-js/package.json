@@ -16,7 +16,6 @@
     "wasms:convert": "ts-node scripts/copy-and-convert-wasms.ts"
   },
   "keywords": [],
-  "author": "Jan Hoffmann <jan@casperlabs.io>",
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^29.5.11",
