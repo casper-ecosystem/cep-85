@@ -260,11 +260,10 @@ pub extern "C" fn make_dictionary_item_key() {
         None => {
             let operator: Option<Key> =
                 get_optional_named_arg_with_user_errors(ARG_OPERATOR, Cep85Error::InvalidOperator);
-            let dictionary_item_key = match operator {
+            match operator {
                 Some(operator) => utils_make_dictionary_item_key(&owner, &operator),
                 None => revert(Cep85Error::InvalidOperator),
-            };
-            dictionary_item_key
+            }
         }
     };
 

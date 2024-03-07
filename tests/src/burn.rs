@@ -1361,7 +1361,7 @@ fn should_allow_contract_as_operator_to_burn_token() {
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup_with_args(
@@ -1470,7 +1470,7 @@ fn should_allow_contract_as_operator_to_batch_burn_token() {
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup_with_args(
@@ -1579,7 +1579,7 @@ fn should_allow_contract_package_as_operator_to_burn_token() {
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup_with_args(
@@ -1688,7 +1688,7 @@ fn should_allow_contract_package_as_operator_to_batch_burn_token() {
             cep85_token,
             cep85_test_contract,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup_with_args(

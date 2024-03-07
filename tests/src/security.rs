@@ -23,7 +23,7 @@ fn should_test_security_no_rights() {
         mut builder,
         TestContext {
             cep85_token,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup_with_args(
@@ -110,7 +110,7 @@ fn should_test_security_meta_rights() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup_with_args(
@@ -203,7 +203,7 @@ fn should_test_security_minter_rights() {
         mut builder,
         TestContext {
             cep85_token,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup_with_args(
@@ -270,7 +270,7 @@ fn should_test_security_burner_rights() {
         mut builder,
         TestContext {
             cep85_token,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup_with_args(
@@ -378,7 +378,7 @@ fn should_test_change_security() {
         mut builder,
         TestContext {
             cep85_token,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup_with_args(

@@ -76,7 +76,7 @@ fn should_record_events_in_events_mode() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup_with_args(
@@ -132,7 +132,7 @@ fn should_not_record_events_in_no_events_mode() {
         TestContext {
             cep85_token,
             cep85_test_contract_package,
-            test_accounts,
+            ref test_accounts,
             ..
         },
     ) = setup();

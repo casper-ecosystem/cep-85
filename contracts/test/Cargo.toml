@@ -1,0 +1,23 @@
+[package]
+name = "cep85-test-contract"
+version = "1.0.0"
+edition.workspace = true
+homepage.workspace = true
+license-file.workspace = true
+readme.workspace = true
+repository.workspace = true
+
+[dependencies]
+cep85 = { path = "../cep85", default-features = false }
+casper-contract = { version = "3.0.0", optional = true, default-features = false }
+casper-types.workspace = true
+
+[[bin]]
+name = "cep85_test_contract"
+path = "src/main.rs"
+bench = false
+doctest = false
+test = false
+
+[features]
+default = ["cep85/contract-support", "casper-contract/no-std-helpers"]

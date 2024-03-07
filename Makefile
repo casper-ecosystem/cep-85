@@ -1,6 +1,6 @@
 ALL_CONTRACTS = cep85 cep85-test-contract
-CONTRACT_TARGET_DIR = target/wasm32-unknown-unknown/release
-PINNED_TOOLCHAIN := $(shell cat rust-toolchain)
+CONTRACT_TARGET_DIR = contracts/target/wasm32-unknown-unknown/release
+PINNED_TOOLCHAIN := $(shell cat contracts/rust-toolchain)
 
 prepare:
 	rustup target add wasm32-unknown-unknown
@@ -9,34 +9,37 @@ prepare:
 
 .PHONY:	build-contract
 build-contract:
-	cargo build --release --target wasm32-unknown-unknown $(patsubst %,-p %, $(ALL_CONTRACTS))
+	cd contracts/cep85 && cargo build --release
+	wasm-strip $(CONTRACT_TARGET_DIR)/cep85.wasm
+
+.PHONY:	build-all-contracts
+build-all-contracts:
+	cd contracts && cargo build --release $(patsubst %,-p %, $(ALL_CONTRACTS))
 	$(foreach WASM, $(ALL_CONTRACTS), wasm-strip $(CONTRACT_TARGET_DIR)/$(subst -,_,$(WASM)).wasm ;)
 
-test: build-contract
+setup-test: build-all-contracts
 	mkdir -p tests/wasm
 	cp $(CONTRACT_TARGET_DIR)/cep85.wasm tests/wasm
 	cp $(CONTRACT_TARGET_DIR)/cep85_test_contract.wasm tests/wasm
+
+test: setup-test
 	cd tests && cargo test
 
 clippy:
-	cd contract && cargo clippy --target wasm32-unknown-unknown --bins -- -D warnings
-	cd contract && cargo clippy --lib -- -D warnings
-	cd contract && cargo clippy --no-default-features --lib -- -D warnings
-	cd test-contract && cargo clippy --target wasm32-unknown-unknown -- -D warnings
+	cd contracts && cargo clippy --bins -- -D warnings
+	cd contracts && cargo clippy --lib -- -D warnings
+	cd contracts && cargo clippy --lib --no-default-features -- -D warnings
 	cd tests && cargo clippy --all-targets -- -D warnings
 
 check-lint: clippy
-	cd contract && cargo fmt -- --check
-	cd test-contract && cargo fmt -- --check
-	cd tests && cargo fmt -- --check
+	cd contracts && cargo fmt -- --check
+	cd tests && cargo +$(PINNED_TOOLCHAIN) fmt -- --check
 
-lint: clippy
-	cd contract && cargo fmt
-	cd test-contract && cargo fmt
-	cd tests && cargo fmt
+format:
+	cd contracts && cargo fmt
+	cd tests && cargo +$(PINNED_TOOLCHAIN) fmt
 
 clean:
-	cd contract && cargo clean
-	cd test-contract && cargo clean
+	cd contracts && cargo clean
 	cd tests && cargo clean
 	rm -rf tests/wasm

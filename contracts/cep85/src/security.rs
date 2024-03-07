@@ -1,10 +1,16 @@
-use alloc::{collections::BTreeMap, vec, vec::Vec};
+#[cfg(feature = "contract-support")]
+use alloc::collections::BTreeMap;
+use alloc::{vec, vec::Vec};
+#[cfg(feature = "contract-support")]
 use casper_contract::{contract_api::runtime::revert, unwrap_or_revert::UnwrapOrRevert};
+#[cfg(feature = "contract-support")]
+use casper_types::Key;
 use casper_types::{
     bytesrepr::{self, FromBytes, ToBytes},
-    CLTyped, Key,
+    CLTyped,
 };
 
+#[cfg(feature = "contract-support")]
 use crate::{
     constants::DICT_SECURITY_BADGES,
     error::Cep85Error,
@@ -53,6 +59,7 @@ impl FromBytes for SecurityBadge {
     }
 }
 
+#[cfg(feature = "contract-support")]
 pub fn sec_check(allowed_badge_list: Vec<SecurityBadge>) {
     let (caller, caller_package) = get_verified_caller();
     let caller_badge = get_security_badge(&caller);
@@ -69,6 +76,7 @@ pub fn sec_check(allowed_badge_list: Vec<SecurityBadge>) {
     revert(Cep85Error::InsufficientRights);
 }
 
+#[cfg(feature = "contract-support")]
 fn get_security_badge(entity: &Key) -> Option<SecurityBadge> {
     get_dictionary_value_from_key(
         DICT_SECURITY_BADGES,
@@ -76,6 +84,7 @@ fn get_security_badge(entity: &Key) -> Option<SecurityBadge> {
     )
 }
 
+#[cfg(feature = "contract-support")]
 pub fn change_sec_badge(badge_map: &BTreeMap<Key, SecurityBadge>) {
     for (&user, &badge) in badge_map {
         set_dictionary_value_for_key(

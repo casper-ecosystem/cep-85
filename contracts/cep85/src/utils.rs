@@ -1,33 +1,36 @@
+#[cfg(feature = "contract-support")]
 use crate::{
     constants::{ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD},
     error::Cep85Error,
 };
-use alloc::{
-    borrow::ToOwned,
-    format,
-    string::{String, ToString},
-    vec,
-    vec::Vec,
-};
+#[cfg(feature = "contract-support")]
+use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
+use alloc::{format, string::String};
+#[cfg(feature = "contract-support")]
 use casper_contract::{
     contract_api::{self, runtime, storage},
     ext_ffi,
     unwrap_or_revert::UnwrapOrRevert,
 };
+use casper_types::U256;
+#[cfg(feature = "contract-support")]
 use casper_types::{
     account::AccountHash,
     api_error,
     bytesrepr::{self, FromBytes, ToBytes},
     system::CallStackElement,
-    ApiError, CLTyped, ContractHash, ContractPackageHash, Key, URef, U256,
+    ApiError, CLTyped, ContractHash, ContractPackageHash, Key, URef,
 };
+#[cfg(feature = "contract-support")]
 use core::{convert::TryInto, mem::MaybeUninit};
 
+#[cfg(feature = "contract-support")]
 pub enum Caller {
     Session(AccountHash),
     StoredCaller(ContractHash, ContractPackageHash),
 }
 
+#[cfg(feature = "contract-support")]
 pub fn get_verified_caller() -> (Key, Option<Key>) {
     let get_verified_caller: Result<Caller, Cep85Error> = match *runtime::get_call_stack()
         .iter()
@@ -57,6 +60,7 @@ pub fn get_verified_caller() -> (Key, Option<Key>) {
     }
 }
 
+#[cfg(feature = "contract-support")]
 pub fn get_stored_value<T>(name: &str) -> T
 where
     T: FromBytes + CLTyped,
@@ -66,6 +70,7 @@ where
     value
 }
 
+#[cfg(feature = "contract-support")]
 pub fn get_named_arg_with_user_errors<T: FromBytes>(
     name: &str,
     missing: Cep85Error,
@@ -97,6 +102,7 @@ pub fn get_named_arg_with_user_errors<T: FromBytes>(
     bytesrepr::deserialize(arg_bytes).map_err(|_| invalid)
 }
 
+#[cfg(feature = "contract-support")]
 pub fn get_optional_named_arg_with_user_errors<T: FromBytes>(
     name: &str,
     invalid: Cep85Error,
@@ -107,6 +113,7 @@ pub fn get_optional_named_arg_with_user_errors<T: FromBytes>(
     }
 }
 
+#[cfg(feature = "contract-support")]
 pub fn get_stored_value_with_user_errors<T: CLTyped + FromBytes>(
     name: &str,
     missing: Cep85Error,
@@ -116,6 +123,7 @@ pub fn get_stored_value_with_user_errors<T: CLTyped + FromBytes>(
     read_with_user_errors(uref, missing, invalid)
 }
 
+#[cfg(feature = "contract-support")]
 pub fn stringify_key<T: CLTyped>(key: Key) -> String {
     match key {
         Key::Account(account_hash) => account_hash.to_string(),
@@ -124,6 +132,7 @@ pub fn stringify_key<T: CLTyped>(key: Key) -> String {
     }
 }
 
+#[cfg(feature = "contract-support")]
 pub fn make_dictionary_item_key<T: CLTyped + ToBytes, V: CLTyped + ToBytes>(
     key: &T,
     value: &V,
@@ -137,6 +146,7 @@ pub fn make_dictionary_item_key<T: CLTyped + ToBytes, V: CLTyped + ToBytes>(
     hex::encode(bytes)
 }
 
+#[cfg(feature = "contract-support")]
 pub fn get_dictionary_value_from_key<T: CLTyped + FromBytes>(
     dictionary_name: &str,
     key: &str,
@@ -153,6 +163,7 @@ pub fn get_dictionary_value_from_key<T: CLTyped + FromBytes>(
     }
 }
 
+#[cfg(feature = "contract-support")]
 pub fn set_dictionary_value_for_key<T: CLTyped + ToBytes + Copy>(
     dictionary_name: &str,
     key: &str,
@@ -166,6 +177,7 @@ pub fn set_dictionary_value_for_key<T: CLTyped + ToBytes + Copy>(
     storage::dictionary_put::<T>(seed_uref, key, *value)
 }
 
+#[cfg(feature = "contract-support")]
 pub fn get_transfer_filter_contract() -> Option<ContractHash> {
     get_stored_value_with_user_errors(
         ARG_TRANSFER_FILTER_CONTRACT,
@@ -174,6 +186,7 @@ pub fn get_transfer_filter_contract() -> Option<ContractHash> {
     )
 }
 
+#[cfg(feature = "contract-support")]
 pub fn get_transfer_filter_method() -> Option<String> {
     get_stored_value_with_user_errors(
         ARG_TRANSFER_FILTER_METHOD,
@@ -186,6 +199,7 @@ pub fn replace_token_id_in_uri(raw_uri: &str, id: &U256) -> String {
     raw_uri.replace("{id}", &format!("{}", id))
 }
 
+#[cfg(feature = "contract-support")]
 fn get_uref(name: &str) -> URef {
     let key = runtime::get_key(name)
         .ok_or(ApiError::MissingKey)
@@ -193,12 +207,14 @@ fn get_uref(name: &str) -> URef {
     key.try_into().unwrap_or_revert()
 }
 
+#[cfg(feature = "contract-support")]
 fn get_uref_with_user_errors(name: &str, missing: Cep85Error, invalid: Cep85Error) -> URef {
     let key = get_key_with_user_errors(name, missing, invalid);
     key.into_uref()
         .unwrap_or_revert_with(Cep85Error::UnexpectedKeyVariant)
 }
 
+#[cfg(feature = "contract-support")]
 fn get_key_with_user_errors(name: &str, missing: Cep85Error, invalid: Cep85Error) -> Key {
     let (name_ptr, name_size, _bytes) = to_ptr(name);
     let mut key_bytes = vec![0u8; Key::max_serialized_length()];
@@ -222,6 +238,7 @@ fn get_key_with_user_errors(name: &str, missing: Cep85Error, invalid: Cep85Error
     bytesrepr::deserialize(key_bytes).unwrap_or_revert_with(invalid)
 }
 
+#[cfg(feature = "contract-support")]
 fn read_with_user_errors<T: CLTyped + FromBytes>(
     uref: URef,
     missing: Cep85Error,
@@ -245,6 +262,7 @@ fn read_with_user_errors<T: CLTyped + FromBytes>(
     bytesrepr::deserialize(value_bytes).unwrap_or_revert_with(invalid)
 }
 
+#[cfg(feature = "contract-support")]
 fn read_host_buffer(size: usize) -> Result<Vec<u8>, ApiError> {
     let mut dest: Vec<u8> = if size == 0 {
         Vec::new()
@@ -256,6 +274,7 @@ fn read_host_buffer(size: usize) -> Result<Vec<u8>, ApiError> {
     Ok(dest)
 }
 
+#[cfg(feature = "contract-support")]
 fn read_host_buffer_into(dest: &mut [u8]) -> Result<usize, ApiError> {
     let mut bytes_written = MaybeUninit::uninit();
     let ret = unsafe {
@@ -268,6 +287,7 @@ fn read_host_buffer_into(dest: &mut [u8]) -> Result<usize, ApiError> {
     Ok(unsafe { bytes_written.assume_init() })
 }
 
+#[cfg(feature = "contract-support")]
 fn to_ptr<T: ToBytes>(t: T) -> (*const u8, usize, Vec<u8>) {
     let bytes = t.into_bytes().unwrap_or_revert();
     let ptr = bytes.as_ptr();
@@ -275,6 +295,7 @@ fn to_ptr<T: ToBytes>(t: T) -> (*const u8, usize, Vec<u8>) {
     (ptr, size, bytes)
 }
 
+#[cfg(feature = "contract-support")]
 fn get_named_arg_size(name: &str) -> Option<usize> {
     let mut arg_size: usize = 0;
     let ret = unsafe {
