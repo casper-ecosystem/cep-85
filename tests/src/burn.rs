@@ -300,7 +300,7 @@ fn should_not_burn_above_balance_with_custom_supply() {
     let owner: Key = minting_recipient;
 
     // burn_amount > mint_amount, request should fail
-    let burn_amount = U256::from(12);
+    let burn_amount = U256::from(15);
 
     let failing_burn_call = cep85_burn(
         &mut builder,
