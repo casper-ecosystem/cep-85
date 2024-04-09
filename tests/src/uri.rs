@@ -214,7 +214,7 @@ fn should_fail_to_get_uri_for_non_existing_id() {
 }
 
 #[test]
-fn should_not_set_emppty_global_uri() {
+fn should_not_set_empty_global_uri() {
     let (
         mut builder,
         TestContext {
