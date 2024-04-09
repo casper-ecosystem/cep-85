@@ -622,7 +622,10 @@ pub extern "C" fn burn() {
     .unwrap_or_revert();
 
     let owner_balance = read_balance_from(&owner, &id);
-    let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_default();
+    let new_owner_balance = owner_balance
+        .checked_sub(amount)
+        .unwrap_or_revert_with(Cep85Error::OverflowBurn);
+
     let new_supply = {
         let supply = read_supply_of(&id);
         supply
@@ -823,9 +826,11 @@ pub extern "C" fn uri() {
             Cep85Error::InvalidUri,
         ),
     };
+
     if uri.is_empty() {
         revert(Cep85Error::MissingUri);
     }
+
     runtime::ret(CLValue::from_t(uri).unwrap_or_revert());
 }
 
@@ -838,10 +843,15 @@ pub extern "C" fn set_uri() {
     let uri: String =
         get_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
             .unwrap_or_revert();
+
+    if uri.is_empty() {
+        revert(Cep85Error::MissingUri);
+    }
+
     match id {
         Some(id) => write_uri_of(&id, &uri),
         None => put_key(ARG_URI, storage::new_uref(uri.to_owned()).into()),
-    }
+    };
     record_event_dictionary(Event::Uri(Uri {
         id: None,
         value: uri,

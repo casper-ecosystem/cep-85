@@ -336,7 +336,7 @@ fn should_test_security_burner_rights() {
     assert_expected_error(
         error,
         Cep85Error::InsufficientRights as u16,
-        "should not allow to mint for non default admin account",
+        "should not allow to burn for non burner account",
     );
 
     // account_user_1 is in burner list, request should succeed
@@ -352,7 +352,7 @@ fn should_test_security_burner_rights() {
     );
     burn_call.expect_success().commit();
 
-    // default address is in admin list, request should succeed
+    // default address is in admin list but not funded
     let burning_account = minting_account;
     let owner: Key = burning_account.into();
 
@@ -364,7 +364,16 @@ fn should_test_security_burner_rights() {
         &id,
         &burn_amount,
     );
-    burn_call.expect_success().commit();
+
+    burn_call.expect_failure();
+
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::OverflowBurn as u16,
+        "should not allow to mint above balance for non funded admin account",
+    );
 }
 
 #[test]

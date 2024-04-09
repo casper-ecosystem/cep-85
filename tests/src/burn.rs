@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::utility::{
-    constants::ACCOUNT_USER_1,
+    constants::{ACCOUNT_USER_1, ACCOUNT_USER_2},
     installer_request_builders::{
         cep85_batch_burn, cep85_batch_mint, cep85_burn, cep85_change_security,
         cep85_check_balance_of, cep85_check_balance_of_batch, cep85_check_is_approved,
@@ -162,7 +162,7 @@ fn should_batch_burn_by_owner() {
 }
 
 #[test]
-fn should_not_burn_above_balance() {
+fn should_not_burn_above_balance_with_default_supply() {
     let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
     let account_user_1 = public_key_account_user_1.to_account_hash();
     let mut test_accounts = HashMap::new();
@@ -202,6 +202,105 @@ fn should_not_burn_above_balance() {
 
     // burn_amount > mint_amount, request should fail
     let burn_amount = U256::from(2);
+
+    let failing_burn_call = cep85_burn(
+        &mut builder,
+        &cep85_token,
+        &burning_account,
+        &owner,
+        &id,
+        &burn_amount,
+    );
+    failing_burn_call.expect_failure();
+
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::OverflowBurn as u16,
+        "owner can only burn its token balance",
+    );
+
+    let burn_amount = U256::one();
+
+    let burn_call = cep85_burn(
+        &mut builder,
+        &cep85_token,
+        &burning_account,
+        &owner,
+        &id,
+        &burn_amount,
+    );
+    burn_call.expect_success().commit();
+}
+
+#[test]
+fn should_not_burn_above_balance_with_custom_supply() {
+    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
+    let account_user_1 = public_key_account_user_1.to_account_hash();
+    let (_, public_key_account_user_2) = create_dummy_key_pair(ACCOUNT_USER_2);
+    let account_user_2 = public_key_account_user_2.to_account_hash();
+    let mut test_accounts = HashMap::new();
+    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+
+    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
+        runtime_args! {
+            ARG_ENABLE_BURN => true,
+            BURNER_LIST => vec![Key::from(account_user_1)]
+        },
+        Some(test_accounts),
+    );
+
+    // account_user_1 was created before genesis and is not yet funded so fund it
+    fund_account(&mut builder, account_user_1);
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let minting_recipient: Key = Key::from(account_user_1);
+    let mint_amount = U256::from(10);
+    let id = U256::one();
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+        None,
+    );
+
+    mint_call.expect_success().commit();
+
+    let total_supply = U256::from(20);
+
+    let set_total_supply_of_call = cep85_set_total_supply_of(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &id,
+        &total_supply,
+    );
+
+    set_total_supply_of_call.expect_success().commit();
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &Key::from(account_user_2),
+        &id,
+        &mint_amount,
+        None,
+    );
+
+    mint_call.expect_success().commit();
+
+    let burning_account = account_user_1;
+    // owner is now last recipient account_user_1
+    let owner: Key = minting_recipient;
+
+    // burn_amount > mint_amount, request should fail
+    let burn_amount = U256::from(12);
 
     let failing_burn_call = cep85_burn(
         &mut builder,
