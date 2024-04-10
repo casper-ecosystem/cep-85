@@ -52,7 +52,7 @@ The following are the optional parameters that can be passed in during installat
 
 - `"events_mode"`: The [`EventsMode`](#eventsmode) modality that selects the event schema used to record any changes that occur to tokens issued by the contract instance. This argument is passed in as a `u8` value.
 - `"enable_burn"`: The [`EnableBurn`](#enableburn) modality dictates whether the contract instance will allow approved entities to burn tokens permanently. This argument is passed in as a `bool` value.
-- `"transfer_filter_contract"`: This argument dictates a secondary contract instance that will serve as a transfer filter for the installing instance of CEP-85. Passing an argument with a value of type `Key` will enable this feature.
+- `"transfer_filter_contract"`: This argument dictates a secondary contract instance (for example CEP-82) that will serve as a transfer filter for the installing instance of CEP-85. Passing an argument with a value of type `Key` will enable this feature. See example of implementation of installing a [transfer_filter_contract](./client-js/TUTORIAL.md#installing-a-cep-85-instance-using-the-javascript-client).
 - `"transfer_filter_method"`: This argument outlines the name of the entrypoint on the transfer filter contract that is used to process the filter. It is passed as a `String`.
 
 In addition, the following arguments may be passed to establish their associated user lists.
@@ -116,7 +116,7 @@ For this CEP-85 reference implementation, the events schema is as follows:
 
 #### Transfer Filter Hook
 
-If enabled, the transfer filter modality specifies a contract package hash pointing to a contract that will be called when the `transfer_from` or `batch_transfer_from` methods are invoked on the contract. CEP-85 will call the transfer filter method on the specified callback contract, which is expected to return a value of `TransferFilterContractResult`, represented as a u8.
+If enabled, the transfer filter modality specifies a contract package hash pointing to a contract that will be called when the `transfer_from` or `batch_transfer_from` methods are invoked on the contract. CEP-85 will call the transfer filter method on the specified callback contract (for instance CEP-82), which is expected to return a value of `TransferFilterContractResult`, represented as a u8.
 
 - `TransferFilterContractResult::DenyTransfer` will block the transfer regardless of the outcome of other checks
 - `TransferFilterContractResult::ProceedTransfer` will allow the transfer to proceed if other checks also pass

@@ -2,7 +2,7 @@
 
 This package was created to help JavaScript/TypeScript users with the [cep-85](https://github.com/casper-ecosystem/cep-85) contract and is published in `npm` as the [casper-cep85-js-client](https://www.npmjs.com/package/casper-cep85-js-client). It was built on top of the [casper-js-sdk](https://github.com/casper-ecosystem/casper-js-sdk).
 
-`CEP85Client` is a TypeScript class that provides a high-level interface for interacting with a Casper blockchain smart contract implementing the CEP-85 standard. The standard defines methods for managing fungible and non-fungible tokens and setting various parameters for token contracts.
+`CEP85Client` is a TypeScript class that provides a high-level interface for interacting with a Casper blockchain smart contract implementing the CEP-85 standard. The standard defines methods for managing fungible and non-fungible tokens (NFTs) and setting various parameters for token contracts. The distinguishing factor between NFTs and fungible tokens lies in their uniqueness and divisibility. NFTs represent unique assets with a total supply of 1, while fungible tokens are interchangeable, for instance in a game.
 
 This JavaScript client gives you an easy way to install and interact with the Casper CEP-85 contract.
 Users can treat this package as a deploy builder for all of these possible interactions:
@@ -37,7 +37,7 @@ Users can treat this package as a deploy builder for all of these possible inter
 
 Run the following command to copy the CEP-85 contract Wasm file to the `/wasm/` folder:
 
-  `npm run wasms:convert`
+`npm run wasms:convert`
 
 ## Examples
 

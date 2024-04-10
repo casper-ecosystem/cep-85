@@ -1047,6 +1047,12 @@ fn install_contract() {
         Cep85Error::InvalidTransferFilterMethod,
     );
 
+    if let Some(_contract_key) = transfer_filter_contract_key {
+        if transfer_filter_method.is_none() || transfer_filter_method.as_ref().unwrap().is_empty() {
+            revert(Cep85Error::InvalidTransferFilterMethod);
+        }
+    }
+
     let mut named_keys = NamedKeys::new();
     named_keys.insert(ARG_NAME.to_string(), storage::new_uref(name.clone()).into());
     named_keys.insert(ARG_URI.to_string(), storage::new_uref(uri).into());
