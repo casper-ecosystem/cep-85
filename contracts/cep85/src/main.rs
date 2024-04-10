@@ -495,9 +495,12 @@ pub extern "C" fn mint() {
         amount,
     }));
 
+    // Uri placeholder is now set so read it before emitting
+    let uri: String = read_uri_of(&id);
+
     record_event_dictionary(Event::Uri(Uri {
-        value: uri,
         id: Some(id),
+        value: uri,
     }))
 }
 
@@ -566,6 +569,9 @@ pub extern "C" fn batch_mint() {
             recipient,
             amount,
         }));
+
+        // Uri placeholder is now set so read it before emitting
+        let uri: String = read_uri_of(&id);
 
         record_event_dictionary(Event::Uri(Uri {
             id: Some(id),
@@ -849,10 +855,22 @@ pub extern "C" fn set_uri() {
     }
 
     match id {
-        Some(id) => write_uri_of(&id, &uri),
-        None => put_key(ARG_URI, storage::new_uref(uri.to_owned()).into()),
+        Some(id) => {
+            write_uri_of(&id, &uri);
+            let uri_value = read_uri_of(&id);
+            record_event_dictionary(Event::Uri(Uri {
+                id: Some(id),
+                value: uri_value,
+            }));
+        }
+        None => {
+            put_key(ARG_URI, storage::new_uref(uri.clone()).into());
+            record_event_dictionary(Event::Uri(Uri {
+                id: None,
+                value: uri,
+            }));
+        }
     };
-    record_event_dictionary(Event::Uri(Uri { id, value: uri }));
 }
 
 #[no_mangle]
