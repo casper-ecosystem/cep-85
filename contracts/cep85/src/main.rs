@@ -852,10 +852,7 @@ pub extern "C" fn set_uri() {
         Some(id) => write_uri_of(&id, &uri),
         None => put_key(ARG_URI, storage::new_uref(uri.to_owned()).into()),
     };
-    record_event_dictionary(Event::Uri(Uri {
-        id: None,
-        value: uri,
-    }));
+    record_event_dictionary(Event::Uri(Uri { id, value: uri }));
 }
 
 #[no_mangle]
