@@ -424,7 +424,7 @@ pub extern "C" fn batch_transfer_from() {
 
     before_token_transfer(&caller, &from, &to, &ids, &amounts, data);
 
-    let _ = batch_transfer_balance(&from, &to, &ids, &amounts);
+    batch_transfer_balance(&from, &to, &ids, &amounts);
 
     record_event_dictionary(Event::TransferBatch(TransferBatch {
         operator: caller,
