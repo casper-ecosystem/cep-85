@@ -36,12 +36,7 @@ pub fn read_balance_from(account: &Key, id: &U256) -> U256 {
 ///
 /// This function should not be used directly by contract's entrypoint as it does not validate
 // the sender.
-pub fn transfer_balance(
-    sender: &Key,
-    recipient: &Key,
-    id: &U256,
-    amount: &U256,
-) -> Result<(), Cep85Error> {
+pub fn transfer_balance(sender: &Key, recipient: &Key, id: &U256, amount: &U256) {
     if amount.is_zero() {
         runtime::revert(Cep85Error::InvalidAmount);
     }
@@ -78,19 +73,12 @@ pub fn transfer_balance(
 
     write_balance_to(sender, id, &new_sender_balance);
     write_balance_to(recipient, id, &new_recipient_balance);
-
-    Ok(())
 }
 
 /// Transfer multiple tokens from the `sender` to the `recipient`.
 ///
 /// This function performs the batch transfer logic by calling `transfer_balance` for each token.
-pub fn batch_transfer_balance(
-    sender: &Key,
-    recipient: &Key,
-    ids: &Vec<U256>,
-    amounts: &Vec<U256>,
-) -> Result<(), Cep85Error> {
+pub fn batch_transfer_balance(sender: &Key, recipient: &Key, ids: &Vec<U256>, amounts: &Vec<U256>) {
     if sender == recipient {
         runtime::revert(Cep85Error::SelfTransfer);
     }
@@ -105,12 +93,9 @@ pub fn batch_transfer_balance(
                 continue;
             }
 
-            transfer_balance(sender, recipient, &id, &amount)
-                .unwrap_or_revert_with(Cep85Error::FailToTransferBalance);
+            transfer_balance(sender, recipient, &id, &amount);
         } else {
             runtime::revert(Cep85Error::MismatchParamsLength);
         }
     }
-
-    Ok(())
 }

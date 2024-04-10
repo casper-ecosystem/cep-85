@@ -18,11 +18,14 @@ export type CEP85EventWithDeployInfo = WithDeployInfo<CEP85Event>;
 
 export type CEP85Event = Event<
   | Mint
+  | MintBatch
   | Burn
+  | BurnBatch
   | ApprovalForAll
-  | TransferSingle
+  | Transfer
   | TransferBatch
   | Uri
+  | UriBatch
   | SetTotalSupply
   | ChangeSecurity
   | SetModalities
@@ -31,11 +34,14 @@ export type CEP85Event = Event<
 
 export type EventsMap = {
   Mint: Event<Mint>;
+  MintBatch: Event<MintBatch>;
   Burn: Event<Burn>;
+  BurnBatch: Event<BurnBatch>;
   ApprovalForAll: Event<ApprovalForAll>;
-  TransferSingle: Event<TransferSingle>;
+  Transfer: Event<Transfer>;
   TransferBatch: Event<TransferBatch>;
   Uri: Event<Uri>;
+  UriBatch: Event<UriBatch>;
   SetTotalSupply: Event<SetTotalSupply>;
   ChangeSecurity: Event<ChangeSecurity>;
   SetModalities: Event<SetModalities>;
@@ -48,10 +54,22 @@ export type Mint = {
   amount: CLU256;
 };
 
+export type MintBatch = {
+  ids: CLList<CLU256>;
+  recipient: CLKey;
+  amounts: CLList<CLU256>;
+};
+
 export type Burn = {
   id: CLU256;
   owner: CLKey;
   amount: CLU256;
+};
+
+export type BurnBatch = {
+  ids: CLList<CLU256>;
+  owner: CLKey;
+  amounts: CLList<CLU256>;
 };
 
 export type ApprovalForAll = {
@@ -60,7 +78,7 @@ export type ApprovalForAll = {
   approved: CLBool,
 };
 
-export type TransferSingle = {
+export type Transfer = {
   operator: CLKey,
   from: CLKey,
   to: CLKey,
@@ -79,6 +97,11 @@ export type TransferBatch = {
 export type Uri = {
   value: CLString,
   id: CLOption<CLU256>,
+};
+
+export type UriBatch = {
+  value: CLString,
+  ids: CLList<CLU256>,
 };
 
 export type SetTotalSupply = {
