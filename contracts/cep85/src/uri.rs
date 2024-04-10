@@ -8,10 +8,9 @@ use crate::{
     utils::{get_dictionary_value_from_key, replace_token_id_in_uri, set_dictionary_value_for_key},
 };
 
-pub fn write_uri_of(id: &U256, raw_uri: &str) -> String {
+pub fn write_uri_of(id: &U256, raw_uri: &str) {
     let uri = replace_token_id_in_uri(raw_uri, id);
     set_dictionary_value_for_key(DICT_TOKEN_URI, &id.to_string(), &uri.deref());
-    uri
 }
 
 pub fn read_uri_of(id: &U256) -> String {

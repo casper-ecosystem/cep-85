@@ -15,7 +15,6 @@ use cep85::{
         SetTotalSupply, Transfer, TransferBatch, Upgrade, Uri, UriBatch,
     },
     modalities::EventsMode,
-    utils::replace_token_id_in_uri,
 };
 
 #[test]
@@ -123,7 +122,7 @@ fn should_record_events_in_events_mode() {
     assert_eq!(actual_event, expected_event, "Expected Mint event.");
 
     // Expect Uri event
-    let expected_event = Uri::new(replace_token_id_in_uri(TOKEN_URI, &id), Some(id));
+    let expected_event = Uri::new(TOKEN_URI.to_string(), Some(id));
     let actual_event: Uri = get_event(&builder, &cep85_token.into(), 1);
     assert_eq!(actual_event, expected_event, "Expected Uri event.");
 }

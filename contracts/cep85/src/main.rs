@@ -486,8 +486,7 @@ pub extern "C" fn mint() {
         mint_uri
     };
 
-    // Replace uri placeholder and store value
-    let clean_uri = write_uri_of(&id, &uri);
+    write_uri_of(&id, &uri);
 
     record_event_dictionary(Event::Mint(Mint {
         id,
@@ -497,7 +496,7 @@ pub extern "C" fn mint() {
 
     record_event_dictionary(Event::Uri(Uri {
         id: Some(id),
-        value: clean_uri,
+        value: uri,
     }))
 }
 
@@ -559,20 +558,7 @@ pub extern "C" fn batch_mint() {
 
         write_supply_of(&id, &new_supply);
         write_balance_to(&recipient, &id, &new_recipient_balance);
-
-        // Replace uri placeholder and store value
-        let clean_uri = write_uri_of(&id, &uri);
-
-        record_event_dictionary(Event::Mint(Mint {
-            id,
-            recipient,
-            amount,
-        }));
-
-        record_event_dictionary(Event::Uri(Uri {
-            id: Some(id),
-            value: clean_uri.to_string(),
-        }));
+        write_uri_of(&id, &uri);
     }
 
     record_event_dictionary(Event::MintBatch(MintBatch {
@@ -866,11 +852,10 @@ pub extern "C" fn set_uri() {
 
     match id {
         Some(id) => {
-            // Replace uri placeholder and store value
-            let clean_uri = write_uri_of(&id, &uri);
+            write_uri_of(&id, &uri);
             record_event_dictionary(Event::Uri(Uri {
                 id: Some(id),
-                value: clean_uri,
+                value: uri,
             }));
         }
         None => {

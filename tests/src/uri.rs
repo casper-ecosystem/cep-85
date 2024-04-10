@@ -345,7 +345,7 @@ fn should_set_uri_and_emit_event() {
     assert_eq!(actual_uri, expected_uri);
 
     // Expect Uri event
-    let expected_event = Uri::new(expected_uri, Some(id));
+    let expected_event = Uri::new(TOKEN_URI_TEST.to_string(), Some(id));
     // Expect event at index 3 (Mint + Uri + Uri + Uri )
     let event_index = 3;
     let actual_event: Uri = get_event(&builder, &cep85_token.into(), event_index);
