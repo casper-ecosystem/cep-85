@@ -698,7 +698,9 @@ pub extern "C" fn batch_burn() {
     for (i, &id) in ids.iter().enumerate() {
         let amount = amounts[i];
         let owner_balance = read_balance_from(&owner, &id);
-        let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_default();
+        let new_owner_balance = owner_balance
+            .checked_sub(amount)
+            .unwrap_or_revert_with(Cep85Error::OverflowBurn);
 
         let new_supply = {
             let supply = read_supply_of(&id);

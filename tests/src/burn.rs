@@ -334,7 +334,7 @@ fn should_not_burn_above_balance_with_custom_supply() {
 }
 
 #[test]
-fn should_not_batch_burn_above_balance() {
+fn should_not_batch_burn_above_balance_with_default_supply() {
     let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
     let account_user_1 = public_key_account_user_1.to_account_hash();
     let mut test_accounts = HashMap::new();
@@ -374,6 +374,93 @@ fn should_not_batch_burn_above_balance() {
 
     // burn_amount > mint_amount, request should fail
     let burn_amounts: Vec<U256> = vec![U256::from(2), U256::from(2)];
+
+    let failing_batch_burn_call = cep85_batch_burn(
+        &mut builder,
+        &cep85_token,
+        &burning_account,
+        &owner,
+        ids.clone(),
+        burn_amounts,
+    );
+
+    failing_batch_burn_call.expect_failure();
+
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::OverflowBatchBurn as u16,
+        "owner can only burn its token balance",
+    );
+
+    let burn_amounts: Vec<U256> = vec![U256::one(), U256::one()];
+
+    let batch_burn_call = cep85_batch_burn(
+        &mut builder,
+        &cep85_token,
+        &burning_account,
+        &owner,
+        ids,
+        burn_amounts,
+    );
+
+    batch_burn_call.expect_success().commit();
+}
+
+#[test]
+fn should_not_batch_burn_above_balance_with_custom_supply() {
+    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
+    let account_user_1 = public_key_account_user_1.to_account_hash();
+    let mut test_accounts = HashMap::new();
+    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+
+    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
+        runtime_args! {
+            ARG_ENABLE_BURN => true,
+            BURNER_LIST => vec![Key::from(account_user_1)]
+        },
+        Some(test_accounts),
+    );
+
+    // account_user_1 was created before genesis and is not yet funded so fund it
+    fund_account(&mut builder, account_user_1);
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let minting_recipient = Key::from(account_user_1);
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::one()];
+    let total_supplies: Vec<U256> = vec![U256::from(10), U256::from(20)];
+
+    // Set total supply to total supplies for the token to be minted
+    let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        ids.clone(),
+        total_supplies,
+    );
+
+    set_total_supply_of_batch_call.expect_success().commit();
+
+    // batch_mint is only one recipient
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        ids.clone(),
+        amounts,
+        None,
+    );
+
+    mint_call.expect_success().commit();
+
+    let burning_account = account_user_1;
+    let owner: Key = minting_recipient;
+
+    // burn_amount > mint_amount, request should fail
+    let burn_amounts: Vec<U256> = vec![U256::from(20), U256::from(30)];
 
     let failing_batch_burn_call = cep85_batch_burn(
         &mut builder,
