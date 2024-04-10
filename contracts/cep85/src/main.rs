@@ -45,8 +45,9 @@ use cep85::{
     entry_points::generate_entry_points,
     error::Cep85Error,
     events::{
-        init_events, record_event_dictionary, ApprovalForAll, Burn, ChangeSecurity, Event, Mint,
-        SetModalities, SetTotalSupply, TransferBatch, TransferSingle, Upgrade, Uri,
+        init_events, record_event_dictionary, ApprovalForAll, Burn, BurnBatch, ChangeSecurity,
+        Event, Mint, MintBatch, SetModalities, SetTotalSupply, Transfer, TransferBatch, Upgrade,
+        Uri, UriBatch,
     },
     modalities::{EventsMode, TransferFilterContractResult},
     operators::{read_operator, write_operator},
@@ -363,9 +364,8 @@ pub extern "C" fn transfer_from() {
 
     before_token_transfer(&caller, &from, &to, &[id], &[amount], data);
 
-    transfer_balance(&from, &to, &id, &amount)
-        .unwrap_or_revert_with(Cep85Error::FailToTransferBalance);
-    record_event_dictionary(Event::TransferSingle(TransferSingle {
+    transfer_balance(&from, &to, &id, &amount);
+    record_event_dictionary(Event::Transfer(Transfer {
         operator: caller,
         from,
         to,
@@ -424,8 +424,7 @@ pub extern "C" fn batch_transfer_from() {
 
     before_token_transfer(&caller, &from, &to, &ids, &amounts, data);
 
-    batch_transfer_balance(&from, &to, &ids, &amounts)
-        .unwrap_or_revert_with(Cep85Error::FailToBatchTransferBalance);
+    batch_transfer_balance(&from, &to, &ids, &amounts);
 
     record_event_dictionary(Event::TransferBatch(TransferBatch {
         operator: caller,
@@ -560,18 +559,15 @@ pub extern "C" fn batch_mint() {
         write_supply_of(&id, &new_supply);
         write_balance_to(&recipient, &id, &new_recipient_balance);
         write_uri_of(&id, &uri);
-
-        record_event_dictionary(Event::Mint(Mint {
-            id,
-            recipient,
-            amount,
-        }));
-
-        record_event_dictionary(Event::Uri(Uri {
-            id: Some(id),
-            value: uri.to_string(),
-        }));
     }
+
+    record_event_dictionary(Event::MintBatch(MintBatch {
+        ids: ids.clone(),
+        recipient,
+        amounts,
+    }));
+
+    record_event_dictionary(Event::UriBatch(UriBatch { value: uri, ids }));
 }
 
 #[no_mangle]
@@ -703,8 +699,12 @@ pub extern "C" fn batch_burn() {
 
         write_supply_of(&id, &new_supply);
         write_balance_to(&owner, &id, &new_owner_balance);
-        record_event_dictionary(Event::Burn(Burn { id, owner, amount }));
     }
+    record_event_dictionary(Event::BurnBatch(BurnBatch {
+        ids,
+        owner,
+        amounts,
+    }));
 }
 
 #[no_mangle]
@@ -1046,6 +1046,12 @@ fn install_contract() {
         ARG_TRANSFER_FILTER_METHOD,
         Cep85Error::InvalidTransferFilterMethod,
     );
+
+    if let Some(_contract_key) = transfer_filter_contract_key {
+        if transfer_filter_method.is_none() || transfer_filter_method.as_ref().unwrap().is_empty() {
+            revert(Cep85Error::InvalidTransferFilterMethod);
+        }
+    }
 
     let mut named_keys = NamedKeys::new();
     named_keys.insert(ARG_NAME.to_string(), storage::new_uref(name.clone()).into());
