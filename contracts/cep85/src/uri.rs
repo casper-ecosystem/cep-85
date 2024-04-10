@@ -1,9 +1,7 @@
-//! Implementation of allowances.
-use core::ops::Deref;
-
+//! Implementation of uri.
 use alloc::string::{String, ToString};
-use casper_contract::contract_api::runtime;
 use casper_types::U256;
+use core::ops::Deref;
 
 use crate::{
     constants::DICT_TOKEN_URI,
@@ -11,9 +9,7 @@ use crate::{
 };
 
 pub fn write_uri_of(id: &U256, raw_uri: &str) -> String {
-    runtime::print(&raw_uri);
     let uri = replace_token_id_in_uri(raw_uri, id);
-    runtime::print(&uri);
     set_dictionary_value_for_key(DICT_TOKEN_URI, &id.to_string(), &uri.deref());
     uri
 }
