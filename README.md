@@ -52,7 +52,7 @@ The following are the optional parameters that can be passed in during installat
 
 - `"events_mode"`: The [`EventsMode`](#eventsmode) modality that selects the event schema used to record any changes that occur to tokens issued by the contract instance. This argument is passed in as a `u8` value.
 - `"enable_burn"`: The [`EnableBurn`](#enableburn) modality dictates whether the contract instance will allow approved entities to burn tokens permanently. This argument is passed in as a `bool` value.
-- `"transfer_filter_contract"`: This argument dictates a secondary contract instance that will serve as a transfer filter for the installing instance of CEP-85. Passing an argument with a value of type `Key` will enable this feature.
+- `"transfer_filter_contract"`: This argument dictates a secondary contract instance (for example CEP-82) that will serve as a transfer filter for the installing instance of CEP-85. Passing an argument with a value of type `Key` will enable this feature. See example of implementation of installing a [transfer_filter_contract](./client-js/TUTORIAL.md#installing-a-cep-85-instance-using-the-javascript-client).
 - `"transfer_filter_method"`: This argument outlines the name of the entrypoint on the transfer filter contract that is used to process the filter. It is passed as a `String`.
 
 In addition, the following arguments may be passed to establish their associated user lists.
@@ -104,11 +104,14 @@ For this CEP-85 reference implementation, the events schema is as follows:
 | Event name     | Included values and type                                                  |
 | -------------- | ------------------------------------------------------------------------- |
 | Mint           | id (U256), recipient (Key), amount (U256)                                 |
+| MintBatch      | ids (Vec<U256>), recipient (Key), amounts (Vec<U256>)                     |
 | Burn           | id (U256), owner (Key), amount (U256)                                     |
+| BurnBatch      | ids (Vec<U256>), owner (Key), amounts (Vec<U256>)                         |
 | ApprovalForAll | owner (Key), operator (Key), approved (bool)                              |
-| TransferSingle | operator (Key), from (Key), to (Key), id (U256), value (U256)             |
+| Transfer       | operator (Key), from (Key), to (Key), id (U256), value (U256)             |
 | TransferBatch  | operator (Key), from (Key), to (Key), ids (Vec<U256>), values (Vec<U256>) |
-| Uri            | value (String), id (Option<U256>)                                         |
+| Uri            | value (String), id (U256)                                                 |
+| UriBatch       | value (String), ids (Vec<U256>)                                           |
 | SetTotalSupply | id (U256), total_supply (U256)                                            |
 | ChangeSecurity | admin (Key), sec_change_map (BTreeMap<Key, SecurityBadge>)                |
 | SetModalities  |                                                                           |
@@ -116,7 +119,7 @@ For this CEP-85 reference implementation, the events schema is as follows:
 
 #### Transfer Filter Hook
 
-If enabled, the transfer filter modality specifies a contract package hash pointing to a contract that will be called when the `safe_transfer_from` or `safe_batch_transfer_from` methods are invoked on the contract. CEP-85 will call the transfer filter method on the specified callback contract, which is expected to return a value of `TransferFilterContractResult`, represented as a u8.
+If enabled, the transfer filter modality specifies a contract package hash pointing to a contract that will be called when the `transfer_from` or `batch_transfer_from` methods are invoked on the contract. CEP-85 will call the transfer filter method on the specified callback contract (for instance CEP-82), which is expected to return a value of `TransferFilterContractResult`, represented as a u8.
 
 - `TransferFilterContractResult::DenyTransfer` will block the transfer regardless of the outcome of other checks
 - `TransferFilterContractResult::ProceedTransfer` will allow the transfer to proceed if other checks also pass
@@ -164,77 +167,76 @@ The expected behavior of the multi-token contract implementation is asserted by 
 | 5    | FailedToCreateArg             |
 | 6    | FailedToCreateDictionary      |
 | 7    | FailedToGetArgBytes           |
-| 8    | FailToBatchTransferBalance    |
-| 9    | FailToTransferBalance         |
-| 10   | InsufficientBalance           |
-| 11   | InsufficientRights            |
-| 12   | InvalidAccount                |
-| 13   | InvalidAccounts               |
-| 14   | InvalidAdminList              |
-| 15   | InvalidAmount                 |
-| 16   | InvalidAmounts                |
-| 17   | InvalidBurnTarget             |
-| 18   | InvalidBurnerList             |
-| 19   | InvalidCollectionName         |
-| 20   | InvalidContractHash           |
-| 21   | InvalidData                   |
-| 22   | InvalidEnableBurnFlag         |
-| 23   | InvalidEventsMode             |
-| 24   | InvalidFrom                   |
-| 25   | InvalidId                     |
-| 26   | InvalidIds                    |
-| 27   | InvalidKey                    |
-| 28   | InvalidMetaList               |
-| 29   | InvalidMinterList             |
-| 30   | InvalidNoneList               |
-| 31   | InvalidOperator               |
-| 32   | InvalidOwner                  |
-| 33   | InvalidPackageHash            |
-| 34   | InvalidRecipient              |
-| 35   | InvalidStorageUref            |
-| 36   | InvalidTo                     |
-| 37   | InvalidTotalSupply            |
-| 38   | InvalidTotalSupplies          |
-| 39   | InvalidTransferFilterContract |
-| 40   | InvalidTransferFilterMethod   |
-| 41   | InvalidUri                    |
-| 42   | MissingAccount                |
-| 43   | MissingAccounts               |
-| 44   | MissingAmount                 |
-| 45   | MissingAmounts                |
-| 46   | MissingCollectionName         |
-| 47   | MissingContractHash           |
-| 48   | MissingEnableMBFlag           |
-| 49   | MissingEventsMode             |
-| 50   | MissingFrom                   |
-| 51   | MissingId                     |
-| 52   | MissingIds                    |
-| 53   | MissingOperator               |
-| 54   | MissingOwner                  |
-| 55   | MissingPackageHash            |
-| 56   | MissingRecipient              |
-| 57   | MissingStorageUref            |
-| 58   | MissingTo                     |
-| 59   | MissingTotalSupply            |
-| 60   | MissingTotalSupplies          |
-| 61   | MissingTransferFilterContract |
-| 62   | MissingTransferFilterMethod   |
-| 63   | MissingUri                    |
-| 64   | MismatchParamsLength          |
-| 65   | NotApproved                   |
-| 66   | Overflow                      |
-| 67   | OverflowBatchBurn             |
-| 68   | OverflowBatchMint             |
-| 69   | OverflowBurn                  |
-| 70   | OverflowMint                  |
-| 71   | Phantom                       |
-| 72   | SelfOperatorApproval          |
-| 73   | SelfTransfer                  |
-| 74   | TokenSupplyDepleted           |
-| 75   | TransferFilterContractDenied  |
-| 76   | UnexpectedKeyVariant          |
-| 77   | InvalidUpgradeFlag            |
-| 78   | MissingKey                    |
-| 79   | InvalidKeyName                |
-| 80   | InvalidValue                  |
-| 81   | MissingValue                  |
+| 8    | FailToTransferBalance         |
+| 9    | InsufficientBalance           |
+| 10   | InsufficientRights            |
+| 11   | InvalidAccount                |
+| 12   | InvalidAccounts               |
+| 13   | InvalidAdminList              |
+| 14   | InvalidAmount                 |
+| 15   | InvalidAmounts                |
+| 16   | InvalidBurnTarget             |
+| 17   | InvalidBurnerList             |
+| 18   | InvalidCollectionName         |
+| 19   | InvalidContractHash           |
+| 20   | InvalidData                   |
+| 21   | InvalidEnableBurnFlag         |
+| 22   | InvalidEventsMode             |
+| 23   | InvalidFrom                   |
+| 24   | InvalidId                     |
+| 25   | InvalidIds                    |
+| 26   | InvalidKey                    |
+| 27   | InvalidMetaList               |
+| 28   | InvalidMinterList             |
+| 29   | InvalidNoneList               |
+| 30   | InvalidOperator               |
+| 31   | InvalidOwner                  |
+| 32   | InvalidPackageHash            |
+| 33   | InvalidRecipient              |
+| 34   | InvalidStorageUref            |
+| 35   | InvalidTo                     |
+| 36   | InvalidTotalSupply            |
+| 37   | InvalidTotalSupplies          |
+| 38   | InvalidTransferFilterContract |
+| 39   | InvalidTransferFilterMethod   |
+| 40   | InvalidUri                    |
+| 41   | MissingAccount                |
+| 42   | MissingAccounts               |
+| 43   | MissingAmount                 |
+| 44   | MissingAmounts                |
+| 45   | MissingCollectionName         |
+| 46   | MissingContractHash           |
+| 47   | MissingEnableMBFlag           |
+| 48   | MissingEventsMode             |
+| 49   | MissingFrom                   |
+| 50   | MissingId                     |
+| 51   | MissingIds                    |
+| 52   | MissingOperator               |
+| 53   | MissingOwner                  |
+| 54   | MissingPackageHash            |
+| 55   | MissingRecipient              |
+| 56   | MissingStorageUref            |
+| 57   | MissingTo                     |
+| 58   | MissingTotalSupply            |
+| 59   | MissingTotalSupplies          |
+| 60   | MissingTransferFilterContract |
+| 61   | MissingTransferFilterMethod   |
+| 62   | MissingUri                    |
+| 63   | MismatchParamsLength          |
+| 64   | NotApproved                   |
+| 65   | Overflow                      |
+| 66   | OverflowBatchBurn             |
+| 67   | OverflowBatchMint             |
+| 68   | OverflowBurn                  |
+| 69   | OverflowMint                  |
+| 70   | Phantom                       |
+| 71   | SelfOperatorApproval          |
+| 72   | SelfTransfer                  |
+| 73   | TokenSupplyDepleted           |
+| 74   | TransferFilterContractDenied  |
+| 75   | UnexpectedKeyVariant          |
+| 76   | InvalidUpgradeFlag            |
+| 77   | MissingKey                    |
+| 78   | InvalidKeyName                |
+| 79   | InvalidValue                  |
+| 80   | MissingValue                  |

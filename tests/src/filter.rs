@@ -11,7 +11,7 @@ use casper_types::{
 use cep85::{
     constants::{
         ARG_DATA, ARG_FROM, ARG_NAME, ARG_TOKEN_CONTRACT, ARG_TRANSFER_FILTER_CONTRACT,
-        ARG_TRANSFER_FILTER_METHOD, ARG_URI, ENTRY_POINT_INIT, ENTRY_POINT_SAFE_TRANSFER_FROM,
+        ARG_TRANSFER_FILTER_METHOD, ARG_URI, ENTRY_POINT_INIT, ENTRY_POINT_TRANSFER_FROM,
     },
     error::Cep85Error,
     modalities::TransferFilterContractResult,
@@ -271,7 +271,7 @@ fn check_transfers_with_transfer_filter_contract() {
     let failing_transfer_request = ExecuteRequestBuilder::contract_call_by_hash(
         *DEFAULT_ACCOUNT_ADDR,
         cep85_token,
-        ENTRY_POINT_SAFE_TRANSFER_FROM,
+        ENTRY_POINT_TRANSFER_FROM,
         runtime_args! {
             ARG_FROM => to,
             ARG_TO => from,
@@ -309,4 +309,78 @@ fn check_transfers_with_transfer_filter_contract() {
         None,
     );
     transfer_call.expect_success().commit();
+}
+
+#[test]
+fn should_revert_with_invalid_filter_contract_method() {
+    let mut builder = InMemoryWasmTestBuilder::default();
+    builder.run_genesis(&PRODUCTION_RUN_GENESIS_REQUEST);
+
+    let install_request_contract_test = ExecuteRequestBuilder::standard(
+        *DEFAULT_ACCOUNT_ADDR,
+        CEP85_TEST_CONTRACT_WASM,
+        runtime_args! {
+            ARG_TOKEN_CONTRACT => Key::from(ContractHash::from([0u8; 32])),
+        },
+    )
+    .build();
+
+    builder
+        .exec(install_request_contract_test)
+        .expect_success()
+        .commit();
+
+    let account = builder
+        .get_account(*DEFAULT_ACCOUNT_ADDR)
+        .expect("should have account");
+
+    let transfer_filter_contract = account
+        .named_keys()
+        .get(CEP85_TEST_CONTRACT_NAME)
+        .and_then(|key| key.into_hash())
+        .map(ContractHash::new)
+        .expect("should have contract hash");
+
+    let install_args = runtime_args! {
+        ARG_NAME => TOKEN_NAME,
+        ARG_URI => TOKEN_URI,
+        ARG_TRANSFER_FILTER_CONTRACT => Key::from(transfer_filter_contract),
+    };
+
+    // Install token
+    let install_request_contract =
+        ExecuteRequestBuilder::standard(*DEFAULT_ACCOUNT_ADDR, CEP85_CONTRACT_WASM, install_args)
+            .build();
+
+    builder.exec(install_request_contract).expect_failure();
+
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::InvalidTransferFilterMethod as u16,
+        "should not allow installation with filter contract withtout filter contract method",
+    );
+
+    let install_args = runtime_args! {
+        ARG_NAME => TOKEN_NAME,
+        ARG_URI => TOKEN_URI,
+        ARG_TRANSFER_FILTER_CONTRACT => Key::from(transfer_filter_contract),
+        ARG_TRANSFER_FILTER_METHOD => "" // test empty method
+    };
+
+    // Install token
+    let install_request_contract =
+        ExecuteRequestBuilder::standard(*DEFAULT_ACCOUNT_ADDR, CEP85_CONTRACT_WASM, install_args)
+            .build();
+
+    builder.exec(install_request_contract).expect_failure();
+
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::InvalidTransferFilterMethod as u16,
+        "should not allow installation with filter contract and empty filter contract method",
+    );
 }

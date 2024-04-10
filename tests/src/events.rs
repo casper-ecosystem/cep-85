@@ -11,8 +11,8 @@ use casper_types::{runtime_args, Key, RuntimeArgs, U256};
 use cep85::{
     constants::ARG_EVENTS_MODE,
     events::{
-        ApprovalForAll, Burn, ChangeSecurity, Mint, SetModalities, SetTotalSupply, TransferBatch,
-        TransferSingle, Upgrade, Uri,
+        ApprovalForAll, Burn, BurnBatch, ChangeSecurity, Mint, MintBatch, SetModalities,
+        SetTotalSupply, Transfer, TransferBatch, Upgrade, Uri, UriBatch,
     },
     modalities::EventsMode,
     utils::replace_token_id_in_uri,
@@ -28,11 +28,14 @@ fn should_have_events_schema_in_events_mode() {
     );
     let expected_schemas = Schemas::new()
         .with::<Mint>()
+        .with::<MintBatch>()
         .with::<Burn>()
+        .with::<BurnBatch>()
         .with::<ApprovalForAll>()
-        .with::<TransferSingle>()
+        .with::<Transfer>()
         .with::<TransferBatch>()
         .with::<Uri>()
+        .with::<UriBatch>()
         .with::<SetTotalSupply>()
         .with::<ChangeSecurity>()
         .with::<SetModalities>()

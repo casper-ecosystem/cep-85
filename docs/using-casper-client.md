@@ -722,7 +722,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 
 ## Transferring a Token
 
-The following command will invoke the `safe_transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amount of a specified token ID from one account to another.
+The following command will invoke the `transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amount of a specified token ID from one account to another.
 
 ```json
 
@@ -734,7 +734,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 // The contract hash of your CEP-85 contract instance.
 --session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 // The name of the entrypoint you are invoking.
---session-entry-point "safe_transfer_from" \
+--session-entry-point "transfer_from" \
 // The account hash of the account sending the tokens.
 --session-arg "from:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
 // The account hash of the account receiving the tokens.
@@ -759,7 +759,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
 --session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
---session-entry-point "safe_transfer_from" \
+--session-entry-point "transfer_from" \
 --session-arg "from:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
 --session-arg "to:key='account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd'" \
 --session-arg "id:u256='2'" \
@@ -773,7 +773,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 ## Transferring a Batch of Tokens
 
-The following command will invoke the `safe_batch_transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amounts of the specified token IDs from one account to another.
+The following command will invoke the `batch_transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amounts of the specified token IDs from one account to another.
 
 ```json
 
@@ -785,7 +785,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 // The contract hash of your CEP-85 contract instance.
 --session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 // The name of the entrypoint you are invoking.
---session-entry-point "safe_batch_transfer_from" \
+--session-entry-point "batch_transfer_from" \
 --session-args-json '[
 // The account hash of the account sending the tokens.
 {"name":"from","type":"Key","value":"account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b"},
@@ -812,7 +812,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
 --session-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
---session-entry-point "safe_batch_transfer_from" \
+--session-entry-point "batch_transfer_from" \
 --session-args-json '[
 {"name":"from","type":"Key","value":"account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b"},
 {"name":"to","type":"Key","value":"account-hash-303c0f8208220fe9a4de40e1ada1d35fdd6c678877908f01fddb2a56502d67fd"},

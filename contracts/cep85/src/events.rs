@@ -14,11 +14,14 @@ use core::convert::TryFrom;
 #[derive(Debug)]
 pub enum Event {
     Mint(Mint),
+    MintBatch(MintBatch),
     Burn(Burn),
+    BurnBatch(BurnBatch),
     ApprovalForAll(ApprovalForAll),
-    TransferSingle(TransferSingle),
+    Transfer(Transfer),
     TransferBatch(TransferBatch),
     Uri(Uri),
+    UriBatch(UriBatch),
     SetTotalSupply(SetTotalSupply),
     ChangeSecurity(ChangeSecurity),
     SetModalities(SetModalities),
@@ -54,6 +57,23 @@ impl Mint {
 }
 
 #[derive(Event, Debug, PartialEq, Eq)]
+pub struct MintBatch {
+    pub ids: Vec<U256>,
+    pub recipient: Key,
+    pub amounts: Vec<U256>,
+}
+
+impl MintBatch {
+    pub fn new(ids: Vec<U256>, recipient: Key, amounts: Vec<U256>) -> Self {
+        Self {
+            ids,
+            recipient,
+            amounts,
+        }
+    }
+}
+
+#[derive(Event, Debug, PartialEq, Eq)]
 pub struct Burn {
     pub id: U256,
     pub owner: Key,
@@ -63,6 +83,23 @@ pub struct Burn {
 impl Burn {
     pub fn new(owner: Key, id: U256, amount: U256) -> Self {
         Self { id, owner, amount }
+    }
+}
+
+#[derive(Event, Debug, PartialEq, Eq)]
+pub struct BurnBatch {
+    pub ids: Vec<U256>,
+    pub owner: Key,
+    pub amounts: Vec<U256>,
+}
+
+impl BurnBatch {
+    pub fn new(ids: Vec<U256>, owner: Key, amounts: Vec<U256>) -> Self {
+        Self {
+            ids,
+            owner,
+            amounts,
+        }
     }
 }
 
@@ -84,7 +121,7 @@ impl ApprovalForAll {
 }
 
 #[derive(Event, Debug, PartialEq, Eq)]
-pub struct TransferSingle {
+pub struct Transfer {
     pub operator: Key,
     pub from: Key,
     pub to: Key,
@@ -92,7 +129,7 @@ pub struct TransferSingle {
     pub value: U256,
 }
 
-impl TransferSingle {
+impl Transfer {
     pub fn new(operator: Key, from: Key, to: Key, id: U256, value: U256) -> Self {
         Self {
             operator,
@@ -134,6 +171,18 @@ pub struct Uri {
 impl Uri {
     pub fn new(value: String, id: Option<U256>) -> Self {
         Self { value, id }
+    }
+}
+
+#[derive(Event, Debug, PartialEq, Eq)]
+pub struct UriBatch {
+    pub value: String,
+    pub ids: Vec<U256>,
+}
+
+impl UriBatch {
+    pub fn new(value: String, ids: Vec<U256>) -> Self {
+        Self { value, ids }
     }
 }
 
@@ -186,11 +235,14 @@ impl Upgrade {
 fn ces(event: Event) {
     match event {
         Event::Mint(ev) => emit(ev),
+        Event::MintBatch(ev) => emit(ev),
         Event::Burn(ev) => emit(ev),
+        Event::BurnBatch(ev) => emit(ev),
         Event::ApprovalForAll(ev) => emit(ev),
-        Event::TransferSingle(ev) => emit(ev),
+        Event::Transfer(ev) => emit(ev),
         Event::TransferBatch(ev) => emit(ev),
         Event::Uri(ev) => emit(ev),
+        Event::UriBatch(ev) => emit(ev),
         Event::SetTotalSupply(ev) => emit(ev),
         Event::ChangeSecurity(ev) => emit(ev),
         Event::SetModalities(ev) => emit(ev),
@@ -206,11 +258,14 @@ pub fn init_events() {
     if events_mode == EventsMode::CES {
         let schemas = Schemas::new()
             .with::<Mint>()
+            .with::<MintBatch>()
             .with::<Burn>()
+            .with::<BurnBatch>()
             .with::<ApprovalForAll>()
-            .with::<TransferSingle>()
+            .with::<Transfer>()
             .with::<TransferBatch>()
             .with::<Uri>()
+            .with::<UriBatch>()
             .with::<SetTotalSupply>()
             .with::<ChangeSecurity>()
             .with::<SetModalities>()

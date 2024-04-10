@@ -29,22 +29,22 @@ use cep85::{
     constants::{
         ARG_ACCOUNT, ARG_ACCOUNTS, ARG_AMOUNTS, ARG_DATA, ARG_FROM, ARG_ID, ARG_IDS, ARG_OPERATOR,
         ARG_OWNER, ARG_TO, ARG_TOKEN_CONTRACT, ENTRY_POINT_BALANCE_OF,
-        ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BURN, ENTRY_POINT_INIT,
-        ENTRY_POINT_IS_APPROVED_FOR_ALL, ENTRY_POINT_IS_NON_FUNGIBLE,
-        ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
-        ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_SUPPLY_OF_BATCH, ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
-        ENTRY_POINT_TOTAL_SUPPLY_OF, ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_URI,
+        ENTRY_POINT_BALANCE_OF_BATCH, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_TRANSFER_FROM,
+        ENTRY_POINT_BURN, ENTRY_POINT_INIT, ENTRY_POINT_IS_APPROVED_FOR_ALL,
+        ENTRY_POINT_IS_NON_FUNGIBLE, ENTRY_POINT_SUPPLY_OF, ENTRY_POINT_SUPPLY_OF_BATCH,
+        ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_TOTAL_SUPPLY_OF,
+        ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_TRANSFER_FROM, ENTRY_POINT_URI,
     },
     modalities::TransferFilterContractResult,
 };
 use constants::{
     ARG_FILTER_CONTRACT_RETURN_VALUE, CEP85_TEST_CONTRACT_NAME, CEP85_TEST_PACKAGE_NAME,
     ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_BALANCE_OF_BATCH,
-    ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL, ENTRY_POINT_CHECK_IS_NON_FUNGIBLE,
-    ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
-    ENTRY_POINT_CHECK_SUPPLY_OF, ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
-    ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
-    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_URI,
+    ENTRY_POINT_CHECK_BATCH_TRANSFER_FROM, ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL,
+    ENTRY_POINT_CHECK_IS_NON_FUNGIBLE, ENTRY_POINT_CHECK_SUPPLY_OF,
+    ENTRY_POINT_CHECK_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY,
+    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
+    ENTRY_POINT_CHECK_TRANSFER_FROM, ENTRY_POINT_CHECK_URI,
     ENTRY_POINT_SET_FILTER_CONTRACT_RETURN_VALUE, ENTRY_POINT_TRANSFER_FILTER_METHOD,
 };
 use utils::{get_token_contract, store_result};
@@ -163,14 +163,14 @@ pub extern "C" fn check_is_approved_for_all() {
 }
 
 #[no_mangle]
-pub extern "C" fn check_safe_transfer_from() {
+pub extern "C" fn check_transfer_from() {
     let token_contract: ContractHash = get_token_contract();
     let from: Key = get_named_arg(ARG_FROM);
     let to: Key = get_named_arg(ARG_TO);
     let id: U256 = get_named_arg(ARG_ID);
     let amount: U256 = get_named_arg(ARG_AMOUNT);
     let data: Option<Bytes> = get_named_arg(ARG_DATA);
-    let safe_transfer_from_args = runtime_args! {
+    let transfer_from_args = runtime_args! {
         ARG_FROM => from,
         ARG_TO => to,
         ARG_ID => id,
@@ -179,20 +179,20 @@ pub extern "C" fn check_safe_transfer_from() {
     };
     call_contract::<()>(
         token_contract,
-        ENTRY_POINT_SAFE_TRANSFER_FROM,
-        safe_transfer_from_args,
+        ENTRY_POINT_TRANSFER_FROM,
+        transfer_from_args,
     );
 }
 
 #[no_mangle]
-pub extern "C" fn check_safe_batch_transfer_from() {
+pub extern "C" fn check_batch_transfer_from() {
     let token_contract: ContractHash = get_token_contract();
     let from: Key = get_named_arg(ARG_FROM);
     let to: Key = get_named_arg(ARG_TO);
     let ids: Vec<U256> = get_named_arg(ARG_IDS);
     let amounts: Vec<U256> = get_named_arg(ARG_AMOUNTS);
     let data: Option<Bytes> = get_named_arg(ARG_DATA);
-    let safe_batch_transfer_from_args = runtime_args! {
+    let batch_transfer_from_args = runtime_args! {
         ARG_FROM => from,
         ARG_TO => to,
         ARG_IDS => ids,
@@ -201,8 +201,8 @@ pub extern "C" fn check_safe_batch_transfer_from() {
     };
     call_contract::<()>(
         token_contract,
-        ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
-        safe_batch_transfer_from_args,
+        ENTRY_POINT_BATCH_TRANSFER_FROM,
+        batch_transfer_from_args,
     );
 }
 
@@ -399,8 +399,8 @@ pub extern "C" fn call() {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     );
-    let check_safe_transfer_from = EntryPoint::new(
-        ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
+    let check_transfer_from = EntryPoint::new(
+        ENTRY_POINT_CHECK_TRANSFER_FROM,
         vec![
             Parameter::new(ARG_FROM, CLType::Key),
             Parameter::new(ARG_TO, CLType::Key),
@@ -411,8 +411,8 @@ pub extern "C" fn call() {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     );
-    let check_safe_batch_transfer_from = EntryPoint::new(
-        ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
+    let check_batch_transfer_from = EntryPoint::new(
+        ENTRY_POINT_CHECK_BATCH_TRANSFER_FROM,
         vec![
             Parameter::new(ARG_FROM, CLType::Key),
             Parameter::new(ARG_TO, CLType::Key),
@@ -490,8 +490,8 @@ pub extern "C" fn call() {
     entry_points.add_entry_point(check_balance_of);
     entry_points.add_entry_point(check_balance_of_batch);
     entry_points.add_entry_point(check_is_approved_for_all);
-    entry_points.add_entry_point(check_safe_transfer_from);
-    entry_points.add_entry_point(check_safe_batch_transfer_from);
+    entry_points.add_entry_point(check_transfer_from);
+    entry_points.add_entry_point(check_batch_transfer_from);
     entry_points.add_entry_point(check_supply_of);
     entry_points.add_entry_point(check_supply_of_batch);
     entry_points.add_entry_point(check_total_supply_of);

@@ -196,7 +196,7 @@ describe("CEP85Client", () => {
     expect(transferDeploy).toBeInstanceOf(DeployUtil.Deploy);
     const deployJson = (DeployUtil.deployToJson(transferDeploy) as DeployJson).deploy;
     expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
-      "safe_transfer_from"
+      "transfer_from"
     );
     expect(deployJson.session).toEqual(
       TRANSFER_DEPLOY_ARGS_JSON
@@ -219,7 +219,7 @@ describe("CEP85Client", () => {
     expect(transferDeploy).toBeInstanceOf(DeployUtil.Deploy);
     const deployJson = (DeployUtil.deployToJson(transferDeploy) as DeployJson).deploy;
     expect(deployJson.session.StoredContractByHash.entry_point).toEqual(
-      "safe_batch_transfer_from"
+      "batch_transfer_from"
     );
     expect(deployJson.session).toEqual(
       BATCH_TRANSFER_DEPLOY_ARGS_JSON
