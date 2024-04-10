@@ -104,11 +104,14 @@ For this CEP-85 reference implementation, the events schema is as follows:
 | Event name     | Included values and type                                                  |
 | -------------- | ------------------------------------------------------------------------- |
 | Mint           | id (U256), recipient (Key), amount (U256)                                 |
+| MintBatch      | ids (Vec<U256>), recipient (Key), amounts (Vec<U256>)                     |
 | Burn           | id (U256), owner (Key), amount (U256)                                     |
+| BurnBatch      | ids (Vec<U256>), owner (Key), amounts (Vec<U256>)                         |
 | ApprovalForAll | owner (Key), operator (Key), approved (bool)                              |
-| TransferSingle | operator (Key), from (Key), to (Key), id (U256), value (U256)             |
+| Transfer       | operator (Key), from (Key), to (Key), id (U256), value (U256)             |
 | TransferBatch  | operator (Key), from (Key), to (Key), ids (Vec<U256>), values (Vec<U256>) |
-| Uri            | value (String), id (Option<U256>)                                         |
+| Uri            | value (String), id (U256)                                                 |
+| UriBatch       | value (String), ids (Vec<U256>)                                           |
 | SetTotalSupply | id (U256), total_supply (U256)                                            |
 | ChangeSecurity | admin (Key), sec_change_map (BTreeMap<Key, SecurityBadge>)                |
 | SetModalities  |                                                                           |
