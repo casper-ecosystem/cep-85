@@ -11,7 +11,7 @@ use casper_types::{
 use cep85::{
     constants::{
         ARG_DATA, ARG_FROM, ARG_NAME, ARG_TOKEN_CONTRACT, ARG_TRANSFER_FILTER_CONTRACT,
-        ARG_TRANSFER_FILTER_METHOD, ARG_URI, ENTRY_POINT_INIT, ENTRY_POINT_SAFE_TRANSFER_FROM,
+        ARG_TRANSFER_FILTER_METHOD, ARG_URI, ENTRY_POINT_INIT, ENTRY_POINT_TRANSFER_FROM,
     },
     error::Cep85Error,
     modalities::TransferFilterContractResult,
@@ -271,7 +271,7 @@ fn check_transfers_with_transfer_filter_contract() {
     let failing_transfer_request = ExecuteRequestBuilder::contract_call_by_hash(
         *DEFAULT_ACCOUNT_ADDR,
         cep85_token,
-        ENTRY_POINT_SAFE_TRANSFER_FROM,
+        ENTRY_POINT_TRANSFER_FROM,
         runtime_args! {
             ARG_FROM => to,
             ARG_TO => from,

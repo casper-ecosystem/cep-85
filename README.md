@@ -116,7 +116,7 @@ For this CEP-85 reference implementation, the events schema is as follows:
 
 #### Transfer Filter Hook
 
-If enabled, the transfer filter modality specifies a contract package hash pointing to a contract that will be called when the `safe_transfer_from` or `safe_batch_transfer_from` methods are invoked on the contract. CEP-85 will call the transfer filter method on the specified callback contract, which is expected to return a value of `TransferFilterContractResult`, represented as a u8.
+If enabled, the transfer filter modality specifies a contract package hash pointing to a contract that will be called when the `transfer_from` or `batch_transfer_from` methods are invoked on the contract. CEP-85 will call the transfer filter method on the specified callback contract, which is expected to return a value of `TransferFilterContractResult`, represented as a u8.
 
 - `TransferFilterContractResult::DenyTransfer` will block the transfer regardless of the outcome of other checks
 - `TransferFilterContractResult::ProceedTransfer` will allow the transfer to proceed if other checks also pass

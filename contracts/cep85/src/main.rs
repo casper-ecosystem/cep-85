@@ -321,7 +321,7 @@ pub extern "C" fn set_approval_for_all() {
 ///
 /// This function should only be called by an approved operator or by the sender themselves.
 #[no_mangle]
-pub extern "C" fn safe_transfer_from() {
+pub extern "C" fn transfer_from() {
     let from: Key =
         get_named_arg_with_user_errors(ARG_FROM, Cep85Error::MissingFrom, Cep85Error::InvalidFrom)
             .unwrap_or_revert();
@@ -378,7 +378,7 @@ pub extern "C" fn safe_transfer_from() {
 ///
 /// This function should only be called by an approved operator or by the sender themselves.
 #[no_mangle]
-pub extern "C" fn safe_batch_transfer_from() {
+pub extern "C" fn batch_transfer_from() {
     let ids: Vec<U256> =
         get_named_arg_with_user_errors(ARG_IDS, Cep85Error::MissingIds, Cep85Error::InvalidIds)
             .unwrap_or_revert();
