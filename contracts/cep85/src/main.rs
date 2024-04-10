@@ -363,8 +363,7 @@ pub extern "C" fn transfer_from() {
 
     before_token_transfer(&caller, &from, &to, &[id], &[amount], data);
 
-    transfer_balance(&from, &to, &id, &amount)
-        .unwrap_or_revert_with(Cep85Error::FailToTransferBalance);
+    transfer_balance(&from, &to, &id, &amount);
     record_event_dictionary(Event::TransferSingle(TransferSingle {
         operator: caller,
         from,
@@ -424,8 +423,7 @@ pub extern "C" fn batch_transfer_from() {
 
     before_token_transfer(&caller, &from, &to, &ids, &amounts, data);
 
-    batch_transfer_balance(&from, &to, &ids, &amounts)
-        .unwrap_or_revert_with(Cep85Error::FailToBatchTransferBalance);
+    let _ = batch_transfer_balance(&from, &to, &ids, &amounts);
 
     record_event_dictionary(Event::TransferBatch(TransferBatch {
         operator: caller,
