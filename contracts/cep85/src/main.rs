@@ -486,7 +486,8 @@ pub extern "C" fn mint() {
         mint_uri
     };
 
-    write_uri_of(&id, &uri);
+    // Replace uri placeholder and store value
+    let clean_uri = write_uri_of(&id, &uri);
 
     record_event_dictionary(Event::Mint(Mint {
         id,
@@ -495,8 +496,8 @@ pub extern "C" fn mint() {
     }));
 
     record_event_dictionary(Event::Uri(Uri {
-        value: uri,
         id: Some(id),
+        value: clean_uri,
     }))
 }
 
@@ -558,7 +559,20 @@ pub extern "C" fn batch_mint() {
 
         write_supply_of(&id, &new_supply);
         write_balance_to(&recipient, &id, &new_recipient_balance);
-        write_uri_of(&id, &uri);
+
+        // Replace uri placeholder and store value
+        let clean_uri = write_uri_of(&id, &uri);
+
+        record_event_dictionary(Event::Mint(Mint {
+            id,
+            recipient,
+            amount,
+        }));
+
+        record_event_dictionary(Event::Uri(Uri {
+            id: Some(id),
+            value: clean_uri.to_string(),
+        }));
     }
 
     record_event_dictionary(Event::MintBatch(MintBatch {
@@ -688,7 +702,9 @@ pub extern "C" fn batch_burn() {
     for (i, &id) in ids.iter().enumerate() {
         let amount = amounts[i];
         let owner_balance = read_balance_from(&owner, &id);
-        let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_default();
+        let new_owner_balance = owner_balance
+            .checked_sub(amount)
+            .unwrap_or_revert_with(Cep85Error::OverflowBatchBurn);
 
         let new_supply = {
             let supply = read_supply_of(&id);
@@ -849,13 +865,22 @@ pub extern "C" fn set_uri() {
     }
 
     match id {
-        Some(id) => write_uri_of(&id, &uri),
-        None => put_key(ARG_URI, storage::new_uref(uri.to_owned()).into()),
+        Some(id) => {
+            // Replace uri placeholder and store value
+            let clean_uri = write_uri_of(&id, &uri);
+            record_event_dictionary(Event::Uri(Uri {
+                id: Some(id),
+                value: clean_uri,
+            }));
+        }
+        None => {
+            put_key(ARG_URI, storage::new_uref(uri.clone()).into());
+            record_event_dictionary(Event::Uri(Uri {
+                id: None,
+                value: uri,
+            }));
+        }
     };
-    record_event_dictionary(Event::Uri(Uri {
-        id: None,
-        value: uri,
-    }));
 }
 
 #[no_mangle]

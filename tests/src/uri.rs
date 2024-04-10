@@ -1,14 +1,21 @@
 use casper_engine_test_support::{ExecuteRequestBuilder, DEFAULT_ACCOUNT_ADDR};
 use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use cep85::{constants::ARG_ID, error::Cep85Error, utils::replace_token_id_in_uri};
+use cep85::{
+    constants::{ARG_EVENTS_MODE, ARG_ID},
+    error::Cep85Error,
+    events::Uri,
+    modalities::EventsMode,
+    utils::replace_token_id_in_uri,
+};
 use cep85_test_contract::constants::ENTRY_POINT_CHECK_URI;
 
 use crate::utility::{
     constants::{TOKEN_URI, TOKEN_URI_TEST},
     installer_request_builders::{
-        cep85_batch_mint, cep85_check_uri, cep85_mint, cep85_set_uri, setup, TestContext,
+        cep85_batch_mint, cep85_check_uri, cep85_mint, cep85_set_uri, setup, setup_with_args,
+        TestContext,
     },
-    support::assert_expected_error,
+    support::{assert_expected_error, get_event},
 };
 
 #[test]
@@ -269,4 +276,78 @@ fn should_not_set_empty_global_uri() {
 
     let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, Some(id));
     assert_eq!(actual_uri, replace_token_id_in_uri(TOKEN_URI_TEST, &id));
+}
+
+#[test]
+fn should_set_uri_and_emit_event() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_EVENTS_MODE => EventsMode::CES as u8,
+        },
+        None,
+    );
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let minting_recipient: Key = minting_account.into();
+    let mint_amount = U256::from(1);
+    let id = U256::one();
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+        None,
+    );
+
+    mint_call.expect_success().commit();
+
+    let new_uri = TOKEN_URI_TEST;
+
+    // default address is in admin list, request should succeed
+    let updating_account = *DEFAULT_ACCOUNT_ADDR;
+
+    // Global uri check
+    let uri_call = cep85_set_uri(&mut builder, &cep85_token, &updating_account, new_uri, None);
+    uri_call.expect_success().commit();
+
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, None);
+    assert_eq!(actual_uri, TOKEN_URI_TEST);
+
+    // Expect Uri event
+    let expected_event = Uri::new(TOKEN_URI_TEST.to_string(), None);
+    // Expect event at index 2 (Mint + Uri + Uri)
+    let event_index = 2;
+    let actual_event: Uri = get_event(&builder, &cep85_token.into(), event_index);
+    assert_eq!(actual_event, expected_event, "Expected Uri event.");
+
+    // Token uri check
+    let uri_call = cep85_set_uri(
+        &mut builder,
+        &cep85_token,
+        &updating_account,
+        new_uri,
+        Some(id),
+    );
+    uri_call.expect_success().commit();
+
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, Some(id));
+    let expected_uri = replace_token_id_in_uri(TOKEN_URI_TEST, &id);
+    assert_eq!(actual_uri, expected_uri);
+
+    // Expect Uri event
+    let expected_event = Uri::new(expected_uri, Some(id));
+    // Expect event at index 3 (Mint + Uri + Uri + Uri )
+    let event_index = 3;
+    let actual_event: Uri = get_event(&builder, &cep85_token.into(), event_index);
+    assert_eq!(actual_event, expected_event, "Expected Uri event.");
 }
