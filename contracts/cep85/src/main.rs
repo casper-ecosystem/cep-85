@@ -487,7 +487,8 @@ pub extern "C" fn mint() {
         mint_uri
     };
 
-    write_uri_of(&id, &uri);
+    // Replace uri placeholder and store value
+    let clean_uri = write_uri_of(&id, &uri);
 
     record_event_dictionary(Event::Mint(Mint {
         id,
@@ -495,12 +496,9 @@ pub extern "C" fn mint() {
         amount,
     }));
 
-    // Uri placeholder is now set so read it before emitting
-    let uri: String = read_uri_of(&id);
-
     record_event_dictionary(Event::Uri(Uri {
         id: Some(id),
-        value: uri,
+        value: clean_uri,
     }))
 }
 
@@ -562,7 +560,9 @@ pub extern "C" fn batch_mint() {
 
         write_supply_of(&id, &new_supply);
         write_balance_to(&recipient, &id, &new_recipient_balance);
-        write_uri_of(&id, &uri);
+
+        // Replace uri placeholder and store value
+        let clean_uri = write_uri_of(&id, &uri);
 
         record_event_dictionary(Event::Mint(Mint {
             id,
@@ -570,12 +570,9 @@ pub extern "C" fn batch_mint() {
             amount,
         }));
 
-        // Uri placeholder is now set so read it before emitting
-        let uri: String = read_uri_of(&id);
-
         record_event_dictionary(Event::Uri(Uri {
             id: Some(id),
-            value: uri.to_string(),
+            value: clean_uri.to_string(),
         }));
     }
 }
@@ -700,7 +697,7 @@ pub extern "C" fn batch_burn() {
         let owner_balance = read_balance_from(&owner, &id);
         let new_owner_balance = owner_balance
             .checked_sub(amount)
-            .unwrap_or_revert_with(Cep85Error::OverflowBurn);
+            .unwrap_or_revert_with(Cep85Error::OverflowBatchBurn);
 
         let new_supply = {
             let supply = read_supply_of(&id);
@@ -858,11 +855,11 @@ pub extern "C" fn set_uri() {
 
     match id {
         Some(id) => {
-            write_uri_of(&id, &uri);
-            let uri_value = read_uri_of(&id);
+            // Replace uri placeholder and store value
+            let clean_uri = write_uri_of(&id, &uri);
             record_event_dictionary(Event::Uri(Uri {
                 id: Some(id),
-                value: uri_value,
+                value: clean_uri,
             }));
         }
         None => {
