@@ -477,7 +477,7 @@ pub extern "C" fn mint() {
     write_supply_of(&id, &new_supply);
     write_balance_to(&recipient, &id, &new_recipient_balance);
 
-    let uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
+    let uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::InvalidUri)
         .unwrap_or_default();
 
     record_event_dictionary(Event::Mint(Mint {
@@ -522,7 +522,7 @@ pub extern "C" fn batch_mint() {
         revert(Cep85Error::MismatchParamsLength);
     }
 
-    let uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
+    let uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::InvalidUri)
         .unwrap_or_default();
 
     for (i, &id) in ids.iter().enumerate() {
@@ -558,7 +558,9 @@ pub extern "C" fn batch_mint() {
         amounts,
     }));
 
-    record_event_dictionary(Event::UriBatch(UriBatch { value: uri, ids }));
+    if !uri.is_empty() {
+        record_event_dictionary(Event::UriBatch(UriBatch { value: uri, ids }));
+    }
 }
 
 #[no_mangle]
