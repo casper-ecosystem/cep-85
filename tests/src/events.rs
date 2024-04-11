@@ -101,7 +101,7 @@ fn should_record_events_in_events_mode() {
         &minting_recipient,
         &id,
         &mint_amount,
-        None,
+        Some(TOKEN_URI),
     );
 
     mint_call.expect_success().commit();

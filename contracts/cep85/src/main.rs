@@ -477,16 +477,8 @@ pub extern "C" fn mint() {
     write_supply_of(&id, &new_supply);
     write_balance_to(&recipient, &id, &new_recipient_balance);
 
-    let mint_uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
+    let uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
         .unwrap_or_default();
-
-    let uri: String = if mint_uri.is_empty() {
-        get_stored_value_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
-    } else {
-        mint_uri
-    };
-
-    write_uri_of(&id, &uri);
 
     record_event_dictionary(Event::Mint(Mint {
         id,
@@ -494,10 +486,13 @@ pub extern "C" fn mint() {
         amount,
     }));
 
-    record_event_dictionary(Event::Uri(Uri {
-        id: Some(id),
-        value: uri,
-    }))
+    if !uri.is_empty() {
+        write_uri_of(&id, &uri);
+        record_event_dictionary(Event::Uri(Uri {
+            id: Some(id),
+            value: uri,
+        }));
+    };
 }
 
 /// Batch mint specified amounts of multiple tokens to one `recipient`.
@@ -523,18 +518,12 @@ pub extern "C" fn batch_mint() {
     )
     .unwrap_or_revert();
 
-    let mint_uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
-        .unwrap_or_default();
-
-    let uri = if mint_uri.is_empty() {
-        get_stored_value_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
-    } else {
-        mint_uri
-    };
-
     if ids.len() != amounts.len() {
         revert(Cep85Error::MismatchParamsLength);
     }
+
+    let uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
+        .unwrap_or_default();
 
     for (i, &id) in ids.iter().enumerate() {
         let amount = amounts[i];
@@ -558,7 +547,9 @@ pub extern "C" fn batch_mint() {
 
         write_supply_of(&id, &new_supply);
         write_balance_to(&recipient, &id, &new_recipient_balance);
-        write_uri_of(&id, &uri);
+        if !uri.is_empty() {
+            write_uri_of(&id, &uri);
+        }
     }
 
     record_event_dictionary(Event::MintBatch(MintBatch {
@@ -820,19 +811,13 @@ pub extern "C" fn set_total_supply_of_batch() {
 #[no_mangle]
 pub extern "C" fn uri() {
     let id: Option<U256> = get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId);
-    let uri: String = match id {
-        Some(id) => read_uri_of(&id),
-        None => get_stored_value_with_user_errors(
-            ARG_URI,
-            Cep85Error::MissingUri,
-            Cep85Error::InvalidUri,
-        ),
-    };
-
-    if uri.is_empty() {
-        revert(Cep85Error::MissingUri);
+    if id.is_some() {
+        let total_supply = read_total_supply_of(&id.unwrap_or_revert_with(Cep85Error::InvalidId));
+        if total_supply == U256::from(0_u32) {
+            revert(Cep85Error::NonSuppliedTokenId);
+        }
     }
-
+    let uri: String = read_uri_of(id);
     runtime::ret(CLValue::from_t(uri).unwrap_or_revert());
 }
 
@@ -846,22 +831,23 @@ pub extern "C" fn set_uri() {
         get_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
             .unwrap_or_revert();
 
-    if uri.is_empty() {
-        revert(Cep85Error::MissingUri);
-    }
-
     match id {
-        Some(id) => {
-            write_uri_of(&id, &uri);
-            record_event_dictionary(Event::Uri(Uri {
-                id: Some(id),
-                value: uri,
-            }));
-        }
         None => {
+            // Do not save empty string as global uri
+            if uri.is_empty() {
+                revert(Cep85Error::MissingUri);
+            }
             put_key(ARG_URI, storage::new_uref(uri.clone()).into());
             record_event_dictionary(Event::Uri(Uri {
                 id: None,
+                value: uri,
+            }));
+        }
+        Some(id) => {
+            // Empty string will "delete" dictionary row query for next read_uri_of()
+            write_uri_of(&id, &uri);
+            record_event_dictionary(Event::Uri(Uri {
+                id: Some(id),
                 value: uri,
             }));
         }
