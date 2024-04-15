@@ -215,7 +215,7 @@ fn should_fail_to_get_uri_for_non_existing_id() {
 
     assert_expected_error(
         error,
-        Cep85Error::MissingUri as u16,
+        Cep85Error::NonSuppliedTokenId as u16,
         "non existing token has no uri",
     );
 }
@@ -325,8 +325,8 @@ fn should_set_uri_and_emit_event() {
 
     // Expect Uri event
     let expected_event = Uri::new(TOKEN_URI_TEST.to_string(), None);
-    // Expect event at index 2 (Mint + Uri + Uri)
-    let event_index = 2;
+    // Expect event at index 1 (Mint + Uri)
+    let event_index = 1;
     let actual_event: Uri = get_event(&builder, &cep85_token.into(), event_index);
     assert_eq!(actual_event, expected_event, "Expected Uri event.");
 
@@ -346,8 +346,8 @@ fn should_set_uri_and_emit_event() {
 
     // Expect Uri event
     let expected_event = Uri::new(TOKEN_URI_TEST.to_string(), Some(id));
-    // Expect event at index 3 (Mint + Uri + Uri + Uri )
-    let event_index = 3;
+    // Expect event at index 2 (Mint + Uri + Uri )
+    let event_index = 2;
     let actual_event: Uri = get_event(&builder, &cep85_token.into(), event_index);
     assert_eq!(actual_event, expected_event, "Expected Uri event.");
 }

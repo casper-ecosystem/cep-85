@@ -91,6 +91,7 @@ pub enum Cep85Error {
     InvalidKeyName = 78,
     InvalidValue = 79,
     MissingValue = 80,
+    NonSuppliedTokenId = 81,
 }
 
 impl From<Cep85Error> for ApiError {
