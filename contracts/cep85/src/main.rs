@@ -52,7 +52,10 @@ use cep85::{
     modalities::{EventsMode, TransferFilterContractResult},
     operators::{read_operator, write_operator},
     security::{change_sec_badge, sec_check, SecurityBadge},
-    supply::{read_supply_of, read_total_supply_of, write_supply_of, write_total_supply_of},
+    supply::{
+        check_token_exists_and_read_total_supply_of, read_supply_of, read_total_supply_of,
+        write_supply_of, write_total_supply_of,
+    },
     uri::{read_uri_of, write_uri_of},
     utils::{
         get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
@@ -195,7 +198,7 @@ pub extern "C" fn balance_of() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-
+    check_token_exists_and_read_total_supply_of(id);
     let balance: U256 = read_balance_from(&account, &id);
     runtime::ret(CLValue::from_t(balance).unwrap_or_revert());
 }
@@ -219,6 +222,7 @@ pub extern "C" fn balance_of_batch() {
     let mut batch_balances = Vec::new();
 
     for i in 0_usize..accounts.len() {
+        check_token_exists_and_read_total_supply_of(ids[i]);
         let balance: U256 = read_balance_from(&accounts[i], &ids[i]);
         batch_balances.push(balance);
     }
@@ -707,7 +711,7 @@ pub extern "C" fn supply_of() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-
+    check_token_exists_and_read_total_supply_of(id);
     let supply: U256 = read_supply_of(&id);
     runtime::ret(CLValue::from_t(supply).unwrap_or_revert());
 }
@@ -717,8 +721,7 @@ pub extern "C" fn total_supply_of() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-
-    let total_supply: U256 = read_total_supply_of(&id);
+    let total_supply: U256 = check_token_exists_and_read_total_supply_of(id);
     runtime::ret(CLValue::from_t(total_supply).unwrap_or_revert());
 }
 
@@ -756,6 +759,7 @@ pub extern "C" fn supply_of_batch() {
     let mut batch_supplies = Vec::new();
 
     for id in ids {
+        check_token_exists_and_read_total_supply_of(id);
         let supply: U256 = read_supply_of(&id);
         batch_supplies.push(supply);
     }
@@ -772,7 +776,7 @@ pub extern "C" fn total_supply_of_batch() {
     let mut batch_total_supplies = Vec::new();
 
     for id in ids {
-        let total_supply: U256 = read_total_supply_of(&id);
+        let total_supply: U256 = check_token_exists_and_read_total_supply_of(id);
         batch_total_supplies.push(total_supply);
     }
 
@@ -814,10 +818,9 @@ pub extern "C" fn set_total_supply_of_batch() {
 pub extern "C" fn uri() {
     let id: Option<U256> = get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId);
     if id.is_some() {
-        let total_supply = read_total_supply_of(&id.unwrap_or_revert_with(Cep85Error::InvalidId));
-        if total_supply == U256::from(0_u32) {
-            revert(Cep85Error::NonSuppliedTokenId);
-        }
+        check_token_exists_and_read_total_supply_of(
+            id.unwrap_or_revert_with(Cep85Error::InvalidId),
+        );
     }
     let uri: String = read_uri_of(id);
     runtime::ret(CLValue::from_t(uri).unwrap_or_revert());
@@ -861,7 +864,8 @@ pub extern "C" fn is_non_fungible() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-    let total_supply = read_total_supply_of(&id);
+    check_token_exists_and_read_total_supply_of(id);
+    let total_supply = check_token_exists_and_read_total_supply_of(id);
     let is_non_fungible = total_supply == U256::from(1_u32);
     runtime::ret(CLValue::from_t(is_non_fungible).unwrap_or_revert());
 }
@@ -874,7 +878,7 @@ pub extern "C" fn total_fungible_supply() {
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
 
-    let total_supply = read_total_supply_of(&id);
+    let total_supply = check_token_exists_and_read_total_supply_of(id);
     let current_supply = read_supply_of(&id);
 
     let total_fungible_supply = if total_supply >= current_supply {

@@ -1,6 +1,13 @@
-use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use cep85::{constants::ARG_ENABLE_BURN, error::Cep85Error};
+use casper_engine_test_support::{ExecuteRequestBuilder, DEFAULT_ACCOUNT_ADDR};
+use casper_types::{runtime_args, system::mint::ARG_ID, Key, RuntimeArgs, U256};
+use cep85::{
+    constants::{ARG_ENABLE_BURN, ARG_IDS},
+    error::Cep85Error,
+};
+use cep85_test_contract::constants::{
+    ENTRY_POINT_CHECK_SUPPLY_OF, ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
+    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
+};
 
 use crate::utility::{
     installer_request_builders::{
@@ -366,13 +373,46 @@ fn should_get_no_supplies_of_non_existent_id() {
 
     let id = U256::one();
 
-    let actual_supply = cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id);
+    let check_total_supply_of_args = runtime_args! {
+        ARG_ID => id,
+    };
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        cep85_test_contract_package,
+        None,
+        ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
+        check_total_supply_of_args.clone(),
+    )
+    .build();
 
-    assert_eq!(actual_supply, U256::zero());
+    builder.exec(exec_request).expect_failure();
 
-    let actual_total_supply =
-        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
-    assert_eq!(actual_total_supply, U256::zero());
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::NonSuppliedTokenId as u16,
+        "should not allow to set total supply below circulating supply",
+    );
+
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        cep85_test_contract_package,
+        None,
+        ENTRY_POINT_CHECK_SUPPLY_OF,
+        check_total_supply_of_args,
+    )
+    .build();
+
+    builder.exec(exec_request).expect_failure();
+
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::NonSuppliedTokenId as u16,
+        "should not allow to set total supply below circulating supply",
+    );
 }
 
 #[test]
@@ -392,19 +432,44 @@ fn should_get_no_supplies_of_batch_for_non_existent_ids() {
 
     let ids = vec![U256::one(), U256::from(2)];
 
-    // Get the supply of each ID using batch function
-    let actual_supplies =
-        cep85_check_supply_of_batch(&mut builder, &cep85_test_contract_package, ids.clone());
+    let check_total_supply_batch_of_args = runtime_args! {
+        ARG_IDS => ids,
+    };
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        cep85_test_contract_package,
+        None,
+        ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
+        check_total_supply_batch_of_args.clone(),
+    )
+    .build();
 
-    // Verify the supplies equal zero
-    for (index, _) in ids.iter().enumerate() {
-        assert_eq!(actual_supplies[index], U256::zero());
-    }
+    builder.exec(exec_request).expect_failure();
 
-    let actual_total_supplies =
-        cep85_check_total_supply_of_batch(&mut builder, &cep85_test_contract_package, ids);
+    let error = builder.get_error().expect("must have error");
 
-    assert_eq!(actual_total_supplies.len(), 2);
-    assert_eq!(actual_total_supplies[0], U256::zero());
-    assert_eq!(actual_total_supplies[1], U256::zero());
+    assert_expected_error(
+        error,
+        Cep85Error::NonSuppliedTokenId as u16,
+        "should not allow to set total supply below circulating supply",
+    );
+
+    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        cep85_test_contract_package,
+        None,
+        ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
+        check_total_supply_batch_of_args,
+    )
+    .build();
+
+    builder.exec(exec_request).expect_failure();
+
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::NonSuppliedTokenId as u16,
+        "should not allow to set total supply below circulating supply",
+    );
 }
