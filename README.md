@@ -156,10 +156,10 @@ You can find instructions on installing an instance of the CEP-85 contract using
 
 The expected behavior of the multi-token contract implementation is asserted by its test suite found in the `tests` folder. The test suite and the corresponding unit tests comprise the specification around the contract and outline the expected behaviors of the multi-token contract across the entire range of possible configurations. The test suite ensures that as new modalities are added, and current modalities are extended, no regressions and conflicting behaviors are introduced. The test suite also asserts the correct working behavior of the utility session code provided in the client folder. The tests can be run by using the provided `Makefile` and running the `make test` command.
 
-## Notes on transfer
+## Notes on transfer to the contract
 
 > [!NOTE]  
-> The to parameter should be set as `Key::Hash` derived from `ContractPackageHash`. Although `ContractHash` is technically supported, its use is discouraged as it may lead to incorrect behavior of the `balance_of` and `is_approved_for_all` functions.
+> The `to` parameter should be set as `Key::Hash` derived from `ContractPackageHash`. Although `ContractHash` is technically supported, its use is discouraged as it may lead to incorrect behavior of the `balance_of` and `is_approved_for_all` functions.
 
 ## Error Codes
 
