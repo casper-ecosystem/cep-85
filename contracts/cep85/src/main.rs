@@ -424,7 +424,7 @@ pub extern "C" fn batch_transfer_from() {
     }
 
     for id in ids.iter() {
-        if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
+        if U256::from(0_u32) == read_total_supply_of(id).unwrap_or_default() {
             revert(Cep85Error::NonSuppliedTokenId);
         }
     }
