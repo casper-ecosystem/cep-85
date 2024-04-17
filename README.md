@@ -240,3 +240,4 @@ The expected behavior of the multi-token contract implementation is asserted by 
 | 78   | InvalidKeyName                |
 | 79   | InvalidValue                  |
 | 80   | MissingValue                  |
+| 81   | NonSuppliedTokenId            |

@@ -124,7 +124,7 @@ pub extern "C" fn check_balance_of() {
         ARG_ACCOUNT => account,
         ARG_ID => id,
     };
-    let result: U256 = call_contract(token_contract, ENTRY_POINT_BALANCE_OF, balance_args);
+    let result: Option<U256> = call_contract(token_contract, ENTRY_POINT_BALANCE_OF, balance_args);
     store_result(result);
 }
 
@@ -137,7 +137,7 @@ pub extern "C" fn check_balance_of_batch() {
         ARG_ACCOUNTS => accounts,
         ARG_IDS => ids,
     };
-    let result: Vec<U256> = call_contract(
+    let result: Vec<Option<U256>> = call_contract(
         token_contract,
         ENTRY_POINT_BALANCE_OF_BATCH,
         balance_of_batch_args,
@@ -213,7 +213,8 @@ pub extern "C" fn check_supply_of() {
     let check_supply_of_args = runtime_args! {
         ARG_ID => id,
     };
-    let result: U256 = call_contract(token_contract, ENTRY_POINT_SUPPLY_OF, check_supply_of_args);
+    let result: Option<U256> =
+        call_contract(token_contract, ENTRY_POINT_SUPPLY_OF, check_supply_of_args);
     store_result(result);
 }
 
@@ -224,7 +225,7 @@ pub extern "C" fn check_supply_of_batch() {
     let check_supply_of_batch_args = runtime_args! {
         ARG_IDS => ids,
     };
-    let result = call_contract::<Vec<U256>>(
+    let result = call_contract::<Vec<Option<U256>>>(
         token_contract,
         ENTRY_POINT_SUPPLY_OF_BATCH,
         check_supply_of_batch_args,
@@ -239,7 +240,7 @@ pub extern "C" fn check_total_supply_of() {
     let check_total_supply_of_args = runtime_args! {
         ARG_ID => id,
     };
-    let result: U256 = call_contract(
+    let result: Option<U256> = call_contract(
         token_contract,
         ENTRY_POINT_TOTAL_SUPPLY_OF,
         check_total_supply_of_args,
@@ -254,7 +255,7 @@ pub extern "C" fn check_total_supply_of_batch() {
     let check_total_supply_of_batch_args = runtime_args! {
         ARG_IDS => ids,
     };
-    let result = call_contract::<Vec<U256>>(
+    let result = call_contract::<Vec<Option<U256>>>(
         token_contract,
         ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH,
         check_total_supply_of_batch_args,
@@ -273,7 +274,7 @@ pub extern "C" fn check_uri() {
     } else {
         runtime_args! {}
     };
-    let result: String = call_contract(token_contract, ENTRY_POINT_URI, check_uri_args);
+    let result: Option<String> = call_contract(token_contract, ENTRY_POINT_URI, check_uri_args);
     store_result(result);
 }
 
@@ -286,7 +287,7 @@ pub extern "C" fn check_is_non_fungible() {
         ARG_ID => id,
     };
 
-    let is_non_fungible_result: bool = call_contract(
+    let is_non_fungible_result: Option<bool> = call_contract(
         token_contract,
         ENTRY_POINT_IS_NON_FUNGIBLE,
         is_non_fungible_args,
@@ -303,7 +304,7 @@ pub extern "C" fn check_total_fungible_supply() {
         ARG_ID => id,
     };
 
-    let total_fungible_supply_result: U256 = call_contract(
+    let total_fungible_supply_result: Option<U256> = call_contract(
         token_contract,
         ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
         total_fungible_supply_args,

@@ -9,14 +9,10 @@ use crate::utility::{
 use casper_engine_test_support::{ExecuteRequestBuilder, DEFAULT_ACCOUNT_ADDR};
 use casper_types::{runtime_args, Key, RuntimeArgs, U256};
 use cep85::{
-    constants::{
-        ARG_ACCOUNT, ARG_ACCOUNTS, ARG_ID, ARG_IDS, DEFAULT_DICT_ITEM_KEY_NAME, DICT_BALANCES,
-    },
+    constants::{ARG_ACCOUNTS, ARG_IDS, DEFAULT_DICT_ITEM_KEY_NAME, DICT_BALANCES},
     error::Cep85Error,
 };
-use cep85_test_contract::constants::{
-    ENTRY_POINT_CHECK_BALANCE_OF, ENTRY_POINT_CHECK_BALANCE_OF_BATCH,
-};
+use cep85_test_contract::constants::ENTRY_POINT_CHECK_BALANCE_OF_BATCH;
 #[test]
 fn should_check_balance_of() {
     let (
@@ -51,14 +47,15 @@ fn should_check_balance_of() {
         &cep85_test_contract_package,
         &minting_recipient,
         &id,
-    );
+    )
+    .unwrap();
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
 }
 
 #[test]
-fn should_error_getting_balance_of_non_existing_token() {
+fn should_return_none_getting_balance_of_non_existing_token() {
     let (
         mut builder,
         TestContext {
@@ -69,26 +66,13 @@ fn should_error_getting_balance_of_non_existing_token() {
     ) = setup();
 
     let id = U256::one();
+    let owner = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
 
-    let check_balance_args = runtime_args! {
-        ARG_ACCOUNT => Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap()),
-        ARG_ID => id,
-    };
-    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
-        *DEFAULT_ACCOUNT_ADDR,
-        cep85_test_contract_package,
-        None,
-        ENTRY_POINT_CHECK_BALANCE_OF,
-        check_balance_args,
-    )
-    .build();
-    builder.exec(exec_request).expect_failure();
-    let error = builder.get_error().expect("must have error");
-    assert_expected_error(
-        error,
-        Cep85Error::NonSuppliedTokenId as u16,
-        "id does not exist in supply",
-    );
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &owner, &id);
+    let expected_balance = None;
+
+    assert_eq!(actual_balance, expected_balance);
 }
 
 #[test]
@@ -129,11 +113,17 @@ fn should_check_balance_of_batch() {
 
     let expected_balances = vec![U256::one(), U256::zero()];
 
-    assert_eq!(actual_balances, expected_balances);
+    assert_eq!(
+        actual_balances,
+        expected_balances
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 }
 
 #[test]
-fn should_error_getting_balance_of_batch_non_existing_token() {
+fn should_return_none_getting_balance_of_batch_non_existing_token() {
     let (
         mut builder,
         TestContext {
@@ -164,28 +154,15 @@ fn should_error_getting_balance_of_batch_non_existing_token() {
     mint_call.expect_success().commit();
 
     let recipients: Vec<Key> = vec![recipient_user_1, recipient_user_2, recipient_user_2];
-    // Add a new recipient for token id 3, balance will be zero
+    // Add a new recipient for token id 3, balance will be None
     ids.push(U256::from(3));
 
-    let check_balance_args = runtime_args! {
-        ARG_ACCOUNTS => recipients,
-        ARG_IDS => ids,
-    };
-    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
-        *DEFAULT_ACCOUNT_ADDR,
-        cep85_test_contract_package,
-        None,
-        ENTRY_POINT_CHECK_BALANCE_OF_BATCH,
-        check_balance_args,
-    )
-    .build();
-    builder.exec(exec_request).expect_failure();
-    let error = builder.get_error().expect("must have error");
-    assert_expected_error(
-        error,
-        Cep85Error::NonSuppliedTokenId as u16,
-        "id does not exist in supply",
-    );
+    let actual_balances =
+        cep85_check_balance_of_batch(&mut builder, &cep85_test_contract_package, recipients, ids);
+
+    let expected_balances = vec![Some(U256::one()), Some(U256::zero()), None];
+
+    assert_eq!(actual_balances, expected_balances);
 }
 
 #[test]

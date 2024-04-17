@@ -1,14 +1,3 @@
-use casper_engine_test_support::{ExecuteRequestBuilder, DEFAULT_ACCOUNT_ADDR};
-use casper_types::{runtime_args, system::mint::ARG_ID, Key, RuntimeArgs, U256};
-use cep85::{
-    constants::{ARG_ENABLE_BURN, ARG_IDS},
-    error::Cep85Error,
-};
-use cep85_test_contract::constants::{
-    ENTRY_POINT_CHECK_SUPPLY_OF, ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
-    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
-};
-
 use crate::utility::{
     installer_request_builders::{
         cep85_batch_burn, cep85_batch_mint, cep85_check_supply_of, cep85_check_supply_of_batch,
@@ -18,6 +7,9 @@ use crate::utility::{
     },
     support::assert_expected_error,
 };
+use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
+use casper_types::{runtime_args, Key, RuntimeArgs, U256};
+use cep85::{constants::ARG_ENABLE_BURN, error::Cep85Error};
 
 #[test]
 fn should_set_total_supply_of_id() {
@@ -46,7 +38,7 @@ fn should_set_total_supply_of_id() {
     set_total_supply_of_call.expect_success().commit();
 
     let actual_total_supply =
-        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id).unwrap();
 
     assert_eq!(actual_total_supply, total_supply);
 }
@@ -80,7 +72,7 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
     set_total_supply_of_call.expect_success().commit();
 
     let actual_total_supply =
-        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id).unwrap();
 
     assert_eq!(actual_total_supply, total_supply);
 
@@ -117,7 +109,7 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
     );
 
     let actual_total_supply =
-        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id).unwrap();
 
     assert_eq!(actual_total_supply, total_supply);
 }
@@ -151,8 +143,8 @@ fn should_set_total_supply_batch_for_ids() {
         cep85_check_total_supply_of_batch(&mut builder, &cep85_test_contract_package, ids);
 
     assert_eq!(actual_total_supplies.len(), 2);
-    assert_eq!(actual_total_supplies[0], total_supplies[0]);
-    assert_eq!(actual_total_supplies[1], total_supplies[1]);
+    assert_eq!(actual_total_supplies[0], Some(total_supplies[0]));
+    assert_eq!(actual_total_supplies[1], Some(total_supplies[1]));
 }
 
 #[test]
@@ -199,7 +191,13 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
     let actual_total_supplies =
         cep85_check_total_supply_of_batch(&mut builder, &cep85_test_contract_package, ids.clone());
 
-    assert_eq!(actual_total_supplies, total_supplies);
+    assert_eq!(
+        actual_total_supplies,
+        total_supplies
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 
     // Attempt to set total supply below circulating supply should fail
     let new_total_supplies = vec![U256::from(1)];
@@ -224,7 +222,13 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
     let actual_total_supplies =
         cep85_check_total_supply_of_batch(&mut builder, &cep85_test_contract_package, ids);
 
-    assert_eq!(actual_total_supplies, total_supplies);
+    assert_eq!(
+        actual_total_supplies,
+        total_supplies
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 }
 
 #[test]
@@ -267,12 +271,13 @@ fn should_get_supply_of_id() {
 
     mint_call.expect_success().commit();
 
-    let actual_supply = cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id);
+    let actual_supply =
+        cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id).unwrap();
 
     assert_eq!(actual_supply, mint_amount);
 
     let actual_total_supply =
-        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id).unwrap();
     assert_eq!(actual_total_supply, total_supply);
 }
 
@@ -326,8 +331,8 @@ fn should_get_supply_of_batch_for_ids() {
 
     // Verify the supplies
     assert_eq!(actual_supplies.len(), 2);
-    assert_eq!(actual_supplies[0], mint_amounts[0]);
-    assert_eq!(actual_supplies[1], mint_amounts[1]);
+    assert_eq!(actual_supplies[0], Some(mint_amounts[0]));
+    assert_eq!(actual_supplies[1], Some(mint_amounts[1]));
 
     let burning_account = minting_account;
     // Owner is now last recipient
@@ -350,15 +355,15 @@ fn should_get_supply_of_batch_for_ids() {
 
     // Verify the supplies equal zero
     for (index, _) in ids.iter().enumerate() {
-        assert_eq!(actual_supplies[index], U256::zero());
+        assert_eq!(actual_supplies[index], Some(U256::zero()));
     }
 
     let actual_total_supplies =
         cep85_check_total_supply_of_batch(&mut builder, &cep85_test_contract_package, ids);
 
     assert_eq!(actual_total_supplies.len(), 2);
-    assert_eq!(actual_total_supplies[0], total_supplies[0]);
-    assert_eq!(actual_total_supplies[1], total_supplies[1]);
+    assert_eq!(actual_total_supplies[0], Some(total_supplies[0]));
+    assert_eq!(actual_total_supplies[1], Some(total_supplies[1]));
 }
 
 #[test]
@@ -373,46 +378,13 @@ fn should_get_no_supplies_of_non_existent_id() {
 
     let id = U256::one();
 
-    let check_total_supply_of_args = runtime_args! {
-        ARG_ID => id,
-    };
-    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
-        *DEFAULT_ACCOUNT_ADDR,
-        cep85_test_contract_package,
-        None,
-        ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
-        check_total_supply_of_args.clone(),
-    )
-    .build();
+    let actual_supply = cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id);
 
-    builder.exec(exec_request).expect_failure();
+    assert_eq!(actual_supply, None);
 
-    let error = builder.get_error().expect("must have error");
-
-    assert_expected_error(
-        error,
-        Cep85Error::NonSuppliedTokenId as u16,
-        "should not allow to set total supply below circulating supply",
-    );
-
-    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
-        *DEFAULT_ACCOUNT_ADDR,
-        cep85_test_contract_package,
-        None,
-        ENTRY_POINT_CHECK_SUPPLY_OF,
-        check_total_supply_of_args,
-    )
-    .build();
-
-    builder.exec(exec_request).expect_failure();
-
-    let error = builder.get_error().expect("must have error");
-
-    assert_expected_error(
-        error,
-        Cep85Error::NonSuppliedTokenId as u16,
-        "should not allow to set total supply below circulating supply",
-    );
+    let actual_total_supply =
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
+    assert_eq!(actual_total_supply, None);
 }
 
 #[test]
@@ -432,44 +404,17 @@ fn should_get_no_supplies_of_batch_for_non_existent_ids() {
 
     let ids = vec![U256::one(), U256::from(2)];
 
-    let check_total_supply_batch_of_args = runtime_args! {
-        ARG_IDS => ids,
-    };
-    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
-        *DEFAULT_ACCOUNT_ADDR,
-        cep85_test_contract_package,
-        None,
-        ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
-        check_total_supply_batch_of_args.clone(),
-    )
-    .build();
+    let actual_supplies =
+        cep85_check_supply_of_batch(&mut builder, &cep85_test_contract_package, ids.clone());
 
-    builder.exec(exec_request).expect_failure();
+    for (index, _) in ids.iter().enumerate() {
+        assert_eq!(actual_supplies[index], None);
+    }
 
-    let error = builder.get_error().expect("must have error");
+    let actual_total_supplies =
+        cep85_check_total_supply_of_batch(&mut builder, &cep85_test_contract_package, ids);
 
-    assert_expected_error(
-        error,
-        Cep85Error::NonSuppliedTokenId as u16,
-        "should not allow to set total supply below circulating supply",
-    );
-
-    let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
-        *DEFAULT_ACCOUNT_ADDR,
-        cep85_test_contract_package,
-        None,
-        ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
-        check_total_supply_batch_of_args,
-    )
-    .build();
-
-    builder.exec(exec_request).expect_failure();
-
-    let error = builder.get_error().expect("must have error");
-
-    assert_expected_error(
-        error,
-        Cep85Error::NonSuppliedTokenId as u16,
-        "should not allow to set total supply below circulating supply",
-    );
+    assert_eq!(actual_total_supplies.len(), 2);
+    assert_eq!(actual_total_supplies[0], None);
+    assert_eq!(actual_total_supplies[1], None);
 }

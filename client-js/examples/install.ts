@@ -29,7 +29,7 @@ const install = async () => {
       burner_list: [USER1_KEYS.publicKey],
       enable_burn: true
     },
-    "200000000000",
+    "350000000000",
     FAUCET_KEYS.publicKey,
     [FAUCET_KEYS]
   );
