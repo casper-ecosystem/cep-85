@@ -548,7 +548,8 @@ fn should_reduce_supply_on_burn() {
 
     mint_call.expect_success().commit();
 
-    let actual_supply = cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id);
+    let actual_supply =
+        cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id).unwrap();
 
     assert_eq!(actual_supply, mint_amount);
 
@@ -557,7 +558,8 @@ fn should_reduce_supply_on_burn() {
         &cep85_test_contract_package,
         &minting_recipient,
         &id,
-    );
+    )
+    .unwrap();
     let expected_balance = mint_amount;
 
     assert_eq!(actual_balance, expected_balance);
@@ -576,12 +578,13 @@ fn should_reduce_supply_on_burn() {
     );
     burn_call.expect_success().commit();
 
-    let actual_supply = cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id);
+    let actual_supply =
+        cep85_check_supply_of(&mut builder, &cep85_test_contract_package, &id).unwrap();
     let expected_supply = U256::one();
     assert_eq!(actual_supply, expected_supply);
 
     let actual_balance =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &owner, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &owner, &id).unwrap();
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -647,8 +650,8 @@ fn should_reduce_supply_on_batch_burn() {
         cep85_check_supply_of_batch(&mut builder, &cep85_test_contract_package, ids.clone());
 
     // Verify the supplies
-    assert_eq!(actual_supplies[0], mint_amounts[0]);
-    assert_eq!(actual_supplies[1], mint_amounts[1]);
+    assert_eq!(actual_supplies[0], Some(mint_amounts[0]));
+    assert_eq!(actual_supplies[1], Some(mint_amounts[1]));
 
     let actual_balances = cep85_check_balance_of_batch(
         &mut builder,
@@ -659,7 +662,13 @@ fn should_reduce_supply_on_batch_burn() {
 
     let expected_balances = vec![mint_amounts[0], mint_amounts[1]];
 
-    assert_eq!(actual_balances, expected_balances);
+    assert_eq!(
+        actual_balances,
+        expected_balances
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 
     let burning_account = account_user_1;
     let owner: Key = minting_recipient;
@@ -683,8 +692,8 @@ fn should_reduce_supply_on_batch_burn() {
 
     let expected_remaining_amounts: Vec<U256> = vec![U256::zero(), U256::one()];
     // Verify the supplies
-    assert_eq!(actual_supplies[0], expected_remaining_amounts[0]);
-    assert_eq!(actual_supplies[1], expected_remaining_amounts[1]);
+    assert_eq!(actual_supplies[0], Some(expected_remaining_amounts[0]));
+    assert_eq!(actual_supplies[1], Some(expected_remaining_amounts[1]));
 
     let actual_balances = cep85_check_balance_of_batch(
         &mut builder,
@@ -693,8 +702,14 @@ fn should_reduce_supply_on_batch_burn() {
         ids,
     );
 
-    let expected_remaining_balances: Vec<U256> = vec![U256::zero(), U256::one()];
-    assert_eq!(actual_balances, expected_remaining_balances);
+    let expected_remaining_balances = vec![U256::zero(), U256::one()];
+    assert_eq!(
+        actual_balances,
+        expected_remaining_balances
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 }
 
 #[test]
@@ -892,8 +907,8 @@ fn should_return_expected_error_when_burning_non_existing_token() {
 
     assert_expected_error(
         error,
-        Cep85Error::OverflowBurn as u16,
-        "should return OverflowBurn error when trying to burn a non_existing token",
+        Cep85Error::NonSuppliedTokenId as u16,
+        "should return error when trying to burn a non_existing token",
     );
 }
 
@@ -952,8 +967,8 @@ fn should_return_expected_error_when_batch_burning_non_existing_token() {
 
     assert_expected_error(
         error,
-        Cep85Error::OverflowBatchBurn as u16,
-        "should return OverflowBatchBurn error when trying to burn a non_existing token",
+        Cep85Error::NonSuppliedTokenId as u16,
+        "should return error when trying to burn a non_existing token",
     );
 }
 

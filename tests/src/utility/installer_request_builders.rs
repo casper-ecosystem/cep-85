@@ -192,7 +192,7 @@ pub fn cep85_check_uri(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     id: Option<U256>,
-) -> String {
+) -> Option<String> {
     let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
         *DEFAULT_ACCOUNT_ADDR,
         *contract_package_hash,
@@ -314,7 +314,7 @@ pub fn cep85_check_balance_of(
     contract_package_hash: &ContractPackageHash,
     account: &Key,
     id: &U256,
-) -> U256 {
+) -> Option<U256> {
     let check_balance_args = runtime_args! {
         ARG_ACCOUNT => *account,
         ARG_ID => *id,
@@ -336,7 +336,7 @@ pub fn cep85_check_balance_of_batch(
     contract_package_hash: &ContractPackageHash,
     accounts: Vec<Key>,
     ids: Vec<U256>,
-) -> Vec<U256> {
+) -> Vec<Option<U256>> {
     let check_balance_args = runtime_args! {
         ARG_ACCOUNTS => accounts,
         ARG_IDS => ids,
@@ -377,7 +377,7 @@ pub fn cep85_check_total_supply_of(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     id: &U256,
-) -> U256 {
+) -> Option<U256> {
     let check_total_supply_of_args = runtime_args! {
         ARG_ID => *id,
     };
@@ -419,7 +419,7 @@ pub fn cep85_check_total_supply_of_batch(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     ids: Vec<U256>,
-) -> Vec<U256> {
+) -> Vec<Option<U256>> {
     let check_total_supply_batch_of_args = runtime_args! {
         ARG_IDS => ids,
     };
@@ -439,7 +439,7 @@ pub fn cep85_check_supply_of(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     id: &U256,
-) -> U256 {
+) -> Option<U256> {
     let check_supply_of_args = runtime_args! {
         ARG_ID => *id,
     };
@@ -459,7 +459,7 @@ pub fn cep85_check_supply_of_batch(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     ids: Vec<U256>,
-) -> Vec<U256> {
+) -> Vec<Option<U256>> {
     let check_supply_of_batch_args = runtime_args! {
         ARG_IDS => ids,
     };
@@ -793,7 +793,7 @@ pub fn cep85_check_is_non_fungible(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     id: &U256,
-) -> bool {
+) -> Option<bool> {
     let check_is_non_fungible_args = runtime_args! {
         ARG_ID => *id,
     };
@@ -813,7 +813,7 @@ pub fn cep85_check_total_fungible_supply(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     id: &U256,
-) -> U256 {
+) -> Option<U256> {
     let check_total_fungible_supply_args = runtime_args! {
         ARG_ID => *id,
     };

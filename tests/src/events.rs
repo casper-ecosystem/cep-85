@@ -111,7 +111,8 @@ fn should_record_events_in_events_mode() {
         &cep85_test_contract_package,
         &minting_recipient,
         &id,
-    );
+    )
+    .unwrap();
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -162,7 +163,8 @@ fn should_not_record_events_in_no_events_mode() {
         &cep85_test_contract_package,
         &minting_recipient,
         &id,
-    );
+    )
+    .unwrap();
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);

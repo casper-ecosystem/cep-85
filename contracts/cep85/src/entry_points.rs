@@ -115,7 +115,7 @@ pub fn balance_of() -> EntryPoint {
             Parameter::new(ARG_ACCOUNT, CLType::Key),
             Parameter::new(ARG_ID, CLType::U256),
         ],
-        CLType::U256,
+        CLType::Option(Box::new(CLType::U256)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )
@@ -128,7 +128,7 @@ pub fn balance_of_batch() -> EntryPoint {
             Parameter::new(ARG_ACCOUNTS, CLType::List(Box::new(CLType::Key))),
             Parameter::new(ARG_IDS, CLType::List(Box::new(CLType::U256))),
         ],
-        CLType::List(Box::new(CLType::U256)),
+        CLType::List(Box::new(CLType::Option(Box::new(CLType::U256)))),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )
@@ -196,7 +196,7 @@ pub fn supply_of() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_SUPPLY_OF,
         vec![Parameter::new(ARG_ID, CLType::U256)],
-        CLType::U256,
+        CLType::Option(Box::new(CLType::U256)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )
@@ -209,7 +209,7 @@ pub fn supply_of_batch() -> EntryPoint {
             ARG_IDS,
             CLType::List(Box::new(CLType::U256)),
         )],
-        CLType::List(Box::new(CLType::U256)),
+        CLType::List(Box::new(CLType::Option(Box::new(CLType::U256)))),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )
@@ -219,7 +219,7 @@ pub fn total_supply_of() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_TOTAL_SUPPLY_OF,
         vec![Parameter::new(ARG_ID, CLType::U256)],
-        CLType::U256,
+        CLType::Option(Box::new(CLType::U256)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )
@@ -232,7 +232,7 @@ pub fn total_supply_of_batch() -> EntryPoint {
             ARG_IDS,
             CLType::List(Box::new(CLType::U256)),
         )],
-        CLType::List(Box::new(CLType::U256)),
+        CLType::List(Box::new(CLType::Option(Box::new(CLType::U256)))),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )
@@ -268,7 +268,7 @@ pub fn uri() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_URI,
         vec![Parameter::new(ARG_ID, CLType::U256)],
-        CLType::String,
+        CLType::Option(Box::new(CLType::String)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )
@@ -291,7 +291,7 @@ pub fn is_non_fungible() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_IS_NON_FUNGIBLE,
         vec![Parameter::new(ARG_ID, CLType::U256)],
-        CLType::Bool,
+        CLType::Option(Box::new(CLType::Bool)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )
@@ -301,7 +301,7 @@ pub fn total_fungible_supply() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
         vec![Parameter::new(ARG_ID, CLType::U256)],
-        CLType::U256,
+        CLType::Option(Box::new(CLType::U256)),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     )

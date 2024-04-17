@@ -154,7 +154,7 @@ fn should_test_security_meta_rights() {
 
     failing_meta_call.expect_failure();
 
-    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, Some(id));
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, Some(id)).unwrap();
 
     assert_eq!(actual_uri, replace_token_id_in_uri(TOKEN_URI, &id));
 
@@ -171,7 +171,7 @@ fn should_test_security_meta_rights() {
 
     meta_call.expect_success().commit();
 
-    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, Some(id));
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, Some(id)).unwrap();
 
     assert_eq!(actual_uri, replace_token_id_in_uri(TOKEN_URI_TEST, &id));
 
@@ -187,7 +187,7 @@ fn should_test_security_meta_rights() {
     );
     meta_call.expect_success().commit();
 
-    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, None);
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, None).unwrap();
 
     assert_eq!(actual_uri, TOKEN_URI);
 }

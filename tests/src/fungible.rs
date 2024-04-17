@@ -47,7 +47,7 @@ fn should_check_if_fungible() {
     mint_call.expect_success().commit();
 
     let is_non_fungible =
-        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id);
+        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id).unwrap();
 
     assert!(!is_non_fungible);
 }
@@ -81,7 +81,7 @@ fn should_check_if_non_fungible() {
     mint_call.expect_success().commit();
 
     let is_non_fungible =
-        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id);
+        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id).unwrap();
 
     assert!(is_non_fungible);
 }
@@ -127,7 +127,7 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
     mint_call.expect_success().commit();
 
     let is_non_fungible =
-        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id);
+        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id).unwrap();
 
     assert!(!is_non_fungible);
 
@@ -145,7 +145,7 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
     set_total_supply_of_call.expect_success().commit();
 
     let is_now_non_fungible =
-        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id);
+        cep85_check_is_non_fungible(&mut builder, &cep85_test_contract_package, &id).unwrap();
 
     assert!(is_now_non_fungible);
 }
@@ -196,5 +196,5 @@ fn should_get_total_fungible_supply() {
     // Fungible supply should be 6
     let expected_fungible_supply = total_supply - mint_amount;
     assert_eq!(expected_fungible_supply, U256::from(6));
-    assert_eq!(fungible_supply, expected_fungible_supply);
+    assert_eq!(fungible_supply, Some(expected_fungible_supply));
 }
