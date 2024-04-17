@@ -52,10 +52,7 @@ use cep85::{
     modalities::{EventsMode, TransferFilterContractResult},
     operators::{read_operator, write_operator},
     security::{change_sec_badge, sec_check, SecurityBadge},
-    supply::{
-        check_token_exists_and_read_total_supply_of, read_supply_of, read_total_supply_of,
-        write_supply_of, write_total_supply_of,
-    },
+    supply::{read_supply_of, read_total_supply_of, write_supply_of, write_total_supply_of},
     uri::{read_uri_of, write_uri_of},
     utils::{
         get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
@@ -198,7 +195,9 @@ pub extern "C" fn balance_of() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-    check_token_exists_and_read_total_supply_of::<U256>(id);
+    if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
+        runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
+    }
     let balance: U256 = read_balance_from(&account, &id);
     runtime::ret(CLValue::from_t(Some(balance)).unwrap_or_revert());
 }
@@ -221,8 +220,7 @@ pub extern "C" fn balance_of_batch() {
 
     let mut batch_balances = Vec::new();
     for (&account, &id) in accounts.iter().zip(ids.iter()) {
-        let total_supply = read_total_supply_of(&id);
-        if total_supply == U256::from(0_u32) {
+        if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
             batch_balances.push(None);
         } else {
             batch_balances.push(Some(read_balance_from(&account, &id)));
@@ -358,8 +356,7 @@ pub extern "C" fn transfer_from() {
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
 
-    let total_supply = read_total_supply_of(&id);
-    if total_supply == U256::from(0_u32) {
+    if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
         revert(Cep85Error::NonSuppliedTokenId);
     }
 
@@ -427,8 +424,7 @@ pub extern "C" fn batch_transfer_from() {
     }
 
     for id in ids.iter() {
-        let total_supply = read_total_supply_of(id);
-        if total_supply == U256::from(0_u32) {
+        if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
             revert(Cep85Error::NonSuppliedTokenId);
         }
     }
@@ -482,7 +478,7 @@ pub extern "C" fn mint() {
     let new_supply = supply
         .checked_add(amount)
         .unwrap_or_revert_with(Cep85Error::OverflowMint);
-    let total_max_supply = read_total_supply_of(&id);
+    let total_max_supply = read_total_supply_of(&id).unwrap_or_default();
 
     if total_max_supply != U256::zero() {
         if new_supply > total_max_supply {
@@ -550,7 +546,7 @@ pub extern "C" fn batch_mint() {
         let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_default();
 
         let supply = read_supply_of(&id);
-        let total_max_supply = read_total_supply_of(&id);
+        let total_max_supply = read_total_supply_of(&id).unwrap_or_default();
         let new_supply = supply
             .checked_add(amount)
             .unwrap_or_revert_with(Cep85Error::OverflowBatchMint);
@@ -621,8 +617,7 @@ pub extern "C" fn burn() {
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
 
-    let total_supply = read_total_supply_of(&id);
-    if total_supply == U256::from(0_u32) {
+    if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
         revert(Cep85Error::NonSuppliedTokenId);
     }
 
@@ -702,8 +697,7 @@ pub extern "C" fn batch_burn() {
     }
 
     for (i, &id) in ids.iter().enumerate() {
-        let total_supply = read_total_supply_of(&id);
-        if total_supply == U256::from(0_u32) {
+        if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
             revert(Cep85Error::NonSuppliedTokenId);
         }
         let amount = amounts[i];
@@ -734,7 +728,10 @@ pub extern "C" fn supply_of() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-    check_token_exists_and_read_total_supply_of::<U256>(id);
+    let total_supply = read_total_supply_of(&id).unwrap_or_default();
+    if U256::from(0_u32) == total_supply {
+        runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
+    }
     let supply: U256 = read_supply_of(&id);
     runtime::ret(CLValue::from_t(Some(supply)).unwrap_or_revert());
 }
@@ -744,7 +741,10 @@ pub extern "C" fn total_supply_of() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-    let total_supply: U256 = check_token_exists_and_read_total_supply_of::<U256>(id);
+    let total_supply = read_total_supply_of(&id).unwrap_or_default();
+    if U256::from(0_u32) == total_supply {
+        runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
+    }
     runtime::ret(CLValue::from_t(Some(total_supply)).unwrap_or_revert());
 }
 
@@ -782,8 +782,7 @@ pub extern "C" fn supply_of_batch() {
     let mut batch_supplies = Vec::new();
 
     for id in ids {
-        let total_supply = read_total_supply_of(&id);
-        if total_supply == U256::from(0_u32) {
+        if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
             batch_supplies.push(None);
         } else {
             batch_supplies.push(Some(read_supply_of(&id)));
@@ -802,8 +801,8 @@ pub extern "C" fn total_supply_of_batch() {
     let mut batch_total_supplies = Vec::new();
 
     for id in ids {
-        let total_supply: U256 = read_total_supply_of(&id);
-        if total_supply == U256::from(0_u32) {
+        let total_supply: U256 = read_total_supply_of(&id).unwrap_or_default();
+        if U256::from(0_u32) == total_supply {
             batch_total_supplies.push(None);
         } else {
             batch_total_supplies.push(Some(total_supply));
@@ -847,9 +846,11 @@ pub extern "C" fn set_total_supply_of_batch() {
 #[no_mangle]
 pub extern "C" fn uri() {
     let id: Option<U256> = get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId);
-    if let Some(id_value) = id {
-        // If the ID is present, call the function to check token existence and read total supply
-        check_token_exists_and_read_total_supply_of::<String>(id_value);
+    if let Some(id) = id {
+        let total_supply = read_total_supply_of(&id).unwrap_or_default();
+        if U256::from(0_u32) == total_supply {
+            runtime::ret(CLValue::from_t::<Option<String>>(None).unwrap_or_revert());
+        }
     }
     let uri: String = read_uri_of(id);
     runtime::ret(CLValue::from_t(Some(uri)).unwrap_or_revert());
@@ -893,8 +894,11 @@ pub extern "C" fn is_non_fungible() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-    let is_non_fungible: bool =
-        check_token_exists_and_read_total_supply_of::<bool>(id) == U256::from(1_u32);
+    let total_supply = read_total_supply_of(&id).unwrap_or_default();
+    if U256::from(0_u32) == total_supply {
+        runtime::ret(CLValue::from_t::<Option<bool>>(None).unwrap_or_revert());
+    }
+    let is_non_fungible: bool = U256::from(1_u32) == total_supply;
     runtime::ret(CLValue::from_t(Some(is_non_fungible)).unwrap_or_revert());
 }
 
@@ -905,8 +909,11 @@ pub extern "C" fn total_fungible_supply() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
+    let total_supply = read_total_supply_of(&id).unwrap_or_default();
+    if U256::from(0_u32) == total_supply {
+        runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
+    }
 
-    let total_supply: U256 = check_token_exists_and_read_total_supply_of::<U256>(id);
     let current_supply = read_supply_of(&id);
 
     let total_fungible_supply = if total_supply >= current_supply {
