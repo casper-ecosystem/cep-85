@@ -18,8 +18,6 @@ This repository adheres to the following design goals for the [CEP-85 multi-toke
 
    - [Modalities](#modalities)
 
-   - [Example Deploy](#example-deploy)
-
 3. [Installing and Interacting with CEP-85 Contracts using the Rust Casper Client](#installing-and-interacting-with-the-contract-using-the-rust-casper-client)
 
 4. [Installing and Interacting with CEP-85 Contracts using the JS Casper Client](#installing-and-interacting-with-the-contract-using-the-js-casper-client)
@@ -128,8 +126,6 @@ This parameter is optional and cannot be changed after installation.
 ## Installing and Interacting with the Contract using the Rust Casper Client
 
 You can find instructions on installing an instance of the CEP-85 contract using the [Rust CLI Casper client](/docs/using-casper-client.md).
-
-### Example
 
 The following is an example of installing the CEP-85 contract via a deploy using the Rust CLI Casper client.
 
