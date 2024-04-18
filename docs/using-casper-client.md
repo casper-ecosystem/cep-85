@@ -87,7 +87,7 @@ casper-client put-deploy -n http://localhost:11101/rpc --chain-name "casper-net-
 
 The following command will invoke the `mint` entrypoint on your instance of CEP-85, directing it to mint the given amount of a specified token ID to the recipient address. The account sending this deploy must be on the `minter_list` or `admin_list`.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -114,7 +114,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -135,7 +135,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 The following command will invoke the `batch_mint` entrypoint on your instance of CEP-85, directing it to mint the given amount of several token IDs to the recipient address. The account sending this deploy must be on the `minter_list` or `admin_list`.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -164,7 +164,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -187,7 +187,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 The following command will invoke the `burn` entrypoint on your instance of CEP-85, directing it to burn the given amount of tokens at the owner address. The account sending this deploy must be on the `burner_list` or `admin_list`.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -212,7 +212,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -232,7 +232,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 The following command will invoke the `batch_burn` entrypoint on your instance of CEP-85, directing it to burn the given amount of several token IDs at the owner address. The account sending this deploy must be on the `burner_list` or `admin_list.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -259,7 +259,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -281,7 +281,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 The following command will query the `supply` dictionary of your instance of CEP-85, verifying the circulating supply of the provided token ID.
 
-```json
+```bash
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 // The current state root hash.
@@ -298,7 +298,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client get-state-root-hash -n http://<node IP>:<PORT>
 
@@ -316,7 +316,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 
 The following command will query the `total_supply` dictionary of your instance of CEP-85, verifying the total supply of the provided token ID.
 
-```json
+```bash
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 // The state root hash
@@ -333,7 +333,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client get-state-root-hash -n http://<node IP>:<PORT>
 
@@ -351,7 +351,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 
 The following command will invoke the `set_total_supply_of` entrypoint of your instance of CEP-85, setting the total supply of the provided token ID. The new total supply provided must be larger than the previous total supply. The account sending this deploy must be on the `admin_list`.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -374,7 +374,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -393,7 +393,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 The following command will invoke the `set_total_supply_of_batch` entrypoint of your instance of CEP-85, setting the total supplies of the provided token IDs. The new total supplies provided must be larger than the previous total supplies. The account sending this deploy must be on the `admin_list`.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -418,7 +418,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -441,7 +441,7 @@ Checking an owner's token balance requires two pieces of information combined: t
 
 The following command will invoke the `make_dictionary_item_key` session entrypoint on your instance of CEP-85 and write the hash key to your account context.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -466,7 +466,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -485,7 +485,7 @@ After sending this command to the contract entrypoint, you must query the value 
 
 Query the new named key using the following command to retrieve the dictionary item key:
 
-```json
+```bash
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
 // This is your `account` hash location from your `NamedKeys`.
 --key account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b \
@@ -532,7 +532,7 @@ The result of this query will be as a CLValue. Copy the "parsed" value and use i
 
 The following command will query the `balances` dictionary of your instance of CEP-85, verifying the balance of the provided owners key and token ID with its corresponding dictionary item key. As this dictionary item key combining an entity key and an id will never change, for further balances checks you can reuse this dictionary item key again in your queries.
 
-```json
+```bash
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 // The current state root hash.
@@ -549,7 +549,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
@@ -571,7 +571,7 @@ For checking the balance of multiple token IDs, we recommend using the [JS clien
 
 The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to approve or remove a given operator's ability to transfer (or burn) the calling account's tokens.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -594,7 +594,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -615,7 +615,7 @@ Checking an operator's approval status requires two pieces of information: the k
 
 The following command will invoke the `make_dictionary_item_key` session entrypoint on your instance of CEP-85 and write the hash key to your account context.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -640,7 +640,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -659,7 +659,7 @@ After sending this command to the contract entrypoint, you must query the value 
 
 Query the new named key using the following command to retrieve the dictionary item key:
 
-```json
+```bash
 casper-client query-global-state -n http://<NODE IP>:<PORT> \
 // This is your `account` hash location from your `NamedKeys`.
 --key account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b \
@@ -706,7 +706,7 @@ The result of this query will be as a CLValue. Copy the "parsed" value and use i
 
 The following command will query the `operators` dictionary in your instance of CEP-85, verifying the owner and operator's approval. Since the dictionary item key combines the two corresponding keys and will not change, you can reuse it in your queries for further approval checks.
 
-```json
+```bash
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 // The current state root hash.
@@ -724,7 +724,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 
 The following command will invoke the `safe_transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amount of a specified token ID from one account to another.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -753,7 +753,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -775,7 +775,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 The following command will invoke the `safe_batch_transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amounts of the specified token IDs from one account to another.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -806,7 +806,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -830,7 +830,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 The following command will invoke the `uri` entrypoint of your instance of CEP-85, returning the associated URI for the provided token ID.
 
-```json
+```bash
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 // The state root hash
@@ -847,7 +847,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538
@@ -863,7 +863,7 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 
 The following command will invoke the `set_uri` entrypoint of your instance of CEP-85, setting the URI of the provided token ID. The account sending this deploy must be on the `admin_list`.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -886,7 +886,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -933,7 +933,7 @@ Here is an example of a `session-arg` that provides a list of account hashes to 
 
 The following command can be supplied with any of the optional arguments above:
 
-```json
+```bash
 casper-client put-deploy -n http://<NODE IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -953,7 +953,7 @@ casper-client put-deploy -n http://<NODE IP>:<PORT> \
 
 The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to set a modality of the contract instance. The account sending this deploy must be on the `admin_list`.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -976,7 +976,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
@@ -995,7 +995,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 
 The following command will invoke the `call` entrypoint on your instance of CEP-85, directing it to upgrade the instance to a new version.
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
@@ -1016,7 +1016,7 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
-```json
+```bash
 
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
