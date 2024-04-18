@@ -129,7 +129,7 @@ You can find instructions on installing an instance of the CEP-85 contract using
 
 The following is an example of installing the CEP-85 contract via a deploy using the Rust CLI Casper client.
 
-```bash
+```
 casper-client put-deploy -n https://rpc.testnet.casperlabs.io/ \
 --chain-name "casper-test" \
 --payment-amount 500000000000 \
