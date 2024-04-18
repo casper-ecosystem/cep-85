@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::utility::{
     constants::ACCOUNT_USER_1,
     installer_request_builders::{
@@ -11,6 +9,7 @@ use crate::utility::{
     },
     support::{assert_expected_error, create_dummy_key_pair, fund_account},
 };
+use std::collections::HashMap;
 
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
 use casper_types::{runtime_args, Key, RuntimeArgs, U256};

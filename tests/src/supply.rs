@@ -1,7 +1,3 @@
-use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use cep85::{constants::ARG_ENABLE_BURN, error::Cep85Error};
-
 use crate::utility::{
     installer_request_builders::{
         cep85_batch_burn, cep85_batch_mint, cep85_check_supply_of, cep85_check_supply_of_batch,
@@ -11,6 +7,9 @@ use crate::utility::{
     },
     support::assert_expected_error,
 };
+use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
+use casper_types::{runtime_args, Key, RuntimeArgs, U256};
+use cep85::{constants::ARG_ENABLE_BURN, error::Cep85Error};
 
 #[test]
 fn should_set_total_supply_of_id() {

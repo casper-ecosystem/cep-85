@@ -1,7 +1,3 @@
-use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{bytesrepr::Bytes, Key, U256};
-use cep85::error::Cep85Error;
-
 use crate::utility::{
     constants::{ACCOUNT_USER_1, ACCOUNT_USER_2},
     installer_request_builders::{
@@ -11,6 +7,9 @@ use crate::utility::{
     },
     support::assert_expected_error,
 };
+use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
+use casper_types::{bytesrepr::Bytes, Key, U256};
+use cep85::error::Cep85Error;
 
 #[test]
 fn should_transfer_full_owned_amount() {
