@@ -88,7 +88,6 @@ casper-client put-deploy -n http://localhost:11101/rpc --chain-name "casper-net-
 The following command will invoke the `mint` entrypoint on your instance of CEP-85, directing it to mint the given amount of a specified token ID to the recipient address. The account sending this deploy must be on the `minter_list` or `admin_list`.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -108,14 +107,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "uri:string='https://test-cdn-domain/{id}.json'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "1000000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -126,7 +123,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "amount:u256='10'" \
 --session-arg "uri:string='https://test-cdn-domain/{id}.json'" \
 --payment-amount "1000000000"
-
 ```
 
 </details>
@@ -136,7 +132,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 The following command will invoke the `batch_mint` entrypoint on your instance of CEP-85, directing it to mint the given amount of several token IDs to the recipient address. The account sending this deploy must be on the `minter_list` or `admin_list`.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -158,14 +153,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 ]' \
 // The gas payment you are allotting, in motes.
 --payment-amount "1500000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -178,7 +171,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 {"name":"uri","type":"String","value":"https://test-cdn-domain/{id}.json"}
 ]' \
 --payment-amount "1500000000"
-
 ```
 
 </details>
@@ -188,7 +180,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 The following command will invoke the `burn` entrypoint on your instance of CEP-85, directing it to burn the given amount of tokens at the owner address. The account sending this deploy must be on the `burner_list` or `admin_list`.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -206,14 +197,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "amount:U256='10'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "10000000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -223,7 +212,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "id:U256='2'" \
 --session-arg "amount:U256='10'" \
 --payment-amount "10000000000"
-
 ```
 
 </details>
@@ -233,7 +221,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 The following command will invoke the `batch_burn` entrypoint on your instance of CEP-85, directing it to burn the given amount of several token IDs at the owner address. The account sending this deploy must be on the `burner_list` or `admin_list.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -253,14 +240,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 ]' \
 // The gas payment you are allotting, in motes.
 --payment-amount "1500000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -272,7 +257,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 {"name":"amounts","type":{"List":"U256"},"value":[10,25]}
 ]' \
 --payment-amount "10000000000"
-
 ```
 
 </details>
@@ -282,7 +266,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 The following command will query the `supply` dictionary of your instance of CEP-85, verifying the circulating supply of the provided token ID.
 
 ```
-
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 // The current state root hash.
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
@@ -292,14 +275,12 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --dictionary-name "supply" \
 // The ID of the CEP-85 token for which you are checking the supply.
 --dictionary-item-key "2"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client get-state-root-hash -n http://<node IP>:<PORT>
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
@@ -307,7 +288,6 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --contract-hash hash-4ea5839b8c7e6cd1fbd67fce05cea2c5cb6097ede90aeb580f3ebf251646ad01 \
 --dictionary-name "supply" \
 --dictionary-item-key "2"
-
 ```
 
 </details>
@@ -317,7 +297,6 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 The following command will query the `total_supply` dictionary of your instance of CEP-85, verifying the total supply of the provided token ID.
 
 ```
-
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 // The state root hash
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
@@ -327,14 +306,12 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --dictionary-name "total_supply" \
 // The ID of the CEP-85 token for which you are checking the supply.
 --dictionary-item-key "2"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client get-state-root-hash -n http://<node IP>:<PORT>
 
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
@@ -342,7 +319,6 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --contract-hash hash-4ea5839b8c7e6cd1fbd67fce05cea2c5cb6097ede90aeb580f3ebf251646ad01 \
 --dictionary-name "total_supply" \
 --dictionary-item-key "2"
-
 ```
 
 </details>
@@ -352,7 +328,6 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 The following command will invoke the `set_total_supply_of` entrypoint of your instance of CEP-85, setting the total supply of the provided token ID. The new total supply provided must be larger than the previous total supply. The account sending this deploy must be on the `admin_list`.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -368,14 +343,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "total_supply:u256='200'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "500000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -394,7 +367,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 The following command will invoke the `set_total_supply_of_batch` entrypoint of your instance of CEP-85, setting the total supplies of the provided token IDs. The new total supplies provided must be larger than the previous total supplies. The account sending this deploy must be on the `admin_list`.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -412,14 +384,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 // The gas payment you are allotting, in motes.
 ]' \
 --payment-amount "500000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -430,7 +400,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 {"name":"total_supplies","type":{"List":"U256"},"value":[10,25]}
 ]' \
 --payment-amount "500000000"
-
 ```
 
 </details>
@@ -442,7 +411,6 @@ Checking an owner's token balance requires two pieces of information combined: t
 The following command will invoke the `make_dictionary_item_key` session entrypoint on your instance of CEP-85 and write the hash key to your account context.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -460,14 +428,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 // --session-arg "name:string='my_custom_result_key'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "500000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -476,7 +442,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "owner:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
 --session-arg "id:u256='2'" \
 --payment-amount "500000000"
-
 ```
 
 </details><br>
@@ -533,7 +498,6 @@ The result of this query will be as a CLValue. Copy the "parsed" value and use i
 The following command will query the `balances` dictionary of your instance of CEP-85, verifying the balance of the provided owners key and token ID with its corresponding dictionary item key. As this dictionary item key combining an entity key and an id will never change, for further balances checks you can reuse this dictionary item key again in your queries.
 
 ```
-
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 // The current state root hash.
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
@@ -543,20 +507,17 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --dictionary-name "balances" \
 // The Key/ID hash of the CEP-85 token for which you are checking the supply.
 --dictionary-item-key "ed92c304b8320985e2ab96bd455512ad545990f98adb0e569ba633c16791d5ed"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 --dictionary-name "balances" \
 --dictionary-item-key "ed92c304b8320985e2ab96bd455512ad545990f98adb0e569ba633c16791d5ed"
-
 ```
 
 </details><br>
@@ -572,7 +533,6 @@ For checking the balance of multiple token IDs, we recommend using the [JS clien
 The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to approve or remove a given operator's ability to transfer (or burn) the calling account's tokens.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -588,14 +548,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "approved:bool='true'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "500000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -604,7 +562,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
 --session-arg "approved:bool='true'" \
 --payment-amount "500000000"
-
 ```
 
 </details>
@@ -616,7 +573,6 @@ Checking an operator's approval status requires two pieces of information: the k
 The following command will invoke the `make_dictionary_item_key` session entrypoint on your instance of CEP-85 and write the hash key to your account context.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -634,14 +590,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 // --session-arg "name:string='my_custom_result_key'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "500000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -650,7 +604,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "owner:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
 --session-arg "operator:key='account-hash-9f81014b9c7406c531ebf0477132283f4eb59143d7903a2fae54358b26cea44b'" \
 --payment-amount "500000000"
-
 ```
 
 </details><br>
@@ -707,7 +660,6 @@ The result of this query will be as a CLValue. Copy the "parsed" value and use i
 The following command will query the `operators` dictionary in your instance of CEP-85, verifying the owner and operator's approval. Since the dictionary item key combines the two corresponding keys and will not change, you can reuse it in your queries for further approval checks.
 
 ```
-
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 // The current state root hash.
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
@@ -717,7 +669,6 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --dictionary-name "operators" \
 // The Key/Key hash of the CEP-85 approval you are checking.
 --dictionary-item-key "2eb433e484c1c6aa9bb5e9d98bd6cda79f8e7b0769daf0ed4598913df45d0d7c"
-
 ```
 
 ## Transferring a Token
@@ -725,7 +676,6 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 The following command will invoke the `safe_transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amount of a specified token ID from one account to another.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -747,14 +697,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "data:byte_list=''" \
 // The gas payment you are allotting, in motes.
 --payment-amount "10000000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -766,7 +714,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "amount:u256='10'" \
 --session-arg "data:byte_list=''" \
 --payment-amount "10000000000"
-
 ```
 
 </details>
@@ -776,7 +723,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 The following command will invoke the `safe_batch_transfer_from` entrypoint on your instance of CEP-85, directing it to transfer the given amounts of the specified token IDs from one account to another.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -800,14 +746,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 ]' \
 // The gas payment you are allotting, in motes.
 --payment-amount "10000000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -821,7 +765,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 {"name":"data","type":{"List":"U8"},"value":"0102ff"}
 ]' \
 --payment-amount "10000000000"
-
 ```
 
 </details>
@@ -831,7 +774,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 The following command will invoke the `uri` entrypoint of your instance of CEP-85, returning the associated URI for the provided token ID.
 
 ```
-
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 // The state root hash
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538 \
@@ -841,20 +783,17 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --dictionary-name "token_uri" \
 // The ID of the CEP-85 token whose URI you are checking.
 --dictionary-item-key "2"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 --state-root-hash 107a33f19093b8a17cea32fd53595507e8843a30cbb5e7160d9b276b4bec3538
 --contract-hash hash-b568f50a64acc8bbe43462ffe243849a88111060b228dacb8f08d42e26985180 \
 --dictionary-name "token_uri" \
 --dictionary-item-key "2"
-
 ```
 
 </details>
@@ -864,7 +803,6 @@ casper-client get-dictionary-item -n http://<node IP>:<PORT> \
 The following command will invoke the `set_uri` entrypoint of your instance of CEP-85, setting the URI of the provided token ID. The account sending this deploy must be on the `admin_list`.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -880,14 +818,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "uri:string='https://docs.casper.network/test-{id}.json'" \
 // The gas payment you are allotting, in motes.
 --payment-amount "500000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -896,7 +832,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "id:u256='2'" \
 --session-arg "uri:string='https://docs.casper.network/test-{id}.json'" \
 --payment-amount "500000000"
-
 ```
 
 </details>
@@ -954,7 +889,6 @@ casper-client put-deploy -n http://<NODE IP>:<PORT> \
 The following command will invoke the `set_approval_for_all` entrypoint on your instance of CEP-85, directing it to set a modality of the contract instance. The account sending this deploy must be on the `admin_list`.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -970,14 +904,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "enable_burn:bool='true'"
 // The gas payment you are allotting, in motes.
 --payment-amount "500000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --secret-key ~/casper/demo/user_a/secret_key.pem \
@@ -986,7 +918,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "events_mode:u8='1'" \
 --session-arg "enable_burn:bool='true'" \
 --payment-amount "1300000000"
-
 ```
 
 </details>
@@ -996,7 +927,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 The following command will invoke the `call` entrypoint on your instance of CEP-85, directing it to upgrade the instance to a new version.
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 // The chain name of the Casper network on which your CEP-85 instance was installed.
 --chain-name <CHAIN NAME> \
@@ -1010,14 +940,12 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "name:string='multi-token-1'"  \
 // The gas payment you are allotting, in motes.
 --payment-amount "175000000000"
-
 ```
 
 <details>
 <summary><b>Casper client command without comments</b></summary>
 
 ```
-
 casper-client put-deploy -n http://<node IP>:<PORT> \
 --chain-name <CHAIN NAME> \
 --session-path ~/casper/cep-85/target/wasm32-unknown-unknown/release/cep85.wasm \
@@ -1025,7 +953,6 @@ casper-client put-deploy -n http://<node IP>:<PORT> \
 --session-arg "upgrade:bool='true'" \
 --session-arg "name:string='multi-token-1'" \
 --payment-amount "175000000000"
-
 ```
 
 </details>
