@@ -186,6 +186,43 @@ fn should_set_and_get_uri_for_id() {
 }
 
 #[test]
+fn should_fail_to_set_uri_for_non_existing_id() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup();
+
+    let id = U256::one();
+    let new_uri = TOKEN_URI_TEST;
+
+    // default address is in admin list, request should succeed
+    let updating_account = *DEFAULT_ACCOUNT_ADDR;
+
+    let uri_call = cep85_set_uri(
+        &mut builder,
+        &cep85_token,
+        &updating_account,
+        new_uri,
+        Some(id),
+    );
+
+    uri_call.expect_failure();
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::NonSuppliedTokenId as u16,
+        "token has no total supply",
+    );
+    let actual_uri = cep85_check_uri(&mut builder, &cep85_test_contract_package, None).unwrap();
+    assert_eq!(actual_uri, TOKEN_URI);
+}
+
+#[test]
 fn should_fail_to_get_uri_for_non_existing_id() {
     let (
         mut builder,

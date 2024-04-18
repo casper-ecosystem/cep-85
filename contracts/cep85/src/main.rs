@@ -879,6 +879,10 @@ pub extern "C" fn set_uri() {
             }));
         }
         Some(id) => {
+            let total_supply = read_total_supply_of(&id).unwrap_or_default();
+            if U256::from(0_u32) == total_supply {
+                revert(Cep85Error::NonSuppliedTokenId)
+            }
             // Empty string will "delete" dictionary row query for next read_uri_of()
             write_uri_of(&id, &uri);
             record_event_dictionary(Event::Uri(Uri {
