@@ -1,13 +1,3 @@
-use std::collections::HashMap;
-
-use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use cep85::{
-    constants::{ADMIN_LIST, ARG_ENABLE_BURN, BURNER_LIST, META_LIST, MINTER_LIST},
-    error::Cep85Error,
-    utils::replace_token_id_in_uri,
-};
-
 use crate::utility::{
     constants::{ACCOUNT_USER_1, ACCOUNT_USER_2, TOKEN_URI, TOKEN_URI_TEST},
     installer_request_builders::{
@@ -16,6 +6,14 @@ use crate::utility::{
     },
     support::{assert_expected_error, create_dummy_key_pair, fund_account},
 };
+use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
+use casper_types::{runtime_args, Key, RuntimeArgs, U256};
+use cep85::{
+    constants::{ADMIN_LIST, ARG_ENABLE_BURN, BURNER_LIST, META_LIST, MINTER_LIST},
+    error::Cep85Error,
+    utils::replace_token_id_in_uri,
+};
+use std::collections::HashMap;
 
 #[test]
 fn should_test_security_no_rights() {

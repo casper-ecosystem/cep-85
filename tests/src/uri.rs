@@ -1,8 +1,3 @@
-use casper_engine_test_support::{ExecuteRequestBuilder, DEFAULT_ACCOUNT_ADDR};
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use cep85::{constants::ARG_ID, error::Cep85Error, utils::replace_token_id_in_uri};
-use cep85_test_contract::constants::ENTRY_POINT_CHECK_URI;
-
 use crate::utility::{
     constants::TOKEN_URI_TEST,
     installer_request_builders::{
@@ -10,6 +5,10 @@ use crate::utility::{
     },
     support::assert_expected_error,
 };
+use casper_engine_test_support::{ExecuteRequestBuilder, DEFAULT_ACCOUNT_ADDR};
+use casper_types::{runtime_args, Key, RuntimeArgs, U256};
+use cep85::{constants::ARG_ID, error::Cep85Error, utils::replace_token_id_in_uri};
+use cep85_test_contract::constants::ENTRY_POINT_CHECK_URI;
 
 #[test]
 fn should_set_specific_uri_on_mint() {
