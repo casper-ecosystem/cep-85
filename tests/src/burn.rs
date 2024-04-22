@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::utility::{
     constants::{ACCOUNT_USER_1, ACCOUNT_USER_2},
     installer_request_builders::{
@@ -11,6 +9,7 @@ use crate::utility::{
     },
     support::{assert_expected_error, create_dummy_key_pair, fund_account},
 };
+use std::collections::HashMap;
 
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
 use casper_types::{runtime_args, Key, RuntimeArgs, U256};
@@ -660,7 +659,7 @@ fn should_reduce_supply_on_batch_burn() {
         ids.clone(),
     );
 
-    let expected_balances = vec![mint_amounts[0], mint_amounts[1]];
+    let expected_balances = [mint_amounts[0], mint_amounts[1]];
 
     assert_eq!(
         actual_balances,
@@ -702,7 +701,7 @@ fn should_reduce_supply_on_batch_burn() {
         ids,
     );
 
-    let expected_remaining_balances = vec![U256::zero(), U256::one()];
+    let expected_remaining_balances = [U256::zero(), U256::one()];
     assert_eq!(
         actual_balances,
         expected_remaining_balances

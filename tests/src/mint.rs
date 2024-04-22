@@ -7,7 +7,6 @@ use crate::utility::{
     },
     support::assert_expected_error,
 };
-
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
 use casper_types::{Key, U256};
 use cep85::error::Cep85Error;

@@ -179,7 +179,7 @@ fn check_transfers_with_transfer_filter_contract() {
         ids.clone(),
     );
 
-    let expected_balances = vec![U256::one(), U256::from(2)];
+    let expected_balances = [U256::one(), U256::from(2)];
 
     assert_eq!(
         actual_balances,

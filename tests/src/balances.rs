@@ -111,7 +111,7 @@ fn should_check_balance_of_batch() {
     let actual_balances =
         cep85_check_balance_of_batch(&mut builder, &cep85_test_contract_package, recipients, ids);
 
-    let expected_balances = vec![U256::one(), U256::zero()];
+    let expected_balances = [U256::one(), U256::zero()];
 
     assert_eq!(
         actual_balances,
