@@ -195,7 +195,7 @@ pub extern "C" fn balance_of() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-    if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
+    if read_total_supply_of(&id).unwrap_or_default().is_zero() {
         runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
     }
     let balance: U256 = read_balance_from(&account, &id);
@@ -220,7 +220,7 @@ pub extern "C" fn balance_of_batch() {
 
     let mut batch_balances = Vec::new();
     for (&account, &id) in accounts.iter().zip(ids.iter()) {
-        if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
+        if read_total_supply_of(&id).unwrap_or_default().is_zero() {
             batch_balances.push(None);
         } else {
             batch_balances.push(Some(read_balance_from(&account, &id)));
@@ -356,7 +356,7 @@ pub extern "C" fn transfer_from() {
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
 
-    if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
+    if read_total_supply_of(&id).unwrap_or_default().is_zero() {
         revert(Cep85Error::NonSuppliedTokenId);
     }
 
@@ -424,7 +424,7 @@ pub extern "C" fn batch_transfer_from() {
     }
 
     for id in ids.iter() {
-        if U256::from(0_u32) == read_total_supply_of(id).unwrap_or_default() {
+        if read_total_supply_of(id).unwrap_or_default().is_zero() {
             revert(Cep85Error::NonSuppliedTokenId);
         }
     }
@@ -617,7 +617,7 @@ pub extern "C" fn burn() {
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
 
-    if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
+    if read_total_supply_of(&id).unwrap_or_default().is_zero() {
         revert(Cep85Error::NonSuppliedTokenId);
     }
 
@@ -697,7 +697,7 @@ pub extern "C" fn batch_burn() {
     }
 
     for (i, &id) in ids.iter().enumerate() {
-        if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
+        if read_total_supply_of(&id).unwrap_or_default().is_zero() {
             revert(Cep85Error::NonSuppliedTokenId);
         }
         let amount = amounts[i];
@@ -729,7 +729,7 @@ pub extern "C" fn supply_of() {
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
     let total_supply = read_total_supply_of(&id).unwrap_or_default();
-    if U256::from(0_u32) == total_supply {
+    if total_supply.is_zero() {
         runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
     }
     let supply: U256 = read_supply_of(&id);
@@ -742,7 +742,7 @@ pub extern "C" fn total_supply_of() {
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
     let total_supply = read_total_supply_of(&id).unwrap_or_default();
-    if U256::from(0_u32) == total_supply {
+    if total_supply.is_zero() {
         runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
     }
     runtime::ret(CLValue::from_t(Some(total_supply)).unwrap_or_revert());
@@ -782,7 +782,7 @@ pub extern "C" fn supply_of_batch() {
     let mut batch_supplies = Vec::new();
 
     for id in ids {
-        if U256::from(0_u32) == read_total_supply_of(&id).unwrap_or_default() {
+        if read_total_supply_of(&id).unwrap_or_default().is_zero() {
             batch_supplies.push(None);
         } else {
             batch_supplies.push(Some(read_supply_of(&id)));
@@ -802,7 +802,7 @@ pub extern "C" fn total_supply_of_batch() {
 
     for id in ids {
         let total_supply: U256 = read_total_supply_of(&id).unwrap_or_default();
-        if U256::from(0_u32) == total_supply {
+        if total_supply.is_zero() {
             batch_total_supplies.push(None);
         } else {
             batch_total_supplies.push(Some(total_supply));
@@ -848,7 +848,7 @@ pub extern "C" fn uri() {
     let id: Option<U256> = get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId);
     if let Some(id) = id {
         let total_supply = read_total_supply_of(&id).unwrap_or_default();
-        if U256::from(0_u32) == total_supply {
+        if total_supply.is_zero() {
             runtime::ret(CLValue::from_t::<Option<String>>(None).unwrap_or_revert());
         }
     }
@@ -880,7 +880,7 @@ pub extern "C" fn set_uri() {
         }
         Some(id) => {
             let total_supply = read_total_supply_of(&id).unwrap_or_default();
-            if U256::from(0_u32) == total_supply {
+            if total_supply.is_zero() {
                 revert(Cep85Error::NonSuppliedTokenId)
             }
             // Empty string will "delete" dictionary row query for next read_uri_of()
@@ -899,7 +899,7 @@ pub extern "C" fn is_non_fungible() {
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
     let total_supply = read_total_supply_of(&id).unwrap_or_default();
-    if U256::from(0_u32) == total_supply {
+    if total_supply.is_zero() {
         runtime::ret(CLValue::from_t::<Option<bool>>(None).unwrap_or_revert());
     }
     let is_non_fungible: bool = U256::from(1_u32) == total_supply;
@@ -914,7 +914,7 @@ pub extern "C" fn total_fungible_supply() {
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
     let total_supply = read_total_supply_of(&id).unwrap_or_default();
-    if U256::from(0_u32) == total_supply {
+    if total_supply.is_zero() {
         runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
     }
 
