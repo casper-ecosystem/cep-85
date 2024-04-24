@@ -4,7 +4,6 @@
 import {
   DeployUtil,
   CLPublicKey,
-  EventStream,
   CasperServiceByJsonRPC,
   CLU256,
   CLValueBuilder,
@@ -23,7 +22,6 @@ import {
   uri,
   NODE_URL,
   NETWORK_NAME,
-  EVENT_STREAM_ADDRESS
 } from "./common";
 import { install } from "./install";
 import { CEP85Client, EventsMode } from "../src";
@@ -406,7 +404,7 @@ const usage = async () => {
       {
         name
       },
-      "200000000000",
+      "350000000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );

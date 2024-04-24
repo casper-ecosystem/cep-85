@@ -11,8 +11,8 @@ use casper_types::{runtime_args, Key, RuntimeArgs, U256};
 use cep85::{
     constants::ARG_EVENTS_MODE,
     events::{
-        ApprovalForAll, Burn, ChangeSecurity, Mint, SetModalities, SetTotalSupply, TransferBatch,
-        TransferSingle, Upgrade, Uri,
+        ApprovalForAll, Burn, BurnBatch, ChangeSecurity, Mint, MintBatch, SetModalities,
+        SetTotalSupply, Transfer, TransferBatch, Upgrade, Uri, UriBatch,
     },
     modalities::EventsMode,
 };
@@ -27,11 +27,14 @@ fn should_have_events_schema_in_events_mode() {
     );
     let expected_schemas = Schemas::new()
         .with::<Mint>()
+        .with::<MintBatch>()
         .with::<Burn>()
+        .with::<BurnBatch>()
         .with::<ApprovalForAll>()
-        .with::<TransferSingle>()
+        .with::<Transfer>()
         .with::<TransferBatch>()
         .with::<Uri>()
+        .with::<UriBatch>()
         .with::<SetTotalSupply>()
         .with::<ChangeSecurity>()
         .with::<SetModalities>()
@@ -98,7 +101,7 @@ fn should_record_events_in_events_mode() {
         &minting_recipient,
         &id,
         &mint_amount,
-        None,
+        Some(TOKEN_URI),
     );
 
     mint_call.expect_success().commit();
@@ -108,7 +111,8 @@ fn should_record_events_in_events_mode() {
         &cep85_test_contract_package,
         &minting_recipient,
         &id,
-    );
+    )
+    .unwrap();
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
@@ -119,7 +123,7 @@ fn should_record_events_in_events_mode() {
     assert_eq!(actual_event, expected_event, "Expected Mint event.");
 
     // Expect Uri event
-    let expected_event = Uri::new(TOKEN_URI.into(), Some(id));
+    let expected_event = Uri::new(TOKEN_URI.to_string(), Some(id));
     let actual_event: Uri = get_event(&builder, &cep85_token.into(), 1);
     assert_eq!(actual_event, expected_event, "Expected Uri event.");
 }
@@ -159,7 +163,8 @@ fn should_not_record_events_in_no_events_mode() {
         &cep85_test_contract_package,
         &minting_recipient,
         &id,
-    );
+    )
+    .unwrap();
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);

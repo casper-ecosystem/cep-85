@@ -47,14 +47,83 @@ fn should_check_balance_of() {
         &cep85_test_contract_package,
         &minting_recipient,
         &id,
-    );
+    )
+    .unwrap();
     let expected_balance = U256::one();
 
     assert_eq!(actual_balance, expected_balance);
 }
 
 #[test]
+fn should_return_none_getting_balance_of_non_existing_token() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_test_contract_package,
+            ref test_accounts,
+            ..
+        },
+    ) = setup();
+
+    let id = U256::one();
+    let owner = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+
+    let actual_balance =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &owner, &id);
+    let expected_balance = None;
+
+    assert_eq!(actual_balance, expected_balance);
+}
+
+#[test]
 fn should_check_balance_of_batch() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_token,
+            cep85_test_contract_package,
+            ref test_accounts,
+            ..
+        },
+    ) = setup();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let recipient_user_1 = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let recipient_user_2 = Key::from(*test_accounts.get(&ACCOUNT_USER_2).unwrap());
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::one()];
+
+    // batch_mint is only one recipient
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_token,
+        &minting_account,
+        &recipient_user_1,
+        ids.clone(),
+        amounts,
+        None,
+    );
+
+    mint_call.expect_success().commit();
+
+    let recipients: Vec<Key> = vec![recipient_user_1, recipient_user_2];
+
+    let actual_balances =
+        cep85_check_balance_of_batch(&mut builder, &cep85_test_contract_package, recipients, ids);
+
+    let expected_balances = [U256::one(), U256::zero()];
+
+    assert_eq!(
+        actual_balances,
+        expected_balances
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
+}
+
+#[test]
+fn should_return_none_getting_balance_of_batch_non_existing_token() {
     let (
         mut builder,
         TestContext {
@@ -84,14 +153,14 @@ fn should_check_balance_of_batch() {
 
     mint_call.expect_success().commit();
 
-    // Add a new recipient for token id 3, balance will be zero
+    let recipients: Vec<Key> = vec![recipient_user_1, recipient_user_2, recipient_user_2];
+    // Add a new recipient for token id 3, balance will be None
     ids.push(U256::from(3));
-    let recipients: Vec<Key> = vec![recipient_user_1, recipient_user_1, recipient_user_2];
 
     let actual_balances =
         cep85_check_balance_of_batch(&mut builder, &cep85_test_contract_package, recipients, ids);
 
-    let expected_balances = vec![U256::one(), U256::one(), U256::zero()];
+    let expected_balances = vec![Some(U256::one()), Some(U256::zero()), None];
 
     assert_eq!(actual_balances, expected_balances);
 }

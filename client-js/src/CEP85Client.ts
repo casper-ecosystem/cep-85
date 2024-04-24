@@ -394,7 +394,7 @@ export class CEP85Client extends TypedContract {
     deploySender: CLPublicKey,
     keys?: Keys.AsymmetricKey[],
   ) {
-    return this.queryTransfer(args, "safe_transfer_from", paymentAmount, deploySender, keys);
+    return this.queryTransfer(args, "transfer_from", paymentAmount, deploySender, keys);
   }
 
   /**
@@ -410,7 +410,7 @@ export class CEP85Client extends TypedContract {
     deploySender: CLPublicKey,
     keys?: Keys.AsymmetricKey[],
   ) {
-    return this.queryTransfer(args, "safe_batch_transfer_from", paymentAmount, deploySender, keys);
+    return this.queryTransfer(args, "batch_transfer_from", paymentAmount, deploySender, keys);
   }
 
   /**

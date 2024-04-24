@@ -22,21 +22,21 @@ use cep85::{
         ARG_ENABLE_BURN, ARG_EVENTS_MODE, ARG_FROM, ARG_IDS, ARG_NAME, ARG_OPERATOR, ARG_OWNER,
         ARG_RECIPIENT, ARG_SESSION_NAMED_KEY_NAME, ARG_TOKEN_CONTRACT, ARG_TOTAL_SUPPLIES,
         ARG_TOTAL_SUPPLY, ARG_URI, BURNER_LIST, ENTRY_POINT_BATCH_BURN, ENTRY_POINT_BATCH_MINT,
-        ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY, ENTRY_POINT_MAKE_DICTIONARY_ITEM_KEY,
-        ENTRY_POINT_MINT, ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM, ENTRY_POINT_SAFE_TRANSFER_FROM,
-        ENTRY_POINT_SET_APPROVAL_FOR_ALL, ENTRY_POINT_SET_MODALITIES,
-        ENTRY_POINT_SET_TOTAL_SUPPLY_OF, ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH,
-        ENTRY_POINT_SET_URI, META_LIST, MINTER_LIST, NONE_LIST,
+        ENTRY_POINT_BATCH_TRANSFER_FROM, ENTRY_POINT_BURN, ENTRY_POINT_CHANGE_SECURITY,
+        ENTRY_POINT_MAKE_DICTIONARY_ITEM_KEY, ENTRY_POINT_MINT, ENTRY_POINT_SET_APPROVAL_FOR_ALL,
+        ENTRY_POINT_SET_MODALITIES, ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
+        ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_SET_URI, ENTRY_POINT_TRANSFER_FROM,
+        META_LIST, MINTER_LIST, NONE_LIST,
     },
     modalities::EventsMode,
 };
 use cep85_test_contract::constants::{
     CEP85_TEST_CONTRACT_NAME, CEP85_TEST_PACKAGE_NAME, ENTRY_POINT_CHECK_BALANCE_OF,
-    ENTRY_POINT_CHECK_BALANCE_OF_BATCH, ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL,
-    ENTRY_POINT_CHECK_IS_NON_FUNGIBLE, ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
-    ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM, ENTRY_POINT_CHECK_SUPPLY_OF,
-    ENTRY_POINT_CHECK_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY,
-    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
+    ENTRY_POINT_CHECK_BALANCE_OF_BATCH, ENTRY_POINT_CHECK_BATCH_TRANSFER_FROM,
+    ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL, ENTRY_POINT_CHECK_IS_NON_FUNGIBLE,
+    ENTRY_POINT_CHECK_SUPPLY_OF, ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
+    ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
+    ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_CHECK_TRANSFER_FROM,
     ENTRY_POINT_CHECK_URI, RESULT_KEY,
 };
 use std::collections::HashMap;
@@ -192,7 +192,7 @@ pub fn cep85_check_uri(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     id: Option<U256>,
-) -> String {
+) -> Option<String> {
     let exec_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
         *DEFAULT_ACCOUNT_ADDR,
         *contract_package_hash,
@@ -314,7 +314,7 @@ pub fn cep85_check_balance_of(
     contract_package_hash: &ContractPackageHash,
     account: &Key,
     id: &U256,
-) -> U256 {
+) -> Option<U256> {
     let check_balance_args = runtime_args! {
         ARG_ACCOUNT => *account,
         ARG_ID => *id,
@@ -336,7 +336,7 @@ pub fn cep85_check_balance_of_batch(
     contract_package_hash: &ContractPackageHash,
     accounts: Vec<Key>,
     ids: Vec<U256>,
-) -> Vec<U256> {
+) -> Vec<Option<U256>> {
     let check_balance_args = runtime_args! {
         ARG_ACCOUNTS => accounts,
         ARG_IDS => ids,
@@ -377,7 +377,7 @@ pub fn cep85_check_total_supply_of(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     id: &U256,
-) -> U256 {
+) -> Option<U256> {
     let check_total_supply_of_args = runtime_args! {
         ARG_ID => *id,
     };
@@ -419,7 +419,7 @@ pub fn cep85_check_total_supply_of_batch(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     ids: Vec<U256>,
-) -> Vec<U256> {
+) -> Vec<Option<U256>> {
     let check_total_supply_batch_of_args = runtime_args! {
         ARG_IDS => ids,
     };
@@ -439,7 +439,7 @@ pub fn cep85_check_supply_of(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     id: &U256,
-) -> U256 {
+) -> Option<U256> {
     let check_supply_of_args = runtime_args! {
         ARG_ID => *id,
     };
@@ -459,7 +459,7 @@ pub fn cep85_check_supply_of_batch(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     ids: Vec<U256>,
-) -> Vec<U256> {
+) -> Vec<Option<U256>> {
     let check_supply_of_batch_args = runtime_args! {
         ARG_IDS => ids,
     };
@@ -595,7 +595,7 @@ pub fn cep85_transfer_from<'a>(
                 *sender, /* We do not use above _hash here because from and sender could be
                           * different */
                 *cep85_token,
-                ENTRY_POINT_SAFE_TRANSFER_FROM,
+                ENTRY_POINT_TRANSFER_FROM,
                 args,
             )
             .build()
@@ -618,7 +618,7 @@ pub fn cep85_transfer_from<'a>(
                     *sender,
                     contract_package_hash,
                     None,
-                    ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
+                    ENTRY_POINT_CHECK_TRANSFER_FROM,
                     args,
                 )
                 .build()
@@ -635,7 +635,7 @@ pub fn cep85_transfer_from<'a>(
                 ExecuteRequestBuilder::contract_call_by_hash(
                     *sender,
                     contract_hash,
-                    ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
+                    ENTRY_POINT_CHECK_TRANSFER_FROM,
                     args,
                 )
                 .build()
@@ -664,7 +664,7 @@ pub fn cep85_transfer_from_as_contract<'a>(
         *sender,
         *contract_package_hash,
         None,
-        ENTRY_POINT_CHECK_SAFE_TRANSFER_FROM,
+        ENTRY_POINT_CHECK_TRANSFER_FROM,
         runtime_args! {
             ARG_FROM => *from,
             ARG_TO => *to,
@@ -709,7 +709,7 @@ pub fn cep85_batch_transfer_from<'a>(
                 *sender, /* We do not use above _hash here because from and sender could be
                           * different */
                 *cep85_token,
-                ENTRY_POINT_SAFE_BATCH_TRANSFER_FROM,
+                ENTRY_POINT_BATCH_TRANSFER_FROM,
                 args,
             )
             .build()
@@ -724,7 +724,7 @@ pub fn cep85_batch_transfer_from<'a>(
                     *sender,
                     contract_package_hash,
                     None,
-                    ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
+                    ENTRY_POINT_CHECK_BATCH_TRANSFER_FROM,
                     runtime_args! {
                         ARG_FROM => *from,
                         ARG_TO => *to,
@@ -739,7 +739,7 @@ pub fn cep85_batch_transfer_from<'a>(
                 ExecuteRequestBuilder::contract_call_by_hash(
                     *sender,
                     contract_hash,
-                    ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
+                    ENTRY_POINT_CHECK_BATCH_TRANSFER_FROM,
                     runtime_args! {
                         ARG_FROM => *from,
                         ARG_TO => *to,
@@ -775,7 +775,7 @@ pub fn cep85_batch_transfer_from_as_contract<'a>(
         *sender,
         *contract_package_hash,
         None,
-        ENTRY_POINT_CHECK_SAFE_BATCH_TRANSFER_FROM,
+        ENTRY_POINT_CHECK_BATCH_TRANSFER_FROM,
         runtime_args! {
             ARG_FROM => *from,
             ARG_TO => *to,
@@ -793,7 +793,7 @@ pub fn cep85_check_is_non_fungible(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     id: &U256,
-) -> bool {
+) -> Option<bool> {
     let check_is_non_fungible_args = runtime_args! {
         ARG_ID => *id,
     };
@@ -813,7 +813,7 @@ pub fn cep85_check_total_fungible_supply(
     builder: &mut InMemoryWasmTestBuilder,
     contract_package_hash: &ContractPackageHash,
     id: &U256,
-) -> U256 {
+) -> Option<U256> {
     let check_total_fungible_supply_args = runtime_args! {
         ARG_ID => *id,
     };

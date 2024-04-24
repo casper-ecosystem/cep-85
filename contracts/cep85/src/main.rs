@@ -45,8 +45,9 @@ use cep85::{
     entry_points::generate_entry_points,
     error::Cep85Error,
     events::{
-        init_events, record_event_dictionary, ApprovalForAll, Burn, ChangeSecurity, Event, Mint,
-        SetModalities, SetTotalSupply, TransferBatch, TransferSingle, Upgrade, Uri,
+        init_events, record_event_dictionary, ApprovalForAll, Burn, BurnBatch, ChangeSecurity,
+        Event, Mint, MintBatch, SetModalities, SetTotalSupply, Transfer, TransferBatch, Upgrade,
+        Uri, UriBatch,
     },
     modalities::{EventsMode, TransferFilterContractResult},
     operators::{read_operator, write_operator},
@@ -194,9 +195,11 @@ pub extern "C" fn balance_of() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-
+    if read_total_supply_of(&id).unwrap_or_default().is_zero() {
+        runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
+    }
     let balance: U256 = read_balance_from(&account, &id);
-    runtime::ret(CLValue::from_t(balance).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(Some(balance)).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -216,10 +219,12 @@ pub extern "C" fn balance_of_batch() {
     }
 
     let mut batch_balances = Vec::new();
-
-    for i in 0_usize..accounts.len() {
-        let balance: U256 = read_balance_from(&accounts[i], &ids[i]);
-        batch_balances.push(balance);
+    for (&account, &id) in accounts.iter().zip(ids.iter()) {
+        if read_total_supply_of(&id).unwrap_or_default().is_zero() {
+            batch_balances.push(None);
+        } else {
+            batch_balances.push(Some(read_balance_from(&account, &id)));
+        }
     }
 
     runtime::ret(CLValue::from_t(batch_balances).unwrap_or_revert());
@@ -321,7 +326,7 @@ pub extern "C" fn set_approval_for_all() {
 ///
 /// This function should only be called by an approved operator or by the sender themselves.
 #[no_mangle]
-pub extern "C" fn safe_transfer_from() {
+pub extern "C" fn transfer_from() {
     let from: Key =
         get_named_arg_with_user_errors(ARG_FROM, Cep85Error::MissingFrom, Cep85Error::InvalidFrom)
             .unwrap_or_revert();
@@ -351,6 +356,10 @@ pub extern "C" fn safe_transfer_from() {
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
 
+    if read_total_supply_of(&id).unwrap_or_default().is_zero() {
+        revert(Cep85Error::NonSuppliedTokenId);
+    }
+
     let amount: U256 = get_named_arg_with_user_errors(
         ARG_AMOUNT,
         Cep85Error::MissingAmount,
@@ -363,9 +372,8 @@ pub extern "C" fn safe_transfer_from() {
 
     before_token_transfer(&caller, &from, &to, &[id], &[amount], data);
 
-    transfer_balance(&from, &to, &id, &amount)
-        .unwrap_or_revert_with(Cep85Error::FailToTransferBalance);
-    record_event_dictionary(Event::TransferSingle(TransferSingle {
+    transfer_balance(&from, &to, &id, &amount);
+    record_event_dictionary(Event::Transfer(Transfer {
         operator: caller,
         from,
         to,
@@ -378,7 +386,7 @@ pub extern "C" fn safe_transfer_from() {
 ///
 /// This function should only be called by an approved operator or by the sender themselves.
 #[no_mangle]
-pub extern "C" fn safe_batch_transfer_from() {
+pub extern "C" fn batch_transfer_from() {
     let ids: Vec<U256> =
         get_named_arg_with_user_errors(ARG_IDS, Cep85Error::MissingIds, Cep85Error::InvalidIds)
             .unwrap_or_revert();
@@ -415,6 +423,12 @@ pub extern "C" fn safe_batch_transfer_from() {
         runtime::revert(Cep85Error::NotApproved);
     }
 
+    for id in ids.iter() {
+        if read_total_supply_of(id).unwrap_or_default().is_zero() {
+            revert(Cep85Error::NonSuppliedTokenId);
+        }
+    }
+
     let to: Key =
         get_named_arg_with_user_errors(ARG_TO, Cep85Error::MissingTo, Cep85Error::InvalidTo)
             .unwrap_or_revert();
@@ -424,8 +438,7 @@ pub extern "C" fn safe_batch_transfer_from() {
 
     before_token_transfer(&caller, &from, &to, &ids, &amounts, data);
 
-    batch_transfer_balance(&from, &to, &ids, &amounts)
-        .unwrap_or_revert_with(Cep85Error::FailToBatchTransferBalance);
+    batch_transfer_balance(&from, &to, &ids, &amounts);
 
     record_event_dictionary(Event::TransferBatch(TransferBatch {
         operator: caller,
@@ -465,7 +478,7 @@ pub extern "C" fn mint() {
     let new_supply = supply
         .checked_add(amount)
         .unwrap_or_revert_with(Cep85Error::OverflowMint);
-    let total_max_supply = read_total_supply_of(&id);
+    let total_max_supply = read_total_supply_of(&id).unwrap_or_default();
 
     if total_max_supply != U256::zero() {
         if new_supply > total_max_supply {
@@ -478,16 +491,8 @@ pub extern "C" fn mint() {
     write_supply_of(&id, &new_supply);
     write_balance_to(&recipient, &id, &new_recipient_balance);
 
-    let mint_uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
+    let uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::InvalidUri)
         .unwrap_or_default();
-
-    let uri: String = if mint_uri.is_empty() {
-        get_stored_value_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
-    } else {
-        mint_uri
-    };
-
-    write_uri_of(&id, &uri);
 
     record_event_dictionary(Event::Mint(Mint {
         id,
@@ -495,10 +500,13 @@ pub extern "C" fn mint() {
         amount,
     }));
 
-    record_event_dictionary(Event::Uri(Uri {
-        value: uri,
-        id: Some(id),
-    }))
+    if !uri.is_empty() {
+        write_uri_of(&id, &uri);
+        record_event_dictionary(Event::Uri(Uri {
+            id: Some(id),
+            value: uri,
+        }));
+    };
 }
 
 /// Batch mint specified amounts of multiple tokens to one `recipient`.
@@ -524,18 +532,12 @@ pub extern "C" fn batch_mint() {
     )
     .unwrap_or_revert();
 
-    let mint_uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri)
-        .unwrap_or_default();
-
-    let uri = if mint_uri.is_empty() {
-        get_stored_value_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
-    } else {
-        mint_uri
-    };
-
     if ids.len() != amounts.len() {
         revert(Cep85Error::MismatchParamsLength);
     }
+
+    let uri: String = get_optional_named_arg_with_user_errors(ARG_URI, Cep85Error::InvalidUri)
+        .unwrap_or_default();
 
     for (i, &id) in ids.iter().enumerate() {
         let amount = amounts[i];
@@ -544,7 +546,7 @@ pub extern "C" fn batch_mint() {
         let new_recipient_balance = recipient_balance.checked_add(amount).unwrap_or_default();
 
         let supply = read_supply_of(&id);
-        let total_max_supply = read_total_supply_of(&id);
+        let total_max_supply = read_total_supply_of(&id).unwrap_or_default();
         let new_supply = supply
             .checked_add(amount)
             .unwrap_or_revert_with(Cep85Error::OverflowBatchMint);
@@ -559,18 +561,19 @@ pub extern "C" fn batch_mint() {
 
         write_supply_of(&id, &new_supply);
         write_balance_to(&recipient, &id, &new_recipient_balance);
-        write_uri_of(&id, &uri);
+        if !uri.is_empty() {
+            write_uri_of(&id, &uri);
+        }
+    }
 
-        record_event_dictionary(Event::Mint(Mint {
-            id,
-            recipient,
-            amount,
-        }));
+    record_event_dictionary(Event::MintBatch(MintBatch {
+        ids: ids.clone(),
+        recipient,
+        amounts,
+    }));
 
-        record_event_dictionary(Event::Uri(Uri {
-            id: Some(id),
-            value: uri.to_string(),
-        }));
+    if !uri.is_empty() {
+        record_event_dictionary(Event::UriBatch(UriBatch { value: uri, ids }));
     }
 }
 
@@ -614,6 +617,10 @@ pub extern "C" fn burn() {
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
 
+    if read_total_supply_of(&id).unwrap_or_default().is_zero() {
+        revert(Cep85Error::NonSuppliedTokenId);
+    }
+
     let amount: U256 = get_named_arg_with_user_errors(
         ARG_AMOUNT,
         Cep85Error::MissingAmount,
@@ -622,7 +629,10 @@ pub extern "C" fn burn() {
     .unwrap_or_revert();
 
     let owner_balance = read_balance_from(&owner, &id);
-    let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_default();
+    let new_owner_balance = owner_balance
+        .checked_sub(amount)
+        .unwrap_or_revert_with(Cep85Error::OverflowBurn);
+
     let new_supply = {
         let supply = read_supply_of(&id);
         supply
@@ -687,9 +697,14 @@ pub extern "C" fn batch_burn() {
     }
 
     for (i, &id) in ids.iter().enumerate() {
+        if read_total_supply_of(&id).unwrap_or_default().is_zero() {
+            revert(Cep85Error::NonSuppliedTokenId);
+        }
         let amount = amounts[i];
         let owner_balance = read_balance_from(&owner, &id);
-        let new_owner_balance = owner_balance.checked_sub(amount).unwrap_or_default();
+        let new_owner_balance = owner_balance
+            .checked_sub(amount)
+            .unwrap_or_revert_with(Cep85Error::OverflowBatchBurn);
 
         let new_supply = {
             let supply = read_supply_of(&id);
@@ -700,8 +715,12 @@ pub extern "C" fn batch_burn() {
 
         write_supply_of(&id, &new_supply);
         write_balance_to(&owner, &id, &new_owner_balance);
-        record_event_dictionary(Event::Burn(Burn { id, owner, amount }));
     }
+    record_event_dictionary(Event::BurnBatch(BurnBatch {
+        ids,
+        owner,
+        amounts,
+    }));
 }
 
 #[no_mangle]
@@ -709,9 +728,12 @@ pub extern "C" fn supply_of() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-
+    let total_supply = read_total_supply_of(&id).unwrap_or_default();
+    if total_supply.is_zero() {
+        runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
+    }
     let supply: U256 = read_supply_of(&id);
-    runtime::ret(CLValue::from_t(supply).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(Some(supply)).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -719,9 +741,11 @@ pub extern "C" fn total_supply_of() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-
-    let total_supply: U256 = read_total_supply_of(&id);
-    runtime::ret(CLValue::from_t(total_supply).unwrap_or_revert());
+    let total_supply = read_total_supply_of(&id).unwrap_or_default();
+    if total_supply.is_zero() {
+        runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
+    }
+    runtime::ret(CLValue::from_t(Some(total_supply)).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -758,8 +782,11 @@ pub extern "C" fn supply_of_batch() {
     let mut batch_supplies = Vec::new();
 
     for id in ids {
-        let supply: U256 = read_supply_of(&id);
-        batch_supplies.push(supply);
+        if read_total_supply_of(&id).unwrap_or_default().is_zero() {
+            batch_supplies.push(None);
+        } else {
+            batch_supplies.push(Some(read_supply_of(&id)));
+        }
     }
 
     runtime::ret(CLValue::from_t(batch_supplies).unwrap_or_revert());
@@ -774,8 +801,12 @@ pub extern "C" fn total_supply_of_batch() {
     let mut batch_total_supplies = Vec::new();
 
     for id in ids {
-        let total_supply: U256 = read_total_supply_of(&id);
-        batch_total_supplies.push(total_supply);
+        let total_supply: U256 = read_total_supply_of(&id).unwrap_or_default();
+        if total_supply.is_zero() {
+            batch_total_supplies.push(None);
+        } else {
+            batch_total_supplies.push(Some(total_supply));
+        }
     }
 
     runtime::ret(CLValue::from_t(batch_total_supplies).unwrap_or_revert());
@@ -815,18 +846,14 @@ pub extern "C" fn set_total_supply_of_batch() {
 #[no_mangle]
 pub extern "C" fn uri() {
     let id: Option<U256> = get_optional_named_arg_with_user_errors(ARG_ID, Cep85Error::InvalidId);
-    let uri: String = match id {
-        Some(id) => read_uri_of(&id),
-        None => get_stored_value_with_user_errors(
-            ARG_URI,
-            Cep85Error::MissingUri,
-            Cep85Error::InvalidUri,
-        ),
-    };
-    if uri.is_empty() {
-        revert(Cep85Error::MissingUri);
+    if let Some(id) = id {
+        let total_supply = read_total_supply_of(&id).unwrap_or_default();
+        if total_supply.is_zero() {
+            runtime::ret(CLValue::from_t::<Option<String>>(None).unwrap_or_revert());
+        }
     }
-    runtime::ret(CLValue::from_t(uri).unwrap_or_revert());
+    let uri: String = read_uri_of(id);
+    runtime::ret(CLValue::from_t(Some(uri)).unwrap_or_revert());
 }
 
 #[no_mangle]
@@ -838,14 +865,32 @@ pub extern "C" fn set_uri() {
     let uri: String =
         get_named_arg_with_user_errors(ARG_URI, Cep85Error::MissingUri, Cep85Error::InvalidUri)
             .unwrap_or_revert();
+
     match id {
-        Some(id) => write_uri_of(&id, &uri),
-        None => put_key(ARG_URI, storage::new_uref(uri.to_owned()).into()),
-    }
-    record_event_dictionary(Event::Uri(Uri {
-        id: None,
-        value: uri,
-    }));
+        None => {
+            // Do not save empty string as global uri
+            if uri.is_empty() {
+                revert(Cep85Error::MissingUri);
+            }
+            put_key(ARG_URI, storage::new_uref(uri.clone()).into());
+            record_event_dictionary(Event::Uri(Uri {
+                id: None,
+                value: uri,
+            }));
+        }
+        Some(id) => {
+            let total_supply = read_total_supply_of(&id).unwrap_or_default();
+            if total_supply.is_zero() {
+                revert(Cep85Error::NonSuppliedTokenId)
+            }
+            // Empty string will "delete" dictionary row query for next read_uri_of()
+            write_uri_of(&id, &uri);
+            record_event_dictionary(Event::Uri(Uri {
+                id: Some(id),
+                value: uri,
+            }));
+        }
+    };
 }
 
 #[no_mangle]
@@ -853,9 +898,12 @@ pub extern "C" fn is_non_fungible() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
-    let total_supply = read_total_supply_of(&id);
-    let is_non_fungible = total_supply == U256::from(1_u32);
-    runtime::ret(CLValue::from_t(is_non_fungible).unwrap_or_revert());
+    let total_supply = read_total_supply_of(&id).unwrap_or_default();
+    if total_supply.is_zero() {
+        runtime::ret(CLValue::from_t::<Option<bool>>(None).unwrap_or_revert());
+    }
+    let is_non_fungible: bool = U256::from(1_u32) == total_supply;
+    runtime::ret(CLValue::from_t(Some(is_non_fungible)).unwrap_or_revert());
 }
 
 /// Calculates the difference between the total supply and the circulating supply of a token.
@@ -865,8 +913,11 @@ pub extern "C" fn total_fungible_supply() {
     let id: U256 =
         get_named_arg_with_user_errors(ARG_ID, Cep85Error::MissingId, Cep85Error::InvalidId)
             .unwrap_or_revert();
+    let total_supply = read_total_supply_of(&id).unwrap_or_default();
+    if total_supply.is_zero() {
+        runtime::ret(CLValue::from_t::<Option<U256>>(None).unwrap_or_revert());
+    }
 
-    let total_supply = read_total_supply_of(&id);
     let current_supply = read_supply_of(&id);
 
     let total_fungible_supply = if total_supply >= current_supply {
@@ -876,7 +927,7 @@ pub extern "C" fn total_fungible_supply() {
     } else {
         U256::zero()
     };
-    runtime::ret(CLValue::from_t(total_fungible_supply).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(Some(total_fungible_supply)).unwrap_or_revert());
 }
 
 /// Admin EntryPoint to manipulate the security access granted to users.
@@ -1036,6 +1087,12 @@ fn install_contract() {
         ARG_TRANSFER_FILTER_METHOD,
         Cep85Error::InvalidTransferFilterMethod,
     );
+
+    if let Some(_contract_key) = transfer_filter_contract_key {
+        if transfer_filter_method.is_none() || transfer_filter_method.as_ref().unwrap().is_empty() {
+            revert(Cep85Error::InvalidTransferFilterMethod);
+        }
+    }
 
     let mut named_keys = NamedKeys::new();
     named_keys.insert(ARG_NAME.to_string(), storage::new_uref(name.clone()).into());

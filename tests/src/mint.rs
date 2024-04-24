@@ -45,13 +45,14 @@ fn should_mint_nft() {
         &cep85_test_contract_package,
         &minting_recipient,
         &id,
-    );
+    )
+    .unwrap();
     let expected_balance = mint_amount;
     assert_eq!(actual_balance, expected_balance);
 
     let expected_supply = mint_amount;
     let actual_total_supply =
-        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id).unwrap();
     assert_eq!(actual_total_supply, expected_supply);
 }
 
@@ -89,14 +90,15 @@ fn should_mint_fungible_token() {
         &cep85_test_contract_package,
         &minting_recipient,
         &id,
-    );
+    )
+    .unwrap();
 
     let expected_balance = mint_amount;
     assert_eq!(actual_balance, expected_balance);
 
     let expected_supply = mint_amount;
     let actual_total_supply =
-        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id);
+        cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id).unwrap();
     assert_eq!(actual_total_supply, expected_supply);
 }
 
@@ -141,7 +143,13 @@ fn should_batch_mint() {
 
     let expected_balances = amounts.clone();
 
-    assert_eq!(actual_balances, expected_balances);
+    assert_eq!(
+        actual_balances,
+        expected_balances
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 
     let total_supplies = amounts;
 
@@ -149,8 +157,8 @@ fn should_batch_mint() {
         cep85_check_total_supply_of_batch(&mut builder, &cep85_test_contract_package, ids);
 
     assert_eq!(actual_total_supplies.len(), 2);
-    assert_eq!(actual_total_supplies[0], total_supplies[0]);
-    assert_eq!(actual_total_supplies[1], total_supplies[1]);
+    assert_eq!(actual_total_supplies[0], Some(total_supplies[0]));
+    assert_eq!(actual_total_supplies[1], Some(total_supplies[1]));
 }
 
 #[test]
@@ -233,7 +241,8 @@ fn should_not_mint_above_total_supply() {
         &cep85_test_contract_package,
         &minting_recipient,
         &id,
-    );
+    )
+    .unwrap();
     let expected_balance = total_supply;
 
     assert_eq!(actual_balance, expected_balance);
@@ -320,7 +329,10 @@ fn should_not_batch_mint_above_total_supply() {
     let actual_balances =
         cep85_check_balance_of_batch(&mut builder, &cep85_test_contract_package, recipients, ids);
 
-    let expected_balances = total_supplies;
+    let expected_balances = total_supplies
+        .iter()
+        .map(|&amount| Some(amount))
+        .collect::<Vec<Option<U256>>>();
 
     assert_eq!(actual_balances, expected_balances);
 }

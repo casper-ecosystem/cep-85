@@ -366,13 +366,13 @@ fn should_not_transfer_from_account_to_account_without_allowance() {
     );
 
     let actual_balance_from =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
     let expected_balance_from = U256::one();
 
     assert_eq!(actual_balance_from, expected_balance_from);
 
     let actual_balance_to =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
     let expected_balance_to = U256::zero();
 
     assert_eq!(actual_balance_to, expected_balance_to);
@@ -438,14 +438,20 @@ fn should_not_batch_transfer_from_account_to_account_without_allowance() {
         "Only owner or approved operator can transfer token on behalf of token owner",
     );
 
-    let actual_balances_after = cep85_check_balance_of_batch(
+    let actual_balances_after: Vec<Option<U256>> = cep85_check_balance_of_batch(
         &mut builder,
         &cep85_test_contract_package,
         recipients,
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balances_after);
+    assert_eq!(
+        actual_balances_after,
+        expected_balances_after
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 }
 
 #[test]
@@ -513,13 +519,13 @@ fn should_transfer_from_account_to_account_with_allowance() {
     transfer_call.expect_success().commit();
 
     let actual_balance_from =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
     let expected_balance_from = U256::zero();
 
     assert_eq!(actual_balance_from, expected_balance_from);
 
     let actual_balance_to =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
     let expected_balance_to = U256::one();
 
     assert_eq!(actual_balance_to, expected_balance_to);
@@ -598,7 +604,13 @@ fn should_batch_transfer_from_account_to_account_with_allowance() {
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balances_after);
+    assert_eq!(
+        actual_balances_after,
+        expected_balances_after
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 }
 
 #[test]
@@ -662,13 +674,13 @@ fn should_not_transfer_from_account_to_account_through_contract_without_allowanc
     );
 
     let actual_balance_from =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
     let expected_balance_from = U256::one();
 
     assert_eq!(actual_balance_from, expected_balance_from);
 
     let actual_balance_to =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
     let expected_balance_to = U256::zero();
 
     assert_eq!(actual_balance_to, expected_balance_to);
@@ -757,7 +769,13 @@ fn should_not_batch_transfer_from_account_to_account_through_contract_without_al
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balances_after);
+    assert_eq!(
+        actual_balances_after,
+        expected_balances_after
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 }
 
 #[test]
@@ -831,13 +849,13 @@ fn should_transfer_from_account_to_account_through_contract_with_allowance() {
     transfer_call.expect_success().commit();
 
     let actual_balance_from =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
     let expected_balance_from = U256::zero();
 
     assert_eq!(actual_balance_from, expected_balance_from);
 
     let actual_balance_to =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
     let expected_balance_to = U256::one();
 
     assert_eq!(actual_balance_to, expected_balance_to);
@@ -915,13 +933,13 @@ fn should_transfer_from_account_to_account_through_package_with_allowance() {
     transfer_call.expect_success().commit();
 
     let actual_balance_from =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
     let expected_balance_from = U256::zero();
 
     assert_eq!(actual_balance_from, expected_balance_from);
 
     let actual_balance_to =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
     let expected_balance_to = U256::one();
 
     assert_eq!(actual_balance_to, expected_balance_to);
@@ -1006,7 +1024,13 @@ fn should_batch_transfer_from_account_to_account_through_contract_with_allowance
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balances_after);
+    assert_eq!(
+        actual_balances_after,
+        expected_balances_after
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 }
 
 #[test]
@@ -1087,7 +1111,13 @@ fn should_batch_transfer_from_account_to_account_through_package_with_allowance(
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balances_after);
+    assert_eq!(
+        actual_balances_after,
+        expected_balances_after
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 }
 
 #[test]
@@ -1160,13 +1190,13 @@ fn should_transfer_from_account_to_contract_through_contract_with_allowance() {
     transfer_call.expect_success().commit();
 
     let actual_balance_from =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
     let expected_balance_from = U256::zero();
 
     assert_eq!(actual_balance_from, expected_balance_from);
 
     let actual_balance_to =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
     let expected_balance_to = U256::one();
 
     assert_eq!(actual_balance_to, expected_balance_to);
@@ -1242,13 +1272,13 @@ fn should_transfer_from_account_to_contract_through_package_with_allowance() {
     transfer_call.expect_success().commit();
 
     let actual_balance_from =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
     let expected_balance_from = U256::zero();
 
     assert_eq!(actual_balance_from, expected_balance_from);
 
     let actual_balance_to =
-        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id);
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
     let expected_balance_to = U256::one();
 
     assert_eq!(actual_balance_to, expected_balance_to);
@@ -1332,7 +1362,13 @@ fn should_batch_transfer_from_account_to_contract_through_contract_with_allowanc
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balances_after);
+    assert_eq!(
+        actual_balances_after,
+        expected_balances_after
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 }
 
 #[test]
@@ -1413,7 +1449,13 @@ fn should_batch_transfer_from_account_to_contract_through_package_with_allowance
         vec![ids; 2_usize].into_iter().flatten().collect(),
     );
 
-    assert_eq!(actual_balances_after, expected_balances_after);
+    assert_eq!(
+        actual_balances_after,
+        expected_balances_after
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 }
 
 #[test]
