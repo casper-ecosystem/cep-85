@@ -24,3 +24,6 @@ test = false
 [features]
 default = ["contract-support"]
 contract-support = ["dep:casper-contract"]
+
+[replace]
+"zeroize:1.8.0" = { git = "https://github.com/your-forked-repo/zeroize", tag = "v1.7.0" }
