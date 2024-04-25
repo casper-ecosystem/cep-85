@@ -7,7 +7,6 @@ import {
   CLValue,
   Contracts
 } from "casper-js-sdk";
-import { utf8ToBytes } from "@noble/hashes/utils";
 import { BigNumber } from "@ethersproject/bignumber";
 import {
   CEP85Client, EventsMode,
@@ -51,8 +50,10 @@ const mintAmount = '20';
 const transferAmount = '10';
 const burnAmount = '1';
 const totalSupply = '40';
-const text = "hello Casper";
-const data = utf8ToBytes(text);
+const text = "Casper Labs test";
+const encoder = new TextEncoder();
+const bytes = encoder.encode(text);
+const data = new Uint8Array(bytes);
 
 const MOCKED_OWNER_PUBKEY = CLPublicKey.fromHex(
   "0145fb72c75e1b459839555d70356a5e6172e706efa204d86c86050e2f7878960f"

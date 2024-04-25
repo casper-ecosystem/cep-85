@@ -7,7 +7,7 @@ use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_event_standard::Event;
 #[cfg(feature = "contract-support")]
 use casper_event_standard::{emit, Schemas};
-use casper_types::{Key, U256};
+use casper_types::{bytesrepr::Bytes, Key, U256};
 #[cfg(feature = "contract-support")]
 use core::convert::TryFrom;
 
@@ -127,16 +127,25 @@ pub struct Transfer {
     pub to: Key,
     pub id: U256,
     pub value: U256,
+    pub data: Option<Bytes>,
 }
 
 impl Transfer {
-    pub fn new(operator: Key, from: Key, to: Key, id: U256, value: U256) -> Self {
+    pub fn new(
+        operator: Key,
+        from: Key,
+        to: Key,
+        id: U256,
+        value: U256,
+        data: Option<Bytes>,
+    ) -> Self {
         Self {
             operator,
             from,
             to,
             id,
             value,
+            data,
         }
     }
 }
@@ -148,16 +157,25 @@ pub struct TransferBatch {
     pub to: Key,
     pub ids: Vec<U256>,
     pub values: Vec<U256>,
+    pub data: Option<Bytes>,
 }
 
 impl TransferBatch {
-    pub fn new(operator: Key, from: Key, to: Key, ids: Vec<U256>, values: Vec<U256>) -> Self {
+    pub fn new(
+        operator: Key,
+        from: Key,
+        to: Key,
+        ids: Vec<U256>,
+        values: Vec<U256>,
+        data: Option<Bytes>,
+    ) -> Self {
         Self {
             operator,
             from,
             to,
             ids,
             values,
+            data,
         }
     }
 }
