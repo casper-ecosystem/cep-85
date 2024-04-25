@@ -246,9 +246,9 @@ export class CEP85Client extends TypedContract {
         result = await this.collectionUri();
       }
       return result && result.replace('{id}', id);
-    } catch (error) {
-      // console.error(error);
-      return '';
+    } catch {
+      const result = await this.collectionUri();
+      return result && result.replace('{id}', id);
     }
   }
 
@@ -366,7 +366,8 @@ export class CEP85Client extends TypedContract {
     }
 
     if ('data' in args && args.data !== undefined) {
-      runtimeArgs.insert('data', CLValueBuilder.byteArray(args.data));
+      const clValues = Array.from(args.data).map(CLValueBuilder.u8);
+      runtimeArgs.insert('data', CLValueBuilder.list(clValues));
     }
 
     const preparedDeploy = this.contractClient.callEntrypoint(

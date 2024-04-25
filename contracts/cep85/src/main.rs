@@ -370,7 +370,7 @@ pub extern "C" fn transfer_from() {
     let data: Option<Bytes> =
         get_optional_named_arg_with_user_errors(ARG_DATA, Cep85Error::InvalidData);
 
-    before_token_transfer(&caller, &from, &to, &[id], &[amount], data);
+    before_token_transfer(&caller, &from, &to, &[id], &[amount], data.clone());
 
     transfer_balance(&from, &to, &id, &amount);
     record_event_dictionary(Event::Transfer(Transfer {
@@ -379,6 +379,7 @@ pub extern "C" fn transfer_from() {
         to,
         id,
         value: amount,
+        data,
     }));
 }
 
@@ -436,7 +437,7 @@ pub extern "C" fn batch_transfer_from() {
     let data: Option<Bytes> =
         get_optional_named_arg_with_user_errors(ARG_DATA, Cep85Error::InvalidData);
 
-    before_token_transfer(&caller, &from, &to, &ids, &amounts, data);
+    before_token_transfer(&caller, &from, &to, &ids, &amounts, data.clone());
 
     batch_transfer_balance(&from, &to, &ids, &amounts);
 
@@ -446,6 +447,7 @@ pub extern "C" fn batch_transfer_from() {
         to,
         ids,
         values: amounts,
+        data,
     }));
 }
 

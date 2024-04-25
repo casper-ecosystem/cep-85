@@ -3,13 +3,18 @@ use crate::utility::{
     installer_request_builders::{
         cep85_batch_mint, cep85_batch_transfer_from, cep85_check_balance_of,
         cep85_check_balance_of_batch, cep85_mint, cep85_set_total_supply_of_batch,
-        cep85_transfer_from, setup, TestContext, TransferData,
+        cep85_transfer_from, setup, setup_with_args, TestContext, TransferData,
     },
-    support::assert_expected_error,
+    support::{assert_expected_error, get_event},
 };
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{bytesrepr::Bytes, Key, U256};
-use cep85::error::Cep85Error;
+use casper_types::{bytesrepr::Bytes, runtime_args, Key, RuntimeArgs, U256};
+use cep85::{
+    constants::ARG_EVENTS_MODE,
+    error::Cep85Error,
+    events::{Transfer, TransferBatch},
+    modalities::EventsMode,
+};
 
 #[test]
 fn should_transfer_full_owned_amount() {
@@ -21,7 +26,12 @@ fn should_transfer_full_owned_amount() {
             ref test_accounts,
             ..
         },
-    ) = setup();
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_EVENTS_MODE => EventsMode::CES as u8,
+        },
+        None,
+    );
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let minting_recipient = Key::from(minting_account);
@@ -54,7 +64,7 @@ fn should_transfer_full_owned_amount() {
     let from = Key::from(minting_account);
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let transfer_amount = U256::one();
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
@@ -65,11 +75,17 @@ fn should_transfer_full_owned_amount() {
             to: &to,
             ids: vec![id],
             amounts: vec![transfer_amount],
-            data,
+            data: data.clone(),
         },
         None,
     );
     transfer_call.expect_success().commit();
+
+    // Expect Transfer event
+    let expected_event = Transfer::new(from, from, to, id, transfer_amount, data);
+    let event_index = 1; // (Mint + transfer)
+    let actual_event: Transfer = get_event(&builder, &cep85_token.into(), event_index);
+    assert_eq!(actual_event, expected_event, "Expected Transfer event.");
 
     let actual_balance_from =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
@@ -94,7 +110,12 @@ fn should_batch_transfer_full_owned_amount() {
             ref test_accounts,
             ..
         },
-    ) = setup();
+    ) = setup_with_args(
+        runtime_args! {
+            ARG_EVENTS_MODE => EventsMode::CES as u8,
+        },
+        None,
+    );
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let minting_recipient = Key::from(minting_account);
@@ -102,7 +123,7 @@ fn should_batch_transfer_full_owned_amount() {
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
     let from = minting_recipient;
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();
@@ -143,12 +164,21 @@ fn should_batch_transfer_full_owned_amount() {
             from: &from,
             to: &to,
             ids: ids.clone(),
-            amounts,
-            data,
+            amounts: amounts.clone(),
+            data: data.clone(),
         },
         None,
     );
     transfer_call.expect_success().commit();
+
+    // Expect Transfer event
+    let expected_event = TransferBatch::new(from, from, to, ids.clone(), amounts, data);
+    let event_index = 1; // (Mint + transfer)
+    let actual_event: TransferBatch = get_event(&builder, &cep85_token.into(), event_index);
+    assert_eq!(
+        actual_event, expected_event,
+        "Expected TransferBatch event."
+    );
 
     let actual_balances_after = cep85_check_balance_of_batch(
         &mut builder,
@@ -209,7 +239,7 @@ fn should_not_transfer_more_than_owned_balance() {
     let from = Key::from(minting_account);
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let transfer_amount = U256::from(2);
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
@@ -266,7 +296,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
     let transfer_amounts: Vec<U256> = vec![U256::from(2), U256::from(3)];
     let from = minting_recipient;
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances: Vec<U256> = [&mint_amounts[..], &[U256::zero(), U256::zero()]].concat();
 
@@ -392,7 +422,7 @@ fn should_not_be_able_to_own_transfer() {
     let to = from;
 
     let transfer_amount = U256::one();
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
@@ -450,7 +480,7 @@ fn should_not_be_able_to_own_batch_transfer() {
     let from = minting_recipient;
     // let's try to self transfer
     let to = from;
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances: Vec<U256> = [&mint_amounts[..], &mint_amounts[..]].concat();
 
@@ -575,7 +605,7 @@ fn should_verify_zero_amount_transfer_is_noop() {
     let from = Key::from(minting_account);
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let transfer_amount = U256::zero();
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
@@ -633,7 +663,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
     let transfer_amounts: Vec<U256> = vec![U256::from(2), U256::zero()];
     let from = minting_recipient;
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances: Vec<U256> = [&mint_amounts[..], &[U256::zero(), U256::zero()]].concat();
 
@@ -735,7 +765,7 @@ fn should_transfer_account_to_account() {
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let mint_call = cep85_mint(
         &mut builder,
@@ -807,7 +837,7 @@ fn should_batch_transfer_account_to_account() {
     let from = Key::from(account_user_1);
     let minting_recipient = from;
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_2).unwrap());
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();
@@ -902,7 +932,7 @@ fn should_transfer_account_to_contract_package() {
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let mint_call = cep85_mint(
         &mut builder,
@@ -974,7 +1004,7 @@ fn should_batch_transfer_account_to_contract_package() {
     let from = Key::from(account_user_1);
     let minting_recipient = from;
     let to = Key::Hash(cep85_test_contract_package.value());
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();
@@ -1067,7 +1097,7 @@ fn should_transfer_contract_package_to_contract() {
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let mint_call = cep85_mint(
         &mut builder,
@@ -1137,7 +1167,7 @@ fn should_batch_transfer_contract_package_to_contract() {
     let from = Key::Hash(cep85_test_contract_package.value());
     let minting_recipient = from;
     let to = Key::Hash([42; 32]);
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();
@@ -1233,7 +1263,7 @@ fn should_transfer_account_to_contract() {
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let mint_call = cep85_mint(
         &mut builder,
@@ -1306,7 +1336,7 @@ fn should_batch_transfer_account_to_contract_() {
     let from = Key::from(account_user_1);
     let minting_recipient = from;
     let to = Key::Hash(cep85_test_contract.value());
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();
@@ -1400,7 +1430,7 @@ fn should_transfer_contract_to_contract() {
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let mint_call = cep85_mint(
         &mut builder,
@@ -1471,7 +1501,7 @@ fn should_batch_transfer_contract_to_contract() {
     let from = Key::Hash(cep85_test_contract.value());
     let minting_recipient = from;
     let to = Key::Hash([42; 32]);
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
         [&amounts[..], &[U256::zero(), U256::zero()]].concat();
@@ -1566,7 +1596,7 @@ fn should_transfer_account_to_contract_package_to_account() {
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let mint_call = cep85_mint(
         &mut builder,
@@ -1678,7 +1708,7 @@ fn should_revert_on_transfer_of_non_existent_token() {
     let from = Key::from(*DEFAULT_ACCOUNT_ADDR);
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
     let transfer_amount = U256::one();
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
@@ -1719,7 +1749,7 @@ fn should_revert_on_transfer_batch_of_non_existent_token() {
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
     let from = Key::from(*DEFAULT_ACCOUNT_ADDR);
     let to = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
-    let data = Some(Bytes::default());
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,

@@ -7,8 +7,8 @@ import {
   CasperServiceByJsonRPC,
   CLU256,
   CLValueBuilder,
+
 } from "casper-js-sdk";
-import { utf8ToBytes } from "@noble/hashes/utils";
 import { assert } from "console";
 import { BigNumber } from "@ethersproject/bignumber";
 import {
@@ -32,8 +32,10 @@ const mintAmount = '20';
 const transferAmount = '10';
 const burnAmount = '1';
 const totalSupply = '40';
-const text = "hello Casper";
-const data = utf8ToBytes(text);
+const text = "Casper Labs free bytes";
+const encoder = new TextEncoder();
+const bytes = encoder.encode(text);
+const data = new Uint8Array(bytes);
 
 const runDeployFlow = async (deploy: DeployUtil.Deploy) => {
   const deployHash = await deploy.send(NODE_URL);
@@ -127,7 +129,7 @@ const usage = async () => {
         amount: transferAmount,
         data
       },
-      "1000000000",
+      "4000000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );
@@ -289,7 +291,7 @@ const usage = async () => {
         amounts: [transferAmount, transferAmount],
         data
       },
-      "1000000000",
+      "4000000000",
       USER1_KEYS.publicKey,
       [USER1_KEYS]
     );
@@ -320,7 +322,7 @@ const usage = async () => {
         ids,
         total_supplies: [totalSupply, totalSupply],
       },
-      "500000000",
+      "1000000000",
       FAUCET_KEYS.publicKey,
       [FAUCET_KEYS]
     );

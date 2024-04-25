@@ -45,7 +45,11 @@ export const sleep = (ms: number) => new Promise((resolve) => { setTimeout(resol
 
 export const getDeploy = async (nodeURL: string, deployHash: string) => {
   const client = new CasperServiceByJsonRPC(nodeURL);
-  await client.waitForDeploy(deployHash, DEPLOY_TIMEOUT);
+  const deployResult = await client.waitForDeploy(deployHash, DEPLOY_TIMEOUT);
+  const executionResult = deployResult.execution_results[0]?.result;
+  if (executionResult?.Failure) {
+    throw (new Error(executionResult.Failure.error_message.toString()));
+  }
 };
 
 export const getAccountInfo = async (
