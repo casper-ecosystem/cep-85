@@ -17,4 +17,4 @@ codegen-units = 1
 lto = true
 
 [patch.crates-io]
-zeroize = "1.7.0"
+zeroize = "=1.7.0"
