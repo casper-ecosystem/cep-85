@@ -17,4 +17,4 @@ codegen-units = 1
 lto = true
 
 [patch.crates-io]
-zeroize = "=1.7.0"
+zeroize = { git = "https://github.com/your-forked-repo/zeroize", tag = "v1.7.0" }
