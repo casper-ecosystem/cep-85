@@ -24,6 +24,3 @@ test = false
 [features]
 default = ["contract-support"]
 contract-support = ["dep:casper-contract"]
-
-[patch.crates-io]
-zeroize = "1.7.0"
