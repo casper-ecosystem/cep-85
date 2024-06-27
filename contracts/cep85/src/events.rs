@@ -1,15 +1,23 @@
+#[cfg(feature = "contract-support")]
+mod contract_support {
+    pub use crate::{
+        constants::{ARG_EVENTS_MODE, EVENTS},
+        modalities::EventsMode,
+        utils::get_stored_value,
+    };
+    pub use alloc::format;
+    pub use casper_contract::{
+        contract_api::runtime::emit_message, unwrap_or_revert::UnwrapOrRevert,
+    };
+    pub use casper_event_standard::{emit, Schemas};
+    pub use core::convert::TryFrom;
+}
 use crate::security::SecurityBadge;
-#[cfg(feature = "contract-support")]
-use crate::{constants::ARG_EVENTS_MODE, modalities::EventsMode, utils::get_stored_value};
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
-#[cfg(feature = "contract-support")]
-use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_event_standard::Event;
-#[cfg(feature = "contract-support")]
-use casper_event_standard::{emit, Schemas};
 use casper_types::{bytesrepr::Bytes, Key, U256};
 #[cfg(feature = "contract-support")]
-use core::convert::TryFrom;
+use contract_support::*;
 
 #[derive(Debug)]
 pub enum Event {
@@ -36,6 +44,11 @@ pub fn record_event_dictionary(event: Event) {
     match events_mode {
         EventsMode::NoEvents => {}
         EventsMode::CES => ces(event),
+        EventsMode::Native => emit_message(EVENTS, &format!("{event:?}").into()).unwrap_or_revert(),
+        EventsMode::NativeNCES => {
+            emit_message(EVENTS, &format!("{event:?}").into()).unwrap_or_revert();
+            ces(event);
+        }
     }
 }
 

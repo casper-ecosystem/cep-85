@@ -26,8 +26,8 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    bytesrepr::Bytes, contracts::NamedKeys, runtime_args, CLValue, ContractHash, Key, RuntimeArgs,
-    U256,
+    addressable_entity::NamedKeys, bytesrepr::Bytes, contract_messages::MessageTopicOperation,
+    runtime_args, AddressableEntityHash, CLValue, EntityAddr, Key, RuntimeArgs, U256,
 };
 use cep85::{
     balances::{batch_transfer_balance, read_balance_from, transfer_balance, write_balance_to},
@@ -39,7 +39,7 @@ use cep85::{
         ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD, ARG_UPGRADE_FLAG, ARG_URI,
         BURNER_LIST, DEFAULT_DICT_ITEM_KEY_NAME, DICT_BALANCES, DICT_OPERATORS,
         DICT_SECURITY_BADGES, DICT_SUPPLY, DICT_TOKEN_URI, DICT_TOTAL_SUPPLY, ENTRY_POINT_INIT,
-        ENTRY_POINT_UPGRADE, META_LIST, MINTER_LIST, NONE_LIST, PREFIX_ACCESS_KEY_NAME,
+        ENTRY_POINT_UPGRADE, EVENTS, META_LIST, MINTER_LIST, NONE_LIST, PREFIX_ACCESS_KEY_NAME,
         PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME, PREFIX_CONTRACT_VERSION,
     },
     entry_points::generate_entry_points,
@@ -97,9 +97,11 @@ pub extern "C" fn init() {
         )
         .unwrap_or_default();
 
-    let transfer_filter_contract: Option<ContractHash> =
+    let transfer_filter_contract: Option<AddressableEntityHash> =
         transfer_filter_contract_key.map(|transfer_filter_contract_key| {
-            ContractHash::from(transfer_filter_contract_key.into_hash().unwrap_or_revert())
+            transfer_filter_contract_key
+                .into_entity_hash()
+                .unwrap_or_revert()
         });
 
     runtime::put_key(
@@ -332,6 +334,10 @@ pub extern "C" fn transfer_from() {
             .unwrap_or_revert();
 
     let (caller, caller_package) = get_verified_caller();
+
+    runtime::print(&format!("{:?}", from));
+    runtime::print(&format!("{:?}", caller));
+    runtime::print(&format!("{:?}", caller_package));
 
     // Check if the caller is the spender or an operator
     let is_approved: bool = match caller_package {
@@ -1111,15 +1117,24 @@ fn install_contract() {
     let entry_points = generate_entry_points();
 
     let package_key_name = format!("{PREFIX_CONTRACT_PACKAGE_NAME}_{name}");
+    let mut message_topics = BTreeMap::new();
+    let message_topics = if EventsMode::Native == events_mode.try_into().unwrap_or_default() {
+        message_topics.insert(EVENTS.to_string(), MessageTopicOperation::Add);
+        Some(message_topics)
+    } else {
+        None
+    };
 
     let (contract_hash, contract_version) = storage::new_contract(
         entry_points,
         Some(named_keys),
         Some(package_key_name.clone()),
         Some(format!("{PREFIX_ACCESS_KEY_NAME}_{name}")),
+        message_topics,
     );
 
-    let contract_hash_key = Key::from(contract_hash);
+    let contract_hash_key =
+        Key::AddressableEntity(EntityAddr::SmartContract(contract_hash.value()));
 
     runtime::put_key(&format!("{PREFIX_CONTRACT_NAME}_{name}"), contract_hash_key);
     runtime::put_key(
@@ -1174,14 +1189,15 @@ fn install_contract() {
 fn upgrade_contract(name: &str, contract_package_hash: Key) {
     let (contract_hash, contract_version) = storage::add_contract_version(
         contract_package_hash
-            .into_hash()
-            .unwrap_or_revert_with(Cep85Error::InvalidPackageHash)
-            .into(),
+            .into_package_hash()
+            .unwrap_or_revert_with(Cep85Error::InvalidPackageHash),
         generate_entry_points(),
         NamedKeys::new(),
+        BTreeMap::new(),
     );
 
-    let contract_hash_key = Key::from(contract_hash);
+    let contract_hash_key =
+        Key::AddressableEntity(EntityAddr::SmartContract(contract_hash.value()));
 
     runtime::put_key(&format!("{PREFIX_CONTRACT_NAME}_{name}"), contract_hash_key);
     runtime::put_key(

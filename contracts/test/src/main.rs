@@ -21,9 +21,9 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    bytesrepr::Bytes, runtime_args, system::auction::ARG_AMOUNT, ApiError, CLType, CLTyped,
-    CLValue, ContractHash, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Key,
-    Parameter, RuntimeArgs, U256,
+    addressable_entity::EntityKindTag, bytesrepr::Bytes, runtime_args, system::auction::ARG_AMOUNT,
+    ApiError, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointPayment,
+    EntryPointType, EntryPoints, Key, Parameter, U256,
 };
 use cep85::{
     constants::{
@@ -89,7 +89,7 @@ pub extern "C" fn can_transfer() {
 
 #[no_mangle]
 pub extern "C" fn burn() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let owner: Key = get_named_arg(ARG_OWNER);
     let id: U256 = get_named_arg(ARG_ID);
     let amount: U256 = get_named_arg(ARG_AMOUNT);
@@ -103,7 +103,7 @@ pub extern "C" fn burn() {
 
 #[no_mangle]
 pub extern "C" fn batch_burn() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let owner: Key = get_named_arg(ARG_OWNER);
     let ids: Vec<U256> = get_named_arg(ARG_IDS);
     let amounts: Vec<U256> = get_named_arg(ARG_AMOUNTS);
@@ -117,7 +117,7 @@ pub extern "C" fn batch_burn() {
 
 #[no_mangle]
 pub extern "C" fn check_balance_of() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let account: Key = get_named_arg(ARG_ACCOUNT);
     let id: U256 = get_named_arg(ARG_ID);
     let balance_args = runtime_args! {
@@ -130,7 +130,7 @@ pub extern "C" fn check_balance_of() {
 
 #[no_mangle]
 pub extern "C" fn check_balance_of_batch() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let accounts: Vec<Key> = get_named_arg(ARG_ACCOUNTS);
     let ids: Vec<U256> = get_named_arg(ARG_IDS);
     let balance_of_batch_args = runtime_args! {
@@ -147,7 +147,7 @@ pub extern "C" fn check_balance_of_batch() {
 
 #[no_mangle]
 pub extern "C" fn check_is_approved_for_all() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let account: Key = get_named_arg(ARG_ACCOUNT);
     let operator: Key = get_named_arg(ARG_OPERATOR);
     let is_approved_for_all_args = runtime_args! {
@@ -164,7 +164,7 @@ pub extern "C" fn check_is_approved_for_all() {
 
 #[no_mangle]
 pub extern "C" fn check_transfer_from() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let from: Key = get_named_arg(ARG_FROM);
     let to: Key = get_named_arg(ARG_TO);
     let id: U256 = get_named_arg(ARG_ID);
@@ -189,7 +189,7 @@ pub extern "C" fn check_transfer_from() {
 
 #[no_mangle]
 pub extern "C" fn check_batch_transfer_from() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let from: Key = get_named_arg(ARG_FROM);
     let to: Key = get_named_arg(ARG_TO);
     let ids: Vec<U256> = get_named_arg(ARG_IDS);
@@ -215,7 +215,7 @@ pub extern "C" fn check_batch_transfer_from() {
 
 #[no_mangle]
 pub extern "C" fn check_supply_of() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let id: U256 = get_named_arg(ARG_ID);
     let check_supply_of_args = runtime_args! {
         ARG_ID => id,
@@ -227,7 +227,7 @@ pub extern "C" fn check_supply_of() {
 
 #[no_mangle]
 pub extern "C" fn check_supply_of_batch() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let ids: Vec<U256> = get_named_arg(ARG_IDS);
     let check_supply_of_batch_args = runtime_args! {
         ARG_IDS => ids,
@@ -242,7 +242,7 @@ pub extern "C" fn check_supply_of_batch() {
 
 #[no_mangle]
 pub extern "C" fn check_total_supply_of() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let id: U256 = get_named_arg(ARG_ID);
     let check_total_supply_of_args = runtime_args! {
         ARG_ID => id,
@@ -257,7 +257,7 @@ pub extern "C" fn check_total_supply_of() {
 
 #[no_mangle]
 pub extern "C" fn check_total_supply_of_batch() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let ids: Vec<U256> = get_named_arg(ARG_IDS);
     let check_total_supply_of_batch_args = runtime_args! {
         ARG_IDS => ids,
@@ -272,7 +272,7 @@ pub extern "C" fn check_total_supply_of_batch() {
 
 #[no_mangle]
 pub extern "C" fn check_uri() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let id: Option<U256> = get_named_arg(ARG_ID);
     let check_uri_args = if let Some(id) = id {
         runtime_args! {
@@ -287,7 +287,7 @@ pub extern "C" fn check_uri() {
 
 #[no_mangle]
 pub extern "C" fn check_is_non_fungible() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let id: U256 = get_named_arg(ARG_ID);
 
     let is_non_fungible_args = runtime_args! {
@@ -304,7 +304,7 @@ pub extern "C" fn check_is_non_fungible() {
 
 #[no_mangle]
 pub extern "C" fn check_total_fungible_supply() {
-    let token_contract: ContractHash = get_token_contract();
+    let token_contract = get_token_contract();
     let id: U256 = get_named_arg(ARG_ID);
 
     let total_fungible_supply_args = runtime_args! {
@@ -327,7 +327,8 @@ pub extern "C" fn call() {
         vec![],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let set_filter_contract_return_value = EntryPoint::new(
         ENTRY_POINT_SET_FILTER_CONTRACT_RETURN_VALUE,
@@ -337,7 +338,8 @@ pub extern "C" fn call() {
         )],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let can_transfer = EntryPoint::new(
         ENTRY_POINT_TRANSFER_FILTER_METHOD,
@@ -351,7 +353,8 @@ pub extern "C" fn call() {
         ],
         TransferFilterContractResult::cl_type(),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let burn = EntryPoint::new(
         ENTRY_POINT_BURN,
@@ -362,7 +365,8 @@ pub extern "C" fn call() {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
 
     let batch_burn = EntryPoint::new(
@@ -374,7 +378,8 @@ pub extern "C" fn call() {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
 
     let check_balance_of = EntryPoint::new(
@@ -385,7 +390,8 @@ pub extern "C" fn call() {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let check_balance_of_batch = EntryPoint::new(
         ENTRY_POINT_CHECK_BALANCE_OF_BATCH,
@@ -395,7 +401,8 @@ pub extern "C" fn call() {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let check_is_approved_for_all = EntryPoint::new(
         ENTRY_POINT_CHECK_IS_APPROVED_FOR_ALL,
@@ -405,7 +412,8 @@ pub extern "C" fn call() {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let check_transfer_from = EntryPoint::new(
         ENTRY_POINT_CHECK_TRANSFER_FROM,
@@ -418,7 +426,8 @@ pub extern "C" fn call() {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let check_batch_transfer_from = EntryPoint::new(
         ENTRY_POINT_CHECK_BATCH_TRANSFER_FROM,
@@ -431,21 +440,24 @@ pub extern "C" fn call() {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let check_supply_of = EntryPoint::new(
         ENTRY_POINT_CHECK_SUPPLY_OF,
         vec![Parameter::new(ARG_ID, CLType::U256)],
         CLType::U256,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let check_total_supply_of = EntryPoint::new(
         ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF,
         vec![Parameter::new(ARG_ID, CLType::U256)],
         CLType::U256,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let check_supply_of_batch = EntryPoint::new(
         ENTRY_POINT_CHECK_SUPPLY_OF_BATCH,
@@ -455,7 +467,8 @@ pub extern "C" fn call() {
         )],
         CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let check_total_supply_of_batch = EntryPoint::new(
         ENTRY_POINT_CHECK_TOTAL_SUPPLY_OF_BATCH,
@@ -465,7 +478,8 @@ pub extern "C" fn call() {
         )],
         CLType::List(Box::new(CLType::U256)),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let check_uri = EntryPoint::new(
         ENTRY_POINT_CHECK_URI,
@@ -475,21 +489,24 @@ pub extern "C" fn call() {
         )],
         CLType::String,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let check_is_non_fungible = EntryPoint::new(
         ENTRY_POINT_CHECK_IS_NON_FUNGIBLE,
         vec![Parameter::new(ARG_ID, CLType::U256)],
         CLType::Bool,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
     let check_total_fungible_supply = EntryPoint::new(
         ENTRY_POINT_CHECK_TOTAL_FUNGIBLE_SUPPLY,
         vec![Parameter::new(ARG_ID, CLType::U256)],
         CLType::U256,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     );
 
     entry_points.add_entry_point(init);
@@ -515,9 +532,13 @@ pub extern "C" fn call() {
         None,
         Some(CEP85_TEST_PACKAGE_NAME.to_string()),
         None,
+        None,
     );
 
-    put_key(CEP85_TEST_CONTRACT_NAME, Key::from(contract_hash));
+    let contract_hash_key =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, contract_hash);
+
+    put_key(CEP85_TEST_CONTRACT_NAME, contract_hash_key);
 
     let token_contract = get_named_arg::<Key>(ARG_TOKEN_CONTRACT);
     // Call contract to initialize it

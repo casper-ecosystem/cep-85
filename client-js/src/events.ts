@@ -3,7 +3,7 @@ import { CLBool, CLKey, CLList, CLMap, CLOption, CLString, CLU256, CLValue } fro
 export type Event<E extends Record<string, CLValue>> = {
   name: string;
   contractHash: `hash-${string}`;
-  contractPackageHash: `hash-${string}`;
+  PackageHash: `hash-${string}`;
   data: E;
 };
 

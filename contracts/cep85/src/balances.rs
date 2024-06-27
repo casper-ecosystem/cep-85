@@ -46,7 +46,7 @@ pub fn transfer_balance(sender: &Key, recipient: &Key, id: &U256, amount: &U256)
     }
 
     // Check if the recipient is a an account or a contract
-    if (*recipient).into_account().is_none() && (*recipient).into_hash().is_none() {
+    if (*recipient).into_account().is_none() && (*recipient).into_hash_addr().is_none() {
         runtime::revert(Cep85Error::InvalidRecipient);
     }
 

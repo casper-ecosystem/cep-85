@@ -55,13 +55,13 @@ const install = async () => {
     `cep85_contract_hash_${name}`
   );
 
-  const contractPackageHash = getAccountNamedKeyValue(
+  const PackageHash = getAccountNamedKeyValue(
     accountInfo,
     `cep85_contract_package_hash_${name}`
   );
 
   console.log(`... Contract Hash: ${contractHash}`);
-  console.log(`... Contract Package Hash: ${contractPackageHash}`);
+  console.log(`... Contract Package Hash: ${PackageHash}`);
 };
 
 if (require.main === module) {

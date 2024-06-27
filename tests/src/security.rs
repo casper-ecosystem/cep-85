@@ -1,36 +1,33 @@
 use crate::utility::{
-    constants::{ACCOUNT_USER_1, ACCOUNT_USER_2, TOKEN_URI, TOKEN_URI_TEST},
+    constants::{TOKEN_URI, TOKEN_URI_TEST},
     installer_request_builders::{
         cep85_burn, cep85_change_security, cep85_check_uri, cep85_mint, cep85_set_total_supply_of,
         cep85_set_uri, setup_with_args, SecurityLists, TestContext,
     },
-    support::{assert_expected_error, create_dummy_key_pair, fund_account},
+    support::{assert_expected_error, get_test_account},
 };
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
+use casper_types::{runtime_args, Key, U256};
 use cep85::{
     constants::{ADMIN_LIST, ARG_ENABLE_BURN, BURNER_LIST, META_LIST, MINTER_LIST},
     error::Cep85Error,
     utils::replace_token_id_in_uri,
 };
-use std::collections::HashMap;
 
 #[test]
 fn should_test_security_no_rights() {
+    let (_, account_user_1_acccount_hash, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            ref test_accounts,
+            cep18_contract_hash,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-        },
-        None,
-    );
-    let minting_account = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+    });
+    let minting_account = account_user_1_acccount_hash;
     let minting_recipient: Key = minting_account.into();
 
     let mint_amount = U256::one();
@@ -38,7 +35,7 @@ fn should_test_security_no_rights() {
 
     let failing_mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -61,7 +58,7 @@ fn should_test_security_no_rights() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -73,12 +70,12 @@ fn should_test_security_no_rights() {
     mint_call.expect_success().commit();
 
     // New owner is now ACCOUNT_USER_1 but is not in
-    let bunrning_account = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let bunrning_account = account_user_1_acccount_hash;
     let owner: Key = bunrning_account.into();
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &bunrning_account,
         &owner,
         &id,
@@ -98,37 +95,28 @@ fn should_test_security_no_rights() {
 
 #[test]
 fn should_test_security_meta_rights() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+    let (_, account_user_2_account_hash, _) = get_test_account("ACCOUNT_USER_2");
 
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep18_contract_hash,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            META_LIST => vec![Key::from(account_user_1)]
-        },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        META_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = account_user_1.into();
+    let minting_recipient: Key = account_user_1_key;
     let mint_amount = U256::from(1);
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -139,12 +127,12 @@ fn should_test_security_meta_rights() {
     mint_call.expect_success().commit();
 
     // account_user_2 is not in meta list, request should fail
-    let updating_account = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
+    let updating_account = account_user_2_account_hash;
     let new_uri = TOKEN_URI_TEST;
 
     let failing_meta_call = cep85_set_uri(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &updating_account,
         new_uri,
         Some(id),
@@ -157,11 +145,11 @@ fn should_test_security_meta_rights() {
     assert_eq!(actual_uri, replace_token_id_in_uri(TOKEN_URI, &id));
 
     // account_user_1 is in meta list, request should succeed
-    let updating_account = account_user_1;
+    let updating_account = account_user_1_account_hash;
 
     let meta_call = cep85_set_uri(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &updating_account,
         new_uri,
         Some(id),
@@ -178,7 +166,7 @@ fn should_test_security_meta_rights() {
 
     let meta_call = cep85_set_uri(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &updating_account,
         TOKEN_URI,
         None,
@@ -192,37 +180,28 @@ fn should_test_security_meta_rights() {
 
 #[test]
 fn should_test_security_minter_rights() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+    let (account_user_2_key, account_user_2_account_hash, _) = get_test_account("ACCOUNT_USER_2");
 
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            ref test_accounts,
+            cep18_contract_hash,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            MINTER_LIST => vec![Key::from(account_user_1)]
-        },
-        Some(test_accounts),
-    );
+    ) = setup_with_args(runtime_args! {
+        MINTER_LIST => vec![account_user_1_key]
+    });
 
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
-
-    let minting_account = account_user_1;
-    let minting_recipient: Key = minting_account.into();
+    let minting_account = account_user_1_account_hash;
+    let minting_recipient: Key = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     // account_user_1 is in minter list, request should succeed
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -233,12 +212,12 @@ fn should_test_security_minter_rights() {
     mint_call.expect_success().commit();
 
     // account_user_2 is not in minter list, request should fail
-    let minting_account = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
-    let minting_recipient: Key = minting_account.into();
+    let minting_account = account_user_2_account_hash;
+    let minting_recipient: Key = account_user_2_key;
 
     let failing_mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -259,40 +238,31 @@ fn should_test_security_minter_rights() {
 
 #[test]
 fn should_test_security_burner_rights() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+    let (_, account_user_2_account_hash, _) = get_test_account("ACCOUNT_USER_2");
 
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            ref test_accounts,
+            cep18_contract_hash,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
-        },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     // Set total supply to 2 for the token to be minted
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = account_user_1.into();
+    let minting_recipient: Key = account_user_1_key;
     let total_supply = U256::from(2);
     let mint_amount = U256::from(2);
     let id = U256::one();
 
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -302,7 +272,7 @@ fn should_test_security_burner_rights() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -313,14 +283,14 @@ fn should_test_security_burner_rights() {
     mint_call.expect_success().commit();
 
     // account_user_2 is not in burner list, request should fail
-    let burning_account = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
+    let burning_account = account_user_2_account_hash;
     // owner is now last recipient
     let owner: Key = minting_recipient;
     let burn_amount = U256::one();
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -338,11 +308,11 @@ fn should_test_security_burner_rights() {
     );
 
     // account_user_1 is in burner list, request should succeed
-    let burning_account = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
+    let burning_account = account_user_1_account_hash;
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -356,7 +326,7 @@ fn should_test_security_burner_rights() {
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -376,34 +346,28 @@ fn should_test_security_burner_rights() {
 
 #[test]
 fn should_test_change_security() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+    let (account_user_2_key, account_user_2_account_hash, _) = get_test_account("ACCOUNT_USER_2");
 
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            ref test_accounts,
+            cep18_contract_hash,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ADMIN_LIST => vec![Key::from(account_user_1)],
-        },
-        None,
-    );
+    ) = setup_with_args(runtime_args! {
+        ADMIN_LIST => vec![account_user_1_key],
+    });
 
-    let minting_account = account_user_1;
-    let minting_recipient: Key = minting_account.into();
+    let minting_account = account_user_1_account_hash;
+    let minting_recipient: Key = account_user_1_key;
     let total_supply = U256::from(2);
     let mint_amount = U256::one();
     let id = U256::one();
 
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -413,7 +377,7 @@ fn should_test_change_security() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -423,27 +387,29 @@ fn should_test_change_security() {
 
     // account_user_1 is in admin list
     mint_call.expect_success().commit();
-
-    let account_user_2 = *test_accounts.get(&ACCOUNT_USER_2).unwrap();
-    let minting_account = account_user_2;
-    let minting_recipient: Key = account_user_2.into();
+    let minting_account = account_user_2_account_hash;
+    let minting_recipient: Key = account_user_2_key;
 
     let security_lists = SecurityLists {
-        minter_list: Some(vec![Key::Account(account_user_2)]),
+        minter_list: Some(vec![account_user_2_key]),
         burner_list: None,
         meta_list: None,
         admin_list: None,
         none_list: None,
     };
 
-    let change_security =
-        cep85_change_security(&mut builder, &cep85_token, &account_user_1, security_lists);
+    let change_security = cep85_change_security(
+        &mut builder,
+        &cep18_contract_hash,
+        &account_user_1_account_hash,
+        security_lists,
+    );
 
     change_security.expect_success().commit();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -459,17 +425,21 @@ fn should_test_change_security() {
         burner_list: None,
         meta_list: None,
         admin_list: None,
-        none_list: Some(vec![Key::Account(account_user_2)]),
+        none_list: Some(vec![account_user_2_key]),
     };
 
-    let change_security =
-        cep85_change_security(&mut builder, &cep85_token, &account_user_1, security_lists);
+    let change_security = cep85_change_security(
+        &mut builder,
+        &cep18_contract_hash,
+        &account_user_1_account_hash,
+        security_lists,
+    );
 
     change_security.expect_success().commit();
 
     let failing_mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,

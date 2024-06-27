@@ -16,8 +16,8 @@ use crate::constants::{
 };
 use alloc::{boxed::Box, vec};
 use casper_types::{
-    bytesrepr::Bytes, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Parameter,
+    bytesrepr::Bytes, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointPayment,
+    EntryPointType, EntryPoints, Parameter,
 };
 
 pub fn init() -> EntryPoint {
@@ -36,7 +36,8 @@ pub fn init() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -46,7 +47,8 @@ pub fn upgrade() -> EntryPoint {
         vec![Parameter::new(ARG_PACKAGE_HASH, CLType::Key)],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -61,7 +63,8 @@ pub fn mint() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -76,7 +79,8 @@ pub fn batch_mint() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -90,7 +94,8 @@ pub fn burn() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -104,7 +109,8 @@ pub fn batch_burn() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -117,7 +123,8 @@ pub fn balance_of() -> EntryPoint {
         ],
         CLType::Option(Box::new(CLType::U256)),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -130,7 +137,8 @@ pub fn balance_of_batch() -> EntryPoint {
         ],
         CLType::List(Box::new(CLType::Option(Box::new(CLType::U256)))),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -143,7 +151,8 @@ pub fn set_approval_for_all() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -156,7 +165,8 @@ pub fn is_approved_for_all() -> EntryPoint {
         ],
         CLType::Bool,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -172,7 +182,8 @@ pub fn transfer_from() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -188,7 +199,8 @@ pub fn batch_transfer_from() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -198,7 +210,8 @@ pub fn supply_of() -> EntryPoint {
         vec![Parameter::new(ARG_ID, CLType::U256)],
         CLType::Option(Box::new(CLType::U256)),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -211,7 +224,8 @@ pub fn supply_of_batch() -> EntryPoint {
         )],
         CLType::List(Box::new(CLType::Option(Box::new(CLType::U256)))),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -221,7 +235,8 @@ pub fn total_supply_of() -> EntryPoint {
         vec![Parameter::new(ARG_ID, CLType::U256)],
         CLType::Option(Box::new(CLType::U256)),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -234,7 +249,8 @@ pub fn total_supply_of_batch() -> EntryPoint {
         )],
         CLType::List(Box::new(CLType::Option(Box::new(CLType::U256)))),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -247,7 +263,8 @@ pub fn set_total_supply_of() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -260,7 +277,8 @@ pub fn set_total_supply_of_batch() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -270,7 +288,8 @@ pub fn uri() -> EntryPoint {
         vec![Parameter::new(ARG_ID, CLType::U256)],
         CLType::Option(Box::new(CLType::String)),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -283,7 +302,8 @@ pub fn set_uri() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -293,7 +313,8 @@ pub fn is_non_fungible() -> EntryPoint {
         vec![Parameter::new(ARG_ID, CLType::U256)],
         CLType::Option(Box::new(CLType::Bool)),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -303,7 +324,8 @@ pub fn total_fungible_supply() -> EntryPoint {
         vec![Parameter::new(ARG_ID, CLType::U256)],
         CLType::Option(Box::new(CLType::U256)),
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -319,7 +341,8 @@ pub fn change_security() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -332,7 +355,8 @@ pub fn set_modalities() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Contract,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 
@@ -347,7 +371,8 @@ pub fn make_dictionary_item_key() -> EntryPoint {
         ],
         CLType::Unit,
         EntryPointAccess::Public,
-        EntryPointType::Session,
+        EntryPointType::Called,
+        EntryPointPayment::Caller,
     )
 }
 

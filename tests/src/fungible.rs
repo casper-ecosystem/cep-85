@@ -1,5 +1,5 @@
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{Key, U256};
+use casper_types::{EntityAddr, Key, U256};
 
 use crate::utility::installer_request_builders::{
     cep85_check_is_non_fungible, cep85_check_total_fungible_supply, cep85_mint,
@@ -11,14 +11,14 @@ fn should_check_if_fungible() {
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep18_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(minting_account);
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let total_supply = U256::from(2);
     let mint_amount = U256::one();
     let id = U256::one();
@@ -26,7 +26,7 @@ fn should_check_if_fungible() {
     // Set total supply to 2 for the token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -36,7 +36,7 @@ fn should_check_if_fungible() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -57,20 +57,20 @@ fn should_check_if_non_fungible() {
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep18_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(minting_account);
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -91,14 +91,14 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep18_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(minting_account);
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let total_supply = U256::from(2);
     let mint_amount = U256::one();
     let id = U256::one();
@@ -106,7 +106,7 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
     // Set total supply to 2 for the token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -116,7 +116,7 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -136,7 +136,7 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
     // Set total supply to 2 for the token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -155,14 +155,14 @@ fn should_get_total_fungible_supply() {
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep18_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(minting_account);
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let total_supply = U256::from(10);
     let mint_amount = U256::from(4);
     let id = U256::one();
@@ -170,7 +170,7 @@ fn should_get_total_fungible_supply() {
     // Set total supply to 10 for the 4 token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -180,7 +180,7 @@ fn should_get_total_fungible_supply() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep18_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,

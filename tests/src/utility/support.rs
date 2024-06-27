@@ -1,28 +1,19 @@
-use casper_engine_test_support::{
-    ExecuteRequestBuilder, WasmTestBuilder, DEFAULT_ACCOUNT_ADDR, DEFAULT_ACCOUNT_INITIAL_BALANCE,
-};
+use casper_engine_test_support::{LmdbWasmTestBuilder, DEFAULT_ACCOUNTS};
 use casper_event_standard::EVENTS_DICT;
-use casper_execution_engine::{
-    core::{engine_state::Error as EngineStateError, execution},
-    storage::global_state::in_memory::InMemoryGlobalState,
-};
+use casper_execution_engine::{engine_state::Error as EngineStateError, execution::ExecError};
 use casper_types::{
     account::AccountHash,
     bytesrepr::{Bytes, FromBytes},
-    runtime_args,
-    system::{
-        handle_payment::{ARG_AMOUNT, ARG_TARGET},
-        mint::ARG_ID,
-    },
-    ApiError, CLTyped, Key, PublicKey, RuntimeArgs, SecretKey,
+    AddressableEntityHash, ApiError, CLTyped, EntityAddr, Key, PublicKey,
 };
 use std::fmt::Debug;
 
 pub fn assert_expected_error(actual_error: EngineStateError, error_code: u16, reason: &str) {
     let actual = format!("{actual_error:?}");
+    dbg!(actual.clone());
     let expected = format!(
         "{:?}",
-        EngineStateError::Exec(execution::Error::Revert(ApiError::User(error_code)))
+        EngineStateError::Exec(ExecError::Revert(ApiError::User(error_code)))
     );
 
     assert_eq!(
@@ -32,16 +23,14 @@ pub fn assert_expected_error(actual_error: EngineStateError, error_code: u16, re
 }
 
 pub fn get_dictionary_value_from_key<T: CLTyped + FromBytes>(
-    builder: &WasmTestBuilder<InMemoryGlobalState>,
-    contract_key: &Key,
+    builder: &mut LmdbWasmTestBuilder,
+    contract_hash: &AddressableEntityHash,
     dictionary_name: &str,
     dictionary_key: &str,
 ) -> T {
     let seed_uref = *builder
-        .query(None, *contract_key, &[])
+        .get_entity_with_named_keys_by_entity_hash(*contract_hash)
         .expect("must have contract")
-        .as_contract()
-        .expect("must convert contract")
         .named_keys()
         .get(dictionary_name)
         .expect("must have key")
@@ -59,49 +48,38 @@ pub fn get_dictionary_value_from_key<T: CLTyped + FromBytes>(
 }
 
 pub fn get_event<T: FromBytes + CLTyped + Debug>(
-    builder: &WasmTestBuilder<InMemoryGlobalState>,
-    contract_key: &Key,
+    builder: &mut LmdbWasmTestBuilder,
+    contract_hash: &AddressableEntityHash,
     index: u32,
 ) -> T {
     let bytes: Bytes =
-        get_dictionary_value_from_key(builder, contract_key, EVENTS_DICT, &index.to_string());
+        get_dictionary_value_from_key(builder, contract_hash, EVENTS_DICT, &index.to_string());
     let (event, bytes) = T::from_bytes(&bytes).unwrap();
     assert!(bytes.is_empty());
     event
 }
 
-// Creates a dummy account and transfer funds to it
-pub fn create_funded_dummy_account(
-    builder: &mut WasmTestBuilder<InMemoryGlobalState>,
-    account_string: Option<[u8; 32]>,
-) -> AccountHash {
-    let (_, account_public_key) =
-        create_dummy_key_pair(if let Some(account_string) = account_string {
-            account_string
-        } else {
-            [7u8; 32]
-        });
-    let account = account_public_key.to_account_hash();
-    fund_account(builder, account);
-    account
-}
+pub fn get_test_account(ending_string_index: &str) -> (Key, AccountHash, PublicKey) {
+    let index = ending_string_index
+        .chars()
+        .next_back()
+        .unwrap()
+        .to_digit(10)
+        .unwrap_or_default() as usize;
 
-pub fn create_dummy_key_pair(account_string: [u8; 32]) -> (SecretKey, PublicKey) {
-    let secret_key =
-        SecretKey::ed25519_from_bytes(account_string).expect("failed to create secret key");
-    let public_key = PublicKey::from(&secret_key);
-    (secret_key, public_key)
-}
+    let accounts = if let Some(account) = DEFAULT_ACCOUNTS.clone().get(index) {
+        let public_key = account.public_key().clone();
+        let account_hash = public_key.to_account_hash();
+        let entity_addr = Key::AddressableEntity(EntityAddr::Account(account_hash.value()));
+        Some((entity_addr, account_hash, public_key))
+    } else {
+        None
+    };
 
-pub fn fund_account(builder: &mut WasmTestBuilder<InMemoryGlobalState>, account: AccountHash) {
-    let transfer = ExecuteRequestBuilder::transfer(
-        *DEFAULT_ACCOUNT_ADDR,
-        runtime_args! {
-            ARG_AMOUNT => DEFAULT_ACCOUNT_INITIAL_BALANCE / 10_u64,
-            ARG_TARGET => account,
-            ARG_ID => Option::<u64>::None,
-        },
-    )
-    .build();
-    builder.exec(transfer).expect_success().commit();
+    match accounts {
+        Some(account) => account,
+        None => {
+            panic!("No account found for index {}", index);
+        }
+    }
 }

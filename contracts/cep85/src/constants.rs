@@ -72,3 +72,5 @@ pub const DICT_SECURITY_BADGES: &str = "security_badges";
 pub const DICT_SUPPLY: &str = "supply";
 pub const DICT_TOKEN_URI: &str = "token_uri";
 pub const DICT_TOTAL_SUPPLY: &str = "total_supply";
+
+pub const EVENTS: &str = "events";

@@ -15,48 +15,36 @@ use casper_contract::{
 use casper_types::U256;
 #[cfg(feature = "contract-support")]
 use casper_types::{
-    account::AccountHash,
     api_error,
     bytesrepr::{self, FromBytes, ToBytes},
-    system::CallStackElement,
-    ApiError, CLTyped, ContractHash, ContractPackageHash, Key, URef,
+    system::Caller,
+    AddressableEntityHash, ApiError, CLTyped, Key, URef,
 };
 #[cfg(feature = "contract-support")]
 use core::{convert::TryInto, mem::MaybeUninit};
 
 #[cfg(feature = "contract-support")]
-pub enum Caller {
-    Session(AccountHash),
-    StoredCaller(ContractHash, ContractPackageHash),
-}
-
-#[cfg(feature = "contract-support")]
 pub fn get_verified_caller() -> (Key, Option<Key>) {
-    let get_verified_caller: Result<Caller, Cep85Error> = match *runtime::get_call_stack()
+    use casper_types::EntityAddr;
+
+    let get_verified_caller: Caller = *runtime::get_call_stack()
         .iter()
         .nth_back(1)
         .to_owned()
-        .unwrap_or_revert()
-    {
-        CallStackElement::Session {
-            account_hash: calling_account_hash,
-        } => Ok(Caller::Session(calling_account_hash)),
-        CallStackElement::StoredSession {
-            contract_hash,
-            contract_package_hash,
-            ..
-        }
-        | CallStackElement::StoredContract {
-            contract_hash,
-            contract_package_hash,
-        } => Ok(Caller::StoredCaller(contract_hash, contract_package_hash)),
-    };
+        .unwrap_or_revert();
 
-    match get_verified_caller.unwrap_or_revert() {
-        Caller::Session(account_hash) => (account_hash.into(), None),
-        Caller::StoredCaller(contract_hash, package_hash) => {
-            (contract_hash.into(), Some(package_hash.into()))
-        }
+    match get_verified_caller {
+        Caller::Initiator { account_hash } => (
+            Key::AddressableEntity(EntityAddr::Account(account_hash.value())),
+            None,
+        ),
+        Caller::Entity {
+            package_hash,
+            entity_hash,
+        } => (
+            Key::AddressableEntity(EntityAddr::SmartContract(entity_hash.value())),
+            Some(package_hash.into()),
+        ),
     }
 }
 
@@ -128,7 +116,7 @@ pub fn get_stored_value_with_user_errors<T: CLTyped + FromBytes>(
 pub fn stringify_key<T: CLTyped>(key: Key) -> String {
     match key {
         Key::Account(account_hash) => account_hash.to_string(),
-        Key::Hash(hash_addr) => ContractHash::new(hash_addr).to_string(),
+        Key::Hash(hash_addr) => AddressableEntityHash::new(hash_addr).to_string(),
         _ => runtime::revert(Cep85Error::InvalidKey),
     }
 }
@@ -179,7 +167,7 @@ pub fn set_dictionary_value_for_key<T: CLTyped + ToBytes + Copy>(
 }
 
 #[cfg(feature = "contract-support")]
-pub fn get_transfer_filter_contract() -> Option<ContractHash> {
+pub fn get_transfer_filter_contract() -> Option<AddressableEntityHash> {
     get_stored_value_with_user_errors(
         ARG_TRANSFER_FILTER_CONTRACT,
         Cep85Error::MissingTransferFilterContract,

@@ -6,6 +6,3 @@ pub const CEP85_TEST_TOKEN_CONTRACT_VERSION: &str = "cep85_contract_version_casp
 pub const TOKEN_NAME: &str = "casper_test";
 pub const TOKEN_URI: &str = "https://token-cdn-domain/{id}.json";
 pub const TOKEN_URI_TEST: &str = "https://test-cdn-domain/{id}.json";
-
-pub const ACCOUNT_USER_1: [u8; 32] = [1u8; 32];
-pub const ACCOUNT_USER_2: [u8; 32] = [2u8; 32];
