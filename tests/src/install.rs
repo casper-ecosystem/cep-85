@@ -19,9 +19,15 @@ use cep85::{
 
 #[test]
 fn should_install_contract() {
-    let (builder, TestContext { cep18_contract_hash, .. }) = setup();
+    let (
+        builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
+        },
+    ) = setup();
     let contract = builder
-        .get_entity_with_named_keys_by_entity_hash(cep18_contract_hash)
+        .get_entity_with_named_keys_by_entity_hash(cep85_contract_hash)
         .expect("should have contract");
     let named_keys = contract.named_keys();
     assert!(named_keys.contains(ARG_PACKAGE_HASH), "{:?}", named_keys);
@@ -29,8 +35,14 @@ fn should_install_contract() {
 
 #[test]
 fn should_have_queryable_properties() {
-    let (mut builder, TestContext { cep18_contract_hash, .. }) = setup();
-    let contract_entity_addr = EntityAddr::new_smart_contract(cep18_contract_hash.value());
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
+        },
+    ) = setup();
+    let contract_entity_addr = EntityAddr::new_smart_contract(cep85_contract_hash.value());
     let name: String = builder.get_value(contract_entity_addr, ARG_NAME);
     let uri: String = builder.get_value(contract_entity_addr, ARG_URI);
     let events_mode: u8 = builder.get_value(contract_entity_addr, ARG_EVENTS_MODE);
@@ -50,7 +62,13 @@ fn should_have_queryable_properties() {
 
 #[test]
 fn should_only_allow_init_during_installation_session() {
-    let (mut builder, TestContext { cep18_contract_hash: _, .. }) = setup();
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash: _,
+            ..
+        },
+    ) = setup();
 
     let init_request = ExecuteRequestBuilder::contract_call_by_name(
         *DEFAULT_ACCOUNT_ADDR,
@@ -72,7 +90,13 @@ fn should_only_allow_init_during_installation_session() {
 
 #[test]
 fn should_not_store_balances_or_allowances_under_account_after_install() {
-    let (builder, TestContext { cep18_contract_hash: _, .. }) = setup();
+    let (
+        builder,
+        TestContext {
+            cep85_contract_hash: _,
+            ..
+        },
+    ) = setup();
 
     let account = builder
         .get_entity_with_named_keys_by_account_hash(*DEFAULT_ACCOUNT_ADDR)

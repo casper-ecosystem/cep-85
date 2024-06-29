@@ -16,7 +16,7 @@ fn should_set_total_supply_of_id() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -29,7 +29,7 @@ fn should_set_total_supply_of_id() {
     // Set total supply to 2 for the token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -48,7 +48,7 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -63,7 +63,7 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
     // Set total supply to 2 for the token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -78,7 +78,7 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -92,7 +92,7 @@ fn should_not_set_total_supply_of_id_below_current_supply() {
     let new_total_supply = U256::one();
     let failing_set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &new_total_supply,
@@ -119,7 +119,7 @@ fn should_set_total_supply_batch_for_ids() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -131,7 +131,7 @@ fn should_set_total_supply_batch_for_ids() {
 
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies.clone(),
@@ -152,7 +152,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -167,7 +167,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
     // Set total supply to 2 for the token to be minted
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies.clone(),
@@ -179,7 +179,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
 
     let batch_mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -203,7 +203,7 @@ fn should_not_set_total_supply_batch_of_id_below_current_supply() {
     let new_total_supplies = vec![U256::from(1)];
     let failing_set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         new_total_supplies,
@@ -236,14 +236,14 @@ fn should_get_supply_of_id() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = minting_account.into();
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let total_supply = U256::from(2);
     let mint_amount = U256::from(2);
     let id = U256::one();
@@ -251,7 +251,7 @@ fn should_get_supply_of_id() {
     // Set total supply to 2 for the token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -261,7 +261,7 @@ fn should_get_supply_of_id() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -286,7 +286,7 @@ fn should_get_supply_of_batch_for_ids() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -295,14 +295,14 @@ fn should_get_supply_of_batch_for_ids() {
     });
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let ids = vec![U256::one(), U256::from(2)];
-    let minting_recipient: Key = minting_account.into();
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let mint_amounts = vec![U256::from(2), U256::from(3)];
     let total_supplies = vec![U256::from(2), U256::from(3)];
 
     // Set total supply for each ID using batch function
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies.clone(),
@@ -312,7 +312,7 @@ fn should_get_supply_of_batch_for_ids() {
     // Mint tokens for each ID using batch function
     let batch_mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -338,7 +338,7 @@ fn should_get_supply_of_batch_for_ids() {
     // Perform a batch burn call
     let batch_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids.clone(),

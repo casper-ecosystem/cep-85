@@ -19,20 +19,20 @@ fn should_check_balance_of() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = account_user_1_key;
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -84,7 +84,7 @@ fn should_check_balance_of_batch() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -99,7 +99,7 @@ fn should_check_balance_of_batch() {
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &recipient_user_1,
         ids.clone(),
@@ -132,7 +132,7 @@ fn should_return_none_getting_balance_of_batch_non_existing_token() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -147,7 +147,7 @@ fn should_return_none_getting_balance_of_batch_non_existing_token() {
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &recipient_user_1,
         ids.clone(),
@@ -176,7 +176,7 @@ fn should_error_on_balance_of_batch_args_len_difference() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -190,7 +190,7 @@ fn should_error_on_balance_of_batch_args_len_difference() {
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -257,7 +257,7 @@ fn should_make_dictionary_item_key_for_dict_balances_queries() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             ..
         },
     ) = setup();
@@ -267,7 +267,7 @@ fn should_make_dictionary_item_key_for_dict_balances_queries() {
 
     cep85_make_dictionary_item_key(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &key,
         Some(id),
         None,
@@ -294,13 +294,12 @@ fn should_make_dictionary_item_key_for_dict_balances_queries() {
     );
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key =
-        Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let mint_amount = U256::from(2);
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -312,7 +311,7 @@ fn should_make_dictionary_item_key_for_dict_balances_queries() {
 
     let balance = get_dictionary_value_from_key::<U256>(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         DICT_BALANCES,
         &dictionary_item_key,
     );
@@ -326,7 +325,7 @@ fn should_make_dictionary_item_key_for_dict_balances_queries_with_specific_sessi
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             ..
         },
     ) = setup();
@@ -337,7 +336,7 @@ fn should_make_dictionary_item_key_for_dict_balances_queries_with_specific_sessi
 
     cep85_make_dictionary_item_key(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &key,
         Some(id),
         None,

@@ -1,5 +1,5 @@
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, Key, U256};
+use casper_types::{runtime_args, EntityAddr, Key, U256};
 use cep85::{
     constants::ARG_EVENTS_MODE, error::Cep85Error, events::Uri, modalities::EventsMode,
     utils::replace_token_id_in_uri,
@@ -19,20 +19,20 @@ fn should_set_specific_uri_on_mint() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = minting_account.into();
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let mint_amount = U256::from(1);
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -51,21 +51,21 @@ fn should_set_specific_uri_on_batch_mint() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = minting_account.into();
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::from(2), U256::from(3)];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids,
@@ -102,20 +102,20 @@ fn should_set_and_get_global_uri() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = minting_account.into();
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let mint_amount = U256::from(1);
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -132,7 +132,7 @@ fn should_set_and_get_global_uri() {
 
     let uri_call = cep85_set_uri(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &updating_account,
         new_uri,
         None,
@@ -148,20 +148,20 @@ fn should_set_and_get_uri_for_id() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = minting_account.into();
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let mint_amount = U256::from(1);
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -178,7 +178,7 @@ fn should_set_and_get_uri_for_id() {
 
     let uri_call = cep85_set_uri(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &updating_account,
         new_uri,
         Some(id),
@@ -196,7 +196,7 @@ fn should_fail_to_set_uri_for_non_existing_id() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -210,7 +210,7 @@ fn should_fail_to_set_uri_for_non_existing_id() {
 
     let uri_call = cep85_set_uri(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &updating_account,
         new_uri,
         Some(id),
@@ -250,20 +250,20 @@ fn should_not_set_empty_global_uri() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = minting_account.into();
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let mint_amount = U256::from(1);
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -280,7 +280,7 @@ fn should_not_set_empty_global_uri() {
 
     let uri_call = cep85_set_uri(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &updating_account,
         new_uri,
         None,
@@ -297,7 +297,7 @@ fn should_not_set_empty_global_uri() {
 
     let uri_call = cep85_set_uri(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &updating_account,
         new_uri,
         Some(id),
@@ -314,7 +314,7 @@ fn should_set_uri_and_emit_event() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -323,13 +323,13 @@ fn should_set_uri_and_emit_event() {
     });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = minting_account.into();
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let mint_amount = U256::from(1);
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -347,7 +347,7 @@ fn should_set_uri_and_emit_event() {
     // Global uri check
     let uri_call = cep85_set_uri(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &updating_account,
         new_uri,
         None,
@@ -361,13 +361,13 @@ fn should_set_uri_and_emit_event() {
     let expected_event = Uri::new(TOKEN_URI_TEST.to_string(), None);
     // Expect event at index 1 (Mint + Uri)
     let event_index = 1;
-    let actual_event: Uri = get_event(&mut builder, &cep18_contract_hash, event_index);
+    let actual_event: Uri = get_event(&mut builder, &cep85_contract_hash, event_index);
     assert_eq!(actual_event, expected_event, "Expected Uri event.");
 
     // Token uri check
     let uri_call = cep85_set_uri(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &updating_account,
         new_uri,
         Some(id),
@@ -382,6 +382,6 @@ fn should_set_uri_and_emit_event() {
     let expected_event = Uri::new(TOKEN_URI_TEST.to_string(), Some(id));
     // Expect event at index 2 (Mint + Uri + Uri )
     let event_index = 2;
-    let actual_event: Uri = get_event(&mut builder, &cep18_contract_hash, event_index);
+    let actual_event: Uri = get_event(&mut builder, &cep85_contract_hash, event_index);
     assert_eq!(actual_event, expected_event, "Expected Uri event.");
 }

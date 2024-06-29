@@ -17,20 +17,20 @@ fn should_mint_nft() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = account_user_1_key;
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -63,20 +63,20 @@ fn should_mint_fungible_token() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = account_user_1_key;
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::from(2);
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -109,7 +109,7 @@ fn should_batch_mint() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -123,7 +123,7 @@ fn should_batch_mint() {
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -169,7 +169,7 @@ fn should_not_mint_above_total_supply() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
 
             cep85_test_contract_package,
             ..
@@ -177,14 +177,14 @@ fn should_not_mint_above_total_supply() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = account_user_1_key;
+    let minting_recipient = account_user_1_key;
     let id = U256::one();
 
     let mint_amount = U256::from(2);
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -198,7 +198,7 @@ fn should_not_mint_above_total_supply() {
 
     let failing_mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -219,7 +219,7 @@ fn should_not_mint_above_total_supply() {
     let total_supply = U256::from(4);
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -229,7 +229,7 @@ fn should_not_mint_above_total_supply() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -258,7 +258,7 @@ fn should_not_batch_mint_above_total_supply() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
 
             cep85_test_contract_package,
             ..
@@ -274,7 +274,7 @@ fn should_not_batch_mint_above_total_supply() {
     // Batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -287,7 +287,7 @@ fn should_not_batch_mint_above_total_supply() {
     // Batch_mint is only one recipient
     let failing_mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -309,7 +309,7 @@ fn should_not_batch_mint_above_total_supply() {
     let total_supplies = vec![U256::from(4), U256::from(6)];
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies.clone(),
@@ -319,7 +319,7 @@ fn should_not_batch_mint_above_total_supply() {
     // Mint tokens for each ID using batch function
     let batch_mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),

@@ -15,7 +15,7 @@ use alloc::{
 use casper_contract::{
     self,
     contract_api::{
-        runtime::{call_contract, get_key, get_named_arg, put_key, ret},
+        runtime::{call_contract, get_key, get_named_arg, put_key, ret, try_get_named_arg},
         storage,
     },
     unwrap_or_revert::UnwrapOrRevert,
@@ -169,7 +169,7 @@ pub extern "C" fn check_transfer_from() {
     let to: Key = get_named_arg(ARG_TO);
     let id: U256 = get_named_arg(ARG_ID);
     let amount: U256 = get_named_arg(ARG_AMOUNT);
-    let data: Option<Bytes> = get_named_arg(ARG_DATA);
+    //let data: Option<Bytes> = try_get_named_arg(ARG_DATA);
 
     let mut transfer_from_args = runtime_args! {
         ARG_FROM => from,
@@ -177,9 +177,9 @@ pub extern "C" fn check_transfer_from() {
         ARG_ID => id,
         ARG_AMOUNT => amount,
     };
-    if let Some(data) = data {
-        let _ = transfer_from_args.insert(ARG_DATA, data);
-    }
+    // if let Some(data) = data {
+    //     let _ = transfer_from_args.insert(ARG_DATA, data);
+    // }
     call_contract::<()>(
         token_contract,
         ENTRY_POINT_TRANSFER_FROM,
@@ -194,7 +194,7 @@ pub extern "C" fn check_batch_transfer_from() {
     let to: Key = get_named_arg(ARG_TO);
     let ids: Vec<U256> = get_named_arg(ARG_IDS);
     let amounts: Vec<U256> = get_named_arg(ARG_AMOUNTS);
-    let data: Option<Bytes> = get_named_arg(ARG_DATA);
+    //let data: Option<Bytes> = try_get_named_arg(ARG_DATA);
 
     let mut batch_transfer_from_args = runtime_args! {
         ARG_FROM => from,
@@ -202,9 +202,9 @@ pub extern "C" fn check_batch_transfer_from() {
         ARG_IDS => ids,
         ARG_AMOUNTS => amounts,
     };
-    if let Some(data) = data {
-        let _ = batch_transfer_from_args.insert(ARG_DATA, data);
-    }
+    // if let Some(data) = data {
+    //     let _ = batch_transfer_from_args.insert(ARG_DATA, data);
+    // }
 
     call_contract::<()>(
         token_contract,
@@ -422,7 +422,7 @@ pub extern "C" fn call() {
             Parameter::new(ARG_TO, CLType::Key),
             Parameter::new(ARG_ID, CLType::U256),
             Parameter::new(ARG_AMOUNT, CLType::U256),
-            Parameter::new(ARG_DATA, CLType::Option(Box::new(Bytes::cl_type()))),
+            Parameter::new(ARG_DATA, Bytes::cl_type()),
         ],
         CLType::Unit,
         EntryPointAccess::Public,
@@ -436,7 +436,7 @@ pub extern "C" fn call() {
             Parameter::new(ARG_TO, CLType::Key),
             Parameter::new(ARG_IDS, CLType::List(Box::new(CLType::U256))),
             Parameter::new(ARG_AMOUNTS, CLType::List(Box::new(CLType::U256))),
-            Parameter::new(ARG_DATA, CLType::Option(Box::new(Bytes::cl_type()))),
+            Parameter::new(ARG_DATA, Bytes::cl_type()),
         ],
         CLType::Unit,
         EntryPointAccess::Public,

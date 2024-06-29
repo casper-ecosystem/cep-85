@@ -19,7 +19,7 @@ fn should_not_allow_self_approval() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
 
             cep85_test_contract_package,
             ..
@@ -31,7 +31,7 @@ fn should_not_allow_self_approval() {
 
     let failing_set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         &operator,
         approved,
@@ -63,7 +63,7 @@ fn should_allow_approval_of_an_account() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -77,7 +77,7 @@ fn should_allow_approval_of_an_account() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -101,7 +101,7 @@ fn should_allow_approval_of_a_contract() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -114,7 +114,7 @@ fn should_allow_approval_of_a_contract() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -136,7 +136,7 @@ fn should_allow_approval_of_a_package() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -149,7 +149,7 @@ fn should_allow_approval_of_a_package() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -172,7 +172,7 @@ fn should_remove_approval_of_an_account() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
 
             cep85_test_contract_package,
             ..
@@ -187,7 +187,7 @@ fn should_remove_approval_of_an_account() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         &operator,
         approved,
@@ -207,7 +207,7 @@ fn should_remove_approval_of_an_account() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         &operator,
         not_approved,
@@ -230,7 +230,7 @@ fn should_remove_approval_of_a_contract() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -243,7 +243,7 @@ fn should_remove_approval_of_a_contract() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -263,7 +263,7 @@ fn should_remove_approval_of_a_contract() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         &operator,
         not_approved,
@@ -285,7 +285,7 @@ fn should_remove_approval_of_a_package() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -298,7 +298,7 @@ fn should_remove_approval_of_a_package() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -318,7 +318,7 @@ fn should_remove_approval_of_a_package() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         &operator,
         not_approved,
@@ -342,7 +342,7 @@ fn should_not_transfer_from_account_to_account_without_allowance() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -355,7 +355,7 @@ fn should_not_transfer_from_account_to_account_without_allowance() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -375,7 +375,7 @@ fn should_not_transfer_from_account_to_account_without_allowance() {
     // request should fail
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         TransferData {
             from: &from,
@@ -415,7 +415,7 @@ fn should_not_batch_transfer_from_account_to_account_without_allowance() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -434,7 +434,7 @@ fn should_not_batch_transfer_from_account_to_account_without_allowance() {
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -448,7 +448,7 @@ fn should_not_batch_transfer_from_account_to_account_without_allowance() {
     // request should fail
     let failing_transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         TransferData {
             from: &from,
@@ -491,7 +491,7 @@ fn should_transfer_from_account_to_account_with_allowance() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -504,7 +504,7 @@ fn should_transfer_from_account_to_account_with_allowance() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -519,7 +519,7 @@ fn should_transfer_from_account_to_account_with_allowance() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &operator,
         approved,
@@ -534,7 +534,7 @@ fn should_transfer_from_account_to_account_with_allowance() {
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash, // account_user_1 is now operator
         TransferData {
             from: &from,
@@ -567,7 +567,7 @@ fn should_batch_transfer_from_account_to_account_with_allowance() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -580,7 +580,7 @@ fn should_batch_transfer_from_account_to_account_with_allowance() {
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -595,7 +595,7 @@ fn should_batch_transfer_from_account_to_account_with_allowance() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &operator,
         approved,
@@ -612,7 +612,7 @@ fn should_batch_transfer_from_account_to_account_with_allowance() {
     // request should succeed as account_user_1 is operator for owner DEFAULT_ACCOUNT_ADDR
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash, // account_user_1 is now operator
         TransferData {
             from: &from,
@@ -649,7 +649,7 @@ fn should_not_transfer_from_account_to_account_through_contract_without_allowanc
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -663,7 +663,7 @@ fn should_not_transfer_from_account_to_account_through_contract_without_allowanc
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -722,8 +722,8 @@ fn should_not_batch_transfer_from_account_to_account_through_contract_without_al
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -737,7 +737,7 @@ fn should_not_batch_transfer_from_account_to_account_through_contract_without_al
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -749,7 +749,8 @@ fn should_not_batch_transfer_from_account_to_account_through_contract_without_al
 
     let owner = account_user_1_account_hash;
     let approving_account = Key::AddressableEntity(EntityAddr::Account(owner.value()));
-    let operator = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract);
+    let operator =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
     let not_approved = false;
 
     let is_approved = cep85_check_is_approved(
@@ -814,8 +815,8 @@ fn should_transfer_from_account_to_account_through_contract_with_allowance() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -828,7 +829,7 @@ fn should_transfer_from_account_to_account_through_contract_with_allowance() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -845,12 +846,13 @@ fn should_transfer_from_account_to_account_through_contract_with_allowance() {
 
     let owner = account_user_1_account_hash;
     let approving_account = Key::AddressableEntity(EntityAddr::Account(owner.value()));
-    let operator = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract);
+    let operator =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
     let approved = true;
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -902,7 +904,7 @@ fn should_transfer_from_account_to_account_through_package_with_allowance() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -915,7 +917,7 @@ fn should_transfer_from_account_to_account_through_package_with_allowance() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -939,7 +941,7 @@ fn should_transfer_from_account_to_account_through_package_with_allowance() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -992,8 +994,8 @@ fn should_batch_transfer_from_account_to_account_through_contract_with_allowance
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -1007,7 +1009,7 @@ fn should_batch_transfer_from_account_to_account_through_contract_with_allowance
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1019,12 +1021,13 @@ fn should_batch_transfer_from_account_to_account_through_contract_with_allowance
 
     let owner = account_user_1_account_hash;
     let approving_account = Key::AddressableEntity(EntityAddr::Account(owner.value()));
-    let operator = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract);
+    let operator =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
     let approved = true;
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -1086,7 +1089,7 @@ fn should_batch_transfer_from_account_to_account_through_package_with_allowance(
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -1099,7 +1102,7 @@ fn should_batch_transfer_from_account_to_account_through_package_with_allowance(
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1116,7 +1119,7 @@ fn should_batch_transfer_from_account_to_account_through_package_with_allowance(
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -1177,8 +1180,8 @@ fn should_transfer_from_account_to_contract_through_contract_with_allowance() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -1191,7 +1194,7 @@ fn should_transfer_from_account_to_contract_through_contract_with_allowance() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1202,18 +1205,19 @@ fn should_transfer_from_account_to_contract_through_contract_with_allowance() {
     mint_call.expect_success().commit();
 
     let from = minting_recipient;
-    let to = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract);
+    let to = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
     let transfer_amount = U256::one();
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let owner = account_user_1_account_hash;
     let approving_account = Key::AddressableEntity(EntityAddr::Account(owner.value()));
-    let operator = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract);
+    let operator =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
     let approved = true;
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -1265,8 +1269,8 @@ fn should_transfer_from_account_to_contract_through_package_with_allowance() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -1279,7 +1283,7 @@ fn should_transfer_from_account_to_contract_through_package_with_allowance() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1290,7 +1294,7 @@ fn should_transfer_from_account_to_contract_through_package_with_allowance() {
     mint_call.expect_success().commit();
 
     let from = minting_recipient;
-    let to = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract);
+    let to = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
     let transfer_amount = U256::one();
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
@@ -1301,7 +1305,7 @@ fn should_transfer_from_account_to_contract_through_package_with_allowance() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -1353,8 +1357,8 @@ fn should_batch_transfer_from_account_to_contract_through_contract_with_allowanc
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -1368,7 +1372,7 @@ fn should_batch_transfer_from_account_to_contract_through_contract_with_allowanc
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1380,12 +1384,13 @@ fn should_batch_transfer_from_account_to_contract_through_contract_with_allowanc
 
     let owner = account_user_1_account_hash;
     let approving_account = Key::AddressableEntity(EntityAddr::Account(owner.value()));
-    let operator = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract);
+    let operator =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
     let approved = true;
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -1402,7 +1407,7 @@ fn should_batch_transfer_from_account_to_contract_through_contract_with_allowanc
     assert_eq!(is_approved, approved);
 
     let from = minting_recipient;
-    let to = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract);
+    let to = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
@@ -1446,8 +1451,8 @@ fn should_batch_transfer_from_account_to_contract_through_package_with_allowance
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -1461,7 +1466,7 @@ fn should_batch_transfer_from_account_to_contract_through_package_with_allowance
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1478,7 +1483,7 @@ fn should_batch_transfer_from_account_to_contract_through_package_with_allowance
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &owner,
         &operator,
         approved,
@@ -1495,7 +1500,7 @@ fn should_batch_transfer_from_account_to_contract_through_package_with_allowance
     assert_eq!(is_approved, approved);
 
     let from = minting_recipient;
-    let to = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract);
+    let to = Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_after: Vec<U256> = [&[U256::zero(), U256::zero()], &amounts[..]].concat();
@@ -1539,7 +1544,7 @@ fn should_make_dictionary_item_key_for_dict_operators_queries() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             ..
         },
     ) = setup();
@@ -1550,7 +1555,7 @@ fn should_make_dictionary_item_key_for_dict_operators_queries() {
 
     cep85_make_dictionary_item_key(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &key,
         None,
         Some(value),

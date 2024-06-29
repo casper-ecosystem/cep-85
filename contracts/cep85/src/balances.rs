@@ -45,8 +45,11 @@ pub fn transfer_balance(sender: &Key, recipient: &Key, id: &U256, amount: &U256)
         runtime::revert(Cep85Error::SelfTransfer);
     }
 
-    // Check if the recipient is a an account or a contract
-    if (*recipient).into_account().is_none() && (*recipient).into_hash_addr().is_none() {
+    // Check if the recipient is a an account or a contract or a package
+    if (*recipient).into_account().is_none()
+        && (*recipient).into_entity_hash().is_none()
+        && (*recipient).into_package_hash().is_none()
+    {
         runtime::revert(Cep85Error::InvalidRecipient);
     }
 

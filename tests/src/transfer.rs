@@ -1,3 +1,5 @@
+use std::hash::Hash;
+
 use crate::utility::{
     installer_request_builders::{
         cep85_batch_mint, cep85_batch_transfer_from, cep85_check_balance_of,
@@ -22,7 +24,7 @@ fn should_transfer_full_owned_amount() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -37,7 +39,7 @@ fn should_transfer_full_owned_amount() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -65,7 +67,7 @@ fn should_transfer_full_owned_amount() {
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -81,7 +83,7 @@ fn should_transfer_full_owned_amount() {
     // Expect Transfer event
     let expected_event = Transfer::new(from, from, to, id, transfer_amount, data);
     let event_index = 1; // (Mint + transfer)
-    let actual_event: Transfer = get_event(&mut builder, &cep18_contract_hash, event_index);
+    let actual_event: Transfer = get_event(&mut builder, &cep85_contract_hash, event_index);
     assert_eq!(actual_event, expected_event, "Expected Transfer event.");
 
     let actual_balance_from =
@@ -103,7 +105,7 @@ fn should_batch_transfer_full_owned_amount() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -125,7 +127,7 @@ fn should_batch_transfer_full_owned_amount() {
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -152,7 +154,7 @@ fn should_batch_transfer_full_owned_amount() {
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -168,7 +170,7 @@ fn should_batch_transfer_full_owned_amount() {
     // Expect Transfer event
     let expected_event = TransferBatch::new(from, from, to, ids.clone(), amounts, data);
     let event_index = 1; // (Mint + transfer)
-    let actual_event: TransferBatch = get_event(&mut builder, &cep18_contract_hash, event_index);
+    let actual_event: TransferBatch = get_event(&mut builder, &cep85_contract_hash, event_index);
     assert_eq!(
         actual_event, expected_event,
         "Expected TransferBatch event."
@@ -197,7 +199,7 @@ fn should_not_transfer_more_than_owned_balance() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -210,7 +212,7 @@ fn should_not_transfer_more_than_owned_balance() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -238,7 +240,7 @@ fn should_not_transfer_more_than_owned_balance() {
 
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -278,7 +280,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -298,7 +300,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
     let total_supplies = mint_amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies,
@@ -308,7 +310,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -335,7 +337,7 @@ fn should_not_batch_transfer_more_than_owned_balance() {
 
     let failing_transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -378,7 +380,7 @@ fn should_not_be_able_to_own_transfer() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -391,7 +393,7 @@ fn should_not_be_able_to_own_transfer() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -421,7 +423,7 @@ fn should_not_be_able_to_own_transfer() {
 
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -461,7 +463,7 @@ fn should_not_be_able_to_own_batch_transfer() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -482,7 +484,7 @@ fn should_not_be_able_to_own_batch_transfer() {
     let total_supplies = mint_amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies,
@@ -492,7 +494,7 @@ fn should_not_be_able_to_own_batch_transfer() {
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -519,7 +521,7 @@ fn should_not_be_able_to_own_batch_transfer() {
 
     let failing_transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -564,7 +566,7 @@ fn should_verify_zero_amount_transfer_is_noop() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -577,7 +579,7 @@ fn should_verify_zero_amount_transfer_is_noop() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -605,7 +607,7 @@ fn should_verify_zero_amount_transfer_is_noop() {
 
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -646,7 +648,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -666,7 +668,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
     let total_supplies = mint_amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies,
@@ -676,7 +678,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -703,7 +705,7 @@ fn should_verify_zero_amount_batch_transfer_is_noop() {
 
     let failing_transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -748,7 +750,7 @@ fn should_transfer_account_to_account() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -765,7 +767,7 @@ fn should_transfer_account_to_account() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -788,7 +790,7 @@ fn should_transfer_account_to_account() {
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         TransferData {
             from: &from,
@@ -821,7 +823,7 @@ fn should_batch_transfer_account_to_account() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -842,7 +844,7 @@ fn should_batch_transfer_account_to_account() {
     let total_supplies = amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies,
@@ -852,7 +854,7 @@ fn should_batch_transfer_account_to_account() {
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -879,7 +881,7 @@ fn should_batch_transfer_account_to_account() {
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         TransferData {
             from: &from,
@@ -915,8 +917,9 @@ fn should_transfer_account_to_contract_package() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
+            cep85_test_contract_key,
             ..
         },
     ) = setup();
@@ -924,7 +927,7 @@ fn should_transfer_account_to_contract_package() {
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let from = account_user_1_key;
     let minting_recipient = from;
-    let to = Key::Hash(cep85_test_contract_package.value());
+    let to = cep85_test_contract_key;
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
@@ -932,7 +935,7 @@ fn should_transfer_account_to_contract_package() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -955,7 +958,7 @@ fn should_transfer_account_to_contract_package() {
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         TransferData {
             from: &from,
@@ -988,7 +991,7 @@ fn should_batch_transfer_account_to_contract_package() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -999,7 +1002,7 @@ fn should_batch_transfer_account_to_contract_package() {
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
     let from = account_user_1_key;
     let minting_recipient = from;
-    let to = Key::Hash(cep85_test_contract_package.value());
+    let to = Key::Package(cep85_test_contract_package.value());
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
@@ -1009,7 +1012,7 @@ fn should_batch_transfer_account_to_contract_package() {
     let total_supplies = amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies,
@@ -1019,7 +1022,7 @@ fn should_batch_transfer_account_to_contract_package() {
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1046,7 +1049,7 @@ fn should_batch_transfer_account_to_contract_package() {
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         TransferData {
             from: &from,
@@ -1080,16 +1083,17 @@ fn should_transfer_contract_package_to_contract() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let from = Key::Hash(cep85_test_contract_package.value());
+    let from = cep85_test_contract_key;
     let minting_recipient = from;
-    let to = Key::Hash([42; 32]);
+    let to = Key::AddressableEntity(EntityAddr::SmartContract([42; 32]));
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
@@ -1097,7 +1101,7 @@ fn should_transfer_contract_package_to_contract() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1120,7 +1124,7 @@ fn should_transfer_contract_package_to_contract() {
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -1151,7 +1155,7 @@ fn should_batch_transfer_contract_package_to_contract() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -1160,9 +1164,12 @@ fn should_batch_transfer_contract_package_to_contract() {
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
+
+    // TODO Fix key type
     let from = Key::Hash(cep85_test_contract_package.value());
+
     let minting_recipient = from;
-    let to = Key::Hash([42; 32]);
+    let to = Key::AddressableEntity(EntityAddr::SmartContract([42; 32]));
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
@@ -1172,7 +1179,7 @@ fn should_batch_transfer_contract_package_to_contract() {
     let total_supplies = amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies,
@@ -1182,7 +1189,7 @@ fn should_batch_transfer_contract_package_to_contract() {
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1209,7 +1216,7 @@ fn should_batch_transfer_contract_package_to_contract() {
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -1245,8 +1252,8 @@ fn should_transfer_account_to_contract() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
             ..
         },
@@ -1255,7 +1262,7 @@ fn should_transfer_account_to_contract() {
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let from = account_user_1_key;
     let minting_recipient = from;
-    let to = Key::Hash(cep85_test_contract.value());
+    let to = cep85_test_contract_key;
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
@@ -1263,7 +1270,7 @@ fn should_transfer_account_to_contract() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1286,7 +1293,7 @@ fn should_transfer_account_to_contract() {
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         TransferData {
             from: &from,
@@ -1313,14 +1320,14 @@ fn should_transfer_account_to_contract() {
 }
 
 #[test]
-fn should_batch_transfer_account_to_contract_() {
+fn should_batch_transfer_account_to_contract() {
     let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
             ..
         },
@@ -1331,7 +1338,7 @@ fn should_batch_transfer_account_to_contract_() {
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
     let from = account_user_1_key;
     let minting_recipient = from;
-    let to = Key::Hash(cep85_test_contract.value());
+    let to = cep85_test_contract_key;
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
@@ -1341,7 +1348,7 @@ fn should_batch_transfer_account_to_contract_() {
     let total_supplies = amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies,
@@ -1351,7 +1358,7 @@ fn should_batch_transfer_account_to_contract_() {
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1378,7 +1385,7 @@ fn should_batch_transfer_account_to_contract_() {
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         TransferData {
             from: &from,
@@ -1412,17 +1419,17 @@ fn should_transfer_contract_to_contract() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let from = Key::Hash(cep85_test_contract.value());
+    let from = cep85_test_contract_key;
     let minting_recipient = from;
-    let to = Key::Hash([42; 32]);
+    let to = Key::AddressableEntity(EntityAddr::SmartContract([42; 32]));
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
@@ -1430,7 +1437,7 @@ fn should_transfer_contract_to_contract() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1453,7 +1460,7 @@ fn should_transfer_contract_to_contract() {
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -1484,8 +1491,8 @@ fn should_batch_transfer_contract_to_contract() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
             ..
         },
@@ -1494,9 +1501,9 @@ fn should_batch_transfer_contract_to_contract() {
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
-    let from = Key::Hash(cep85_test_contract.value());
+    let from = cep85_test_contract_key;
     let minting_recipient = from;
-    let to = Key::Hash([42; 32]);
+    let to = Key::AddressableEntity(EntityAddr::SmartContract([42; 32]));
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
@@ -1506,7 +1513,7 @@ fn should_batch_transfer_contract_to_contract() {
     let total_supplies = amounts.clone();
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies,
@@ -1516,7 +1523,7 @@ fn should_batch_transfer_contract_to_contract() {
 
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1543,7 +1550,7 @@ fn should_batch_transfer_contract_to_contract() {
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         TransferData {
             from: &from,
@@ -1580,7 +1587,7 @@ fn should_transfer_account_to_contract_package_to_account() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -1589,7 +1596,7 @@ fn should_transfer_account_to_contract_package_to_account() {
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let from = account_user_1_key;
     let minting_recipient = from;
-    let to = Key::Hash(cep85_test_contract_package.value());
+    let to = Key::Package(cep85_test_contract_package.value());
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
@@ -1597,7 +1604,7 @@ fn should_transfer_account_to_contract_package_to_account() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1620,7 +1627,7 @@ fn should_transfer_account_to_contract_package_to_account() {
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         TransferData {
             from: &from,
@@ -1646,12 +1653,12 @@ fn should_transfer_account_to_contract_package_to_account() {
     assert_eq!(actual_balance_to, expected_balance_to);
 
     // Let's check package can transfer
-    let from = Key::Hash(cep85_test_contract_package.value());
+    let from = Key::Package(cep85_test_contract_package.value());
     let to = account_user_2_key;
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         TransferData {
             from: &from,
@@ -1684,7 +1691,7 @@ fn should_revert_on_transfer_of_non_existent_token() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -1709,7 +1716,7 @@ fn should_revert_on_transfer_of_non_existent_token() {
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         TransferData {
             from: &from,
@@ -1738,7 +1745,7 @@ fn should_revert_on_transfer_batch_of_non_existent_token() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             ..
         },
     ) = setup();
@@ -1751,7 +1758,7 @@ fn should_revert_on_transfer_batch_of_non_existent_token() {
 
     let transfer_call = cep85_batch_transfer_from(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         TransferData {
             from: &from,

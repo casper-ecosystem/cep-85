@@ -16,26 +16,27 @@ use cep85::{
 
 #[test]
 fn should_test_security_no_rights() {
-    let (_, account_user_1_acccount_hash, _) = get_test_account("ACCOUNT_USER_1");
+    let (account_user_1_acccount_key, account_user_1_acccount_hash, _) =
+        get_test_account("ACCOUNT_USER_1");
 
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             ..
         },
     ) = setup_with_args(runtime_args! {
         ARG_ENABLE_BURN => true,
     });
     let minting_account = account_user_1_acccount_hash;
-    let minting_recipient: Key = minting_account.into();
+    let minting_recipient = account_user_1_acccount_key;
 
     let mint_amount = U256::one();
     let id = U256::one();
 
     let failing_mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -58,7 +59,7 @@ fn should_test_security_no_rights() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -75,7 +76,7 @@ fn should_test_security_no_rights() {
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &bunrning_account,
         &owner,
         &id,
@@ -101,7 +102,7 @@ fn should_test_security_meta_rights() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -110,13 +111,13 @@ fn should_test_security_meta_rights() {
     });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = account_user_1_key;
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::from(1);
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -132,7 +133,7 @@ fn should_test_security_meta_rights() {
 
     let failing_meta_call = cep85_set_uri(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &updating_account,
         new_uri,
         Some(id),
@@ -149,7 +150,7 @@ fn should_test_security_meta_rights() {
 
     let meta_call = cep85_set_uri(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &updating_account,
         new_uri,
         Some(id),
@@ -166,7 +167,7 @@ fn should_test_security_meta_rights() {
 
     let meta_call = cep85_set_uri(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &updating_account,
         TOKEN_URI,
         None,
@@ -186,7 +187,7 @@ fn should_test_security_minter_rights() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             ..
         },
     ) = setup_with_args(runtime_args! {
@@ -194,14 +195,14 @@ fn should_test_security_minter_rights() {
     });
 
     let minting_account = account_user_1_account_hash;
-    let minting_recipient: Key = account_user_1_key;
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     // account_user_1 is in minter list, request should succeed
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -213,11 +214,11 @@ fn should_test_security_minter_rights() {
 
     // account_user_2 is not in minter list, request should fail
     let minting_account = account_user_2_account_hash;
-    let minting_recipient: Key = account_user_2_key;
+    let minting_recipient = account_user_2_key;
 
     let failing_mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -244,7 +245,7 @@ fn should_test_security_burner_rights() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             ..
         },
     ) = setup_with_args(runtime_args! {
@@ -253,16 +254,15 @@ fn should_test_security_burner_rights() {
     });
 
     // Set total supply to 2 for the token to be minted
-
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = account_user_1_key;
+    let minting_recipient = account_user_1_key;
     let total_supply = U256::from(2);
     let mint_amount = U256::from(2);
     let id = U256::one();
 
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -272,7 +272,7 @@ fn should_test_security_burner_rights() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -290,7 +290,7 @@ fn should_test_security_burner_rights() {
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -312,7 +312,7 @@ fn should_test_security_burner_rights() {
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -320,13 +320,12 @@ fn should_test_security_burner_rights() {
     );
     burn_call.expect_success().commit();
 
-    // default address is in admin list but not funded
+    // default address is in admin list but not token funded
     let burning_account = minting_account;
-    let owner: Key = burning_account.into();
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -339,8 +338,8 @@ fn should_test_security_burner_rights() {
 
     assert_expected_error(
         error,
-        Cep85Error::OverflowBurn as u16,
-        "should not allow to mint above balance for non funded admin account",
+        Cep85Error::InvalidBurnTarget as u16,
+        "should not allow to burn above balance for non token funded admin account",
     );
 }
 
@@ -352,7 +351,7 @@ fn should_test_change_security() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             ..
         },
     ) = setup_with_args(runtime_args! {
@@ -360,14 +359,14 @@ fn should_test_change_security() {
     });
 
     let minting_account = account_user_1_account_hash;
-    let minting_recipient: Key = account_user_1_key;
+    let minting_recipient = account_user_1_key;
     let total_supply = U256::from(2);
     let mint_amount = U256::one();
     let id = U256::one();
 
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -377,7 +376,7 @@ fn should_test_change_security() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -388,7 +387,7 @@ fn should_test_change_security() {
     // account_user_1 is in admin list
     mint_call.expect_success().commit();
     let minting_account = account_user_2_account_hash;
-    let minting_recipient: Key = account_user_2_key;
+    let minting_recipient = account_user_2_key;
 
     let security_lists = SecurityLists {
         minter_list: Some(vec![account_user_2_key]),
@@ -400,7 +399,7 @@ fn should_test_change_security() {
 
     let change_security = cep85_change_security(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         security_lists,
     );
@@ -409,7 +408,7 @@ fn should_test_change_security() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -430,7 +429,7 @@ fn should_test_change_security() {
 
     let change_security = cep85_change_security(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &account_user_1_account_hash,
         security_lists,
     );
@@ -439,7 +438,7 @@ fn should_test_change_security() {
 
     let failing_mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,

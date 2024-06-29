@@ -335,10 +335,6 @@ pub extern "C" fn transfer_from() {
 
     let (caller, caller_package) = get_verified_caller();
 
-    runtime::print(&format!("{:?}", from));
-    runtime::print(&format!("{:?}", caller));
-    runtime::print(&format!("{:?}", caller_package));
-
     // Check if the caller is the spender or an operator
     let is_approved: bool = match caller_package {
         Some(caller_package) => {

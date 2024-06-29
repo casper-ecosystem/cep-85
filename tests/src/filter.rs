@@ -73,7 +73,7 @@ use crate::utility::{
 //         .named_keys()
 //         .get(CEP85_TEST_CONTRACT_NAME)
 //         .and_then(|key| key.into_entity_hash())
-//         .map(AddressableEntityHash::new)
+//         .map(AddressableEntityHash::from)
 //         .expect("should have contract hash");
 
 //     let addressable_entity_key =
@@ -99,11 +99,11 @@ use crate::utility::{
 //         .get_entity_with_named_keys_by_account_hash(*DEFAULT_ACCOUNT_ADDR)
 //         .expect("should have account");
 
-//     let cep18_contract_hash = account
+//     let cep85_contract_hash = account
 //         .named_keys()
 //         .get(CEP85_TEST_TOKEN_CONTRACT_NAME)
 //         .and_then(|key| key.into_entity_hash())
-//         .map(AddressableEntityHash::new)
+//         .map(AddressableEntityHash::from)
 //         .expect("should have contract hash");
 
 //     let cep85_test_contract_package = account
@@ -113,7 +113,7 @@ use crate::utility::{
 //         .map(PackageHash::new)
 //         .expect("should have contract package hash");
 
-//     let contract_entity_addr = EntityAddr::new_smart_contract(cep18_contract_hash.value());
+//     let contract_entity_addr = EntityAddr::new_smart_contract(cep85_contract_hash.value());
 //     let transfer_filter_contract_stored: AddressableEntityHash = builder
 //         .get_value::<Option<AddressableEntityHash>>(
 //             contract_entity_addr,
@@ -132,7 +132,7 @@ use crate::utility::{
 
 //     // Update test contract TOKEN_CONTRACT value
 //     let contract_key =
-//         Key::addressable_entity_key(EntityKindTag::SmartContract, cep18_contract_hash);
+//         Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_contract_hash);
 //     let set_token_contract_request_for_transfer_filter_contract =
 //         ExecuteRequestBuilder::contract_call_by_hash(
 //             *DEFAULT_ACCOUNT_ADDR,
@@ -165,7 +165,7 @@ use crate::utility::{
 
 //     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
 //         &mut builder,
-//         &cep18_contract_hash,
+//         &cep85_contract_hash,
 //         &minting_account,
 //         ids.clone(),
 //         total_supplies,
@@ -176,7 +176,7 @@ use crate::utility::{
 //     // batch_mint is only one recipient
 //     let mint_call = cep85_batch_mint(
 //         &mut builder,
-//         &cep18_contract_hash,
+//         &cep85_contract_hash,
 //         &minting_account,
 //         &recipient_user_1,
 //         ids.clone(),
@@ -213,7 +213,7 @@ use crate::utility::{
 
 //     let failing_transfer_call = cep85_transfer_from(
 //         &mut builder,
-//         &cep18_contract_hash,
+//         &cep85_contract_hash,
 //         &account_user_1,
 //         TransferData {
 //             from: &from,
@@ -264,7 +264,7 @@ use crate::utility::{
 
 //     let transfer_call = cep85_transfer_from(
 //         &mut builder,
-//         &cep18_contract_hash,
+//         &cep85_contract_hash,
 //         &account_user_1,
 //         TransferData {
 //             from: &from,
@@ -292,7 +292,7 @@ use crate::utility::{
 //     // NB: token_receiver and token_owner are swapped
 //     let failing_transfer_request = ExecuteRequestBuilder::contract_call_by_hash(
 //         *DEFAULT_ACCOUNT_ADDR,
-//         cep18_contract_hash,
+//         cep85_contract_hash,
 //         ENTRY_POINT_TRANSFER_FROM,
 //         runtime_args! {
 //             ARG_FROM => to,
@@ -319,7 +319,7 @@ use crate::utility::{
 
 //     let transfer_call = cep85_transfer_from(
 //         &mut builder,
-//         &cep18_contract_hash,
+//         &cep85_contract_hash,
 //         &account_user_1,
 //         TransferData {
 //             from: &from,

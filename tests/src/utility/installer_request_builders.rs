@@ -40,8 +40,10 @@ use cep85_test_contract::constants::{
 
 #[derive(Clone)]
 pub struct TestContext {
-    pub cep18_contract_hash: AddressableEntityHash,
-    pub cep85_test_contract: AddressableEntityHash,
+    pub cep85_contract_hash: AddressableEntityHash,
+    pub cep85_contract_key: Key,
+    pub cep85_test_contract_hash: AddressableEntityHash,
+    pub cep85_test_contract_key: Key,
     pub cep85_test_contract_package: PackageHash,
 }
 
@@ -83,21 +85,21 @@ pub fn setup_with_args(install_args: RuntimeArgs) -> (LmdbWasmTestBuilder, TestC
         .get_entity_with_named_keys_by_account_hash(*DEFAULT_ACCOUNT_ADDR)
         .expect("should have account");
 
-    let cep18_contract_hash = account
+    let cep85_contract_hash = account
         .named_keys()
         .get(CEP85_TEST_TOKEN_CONTRACT_NAME)
         .and_then(|key| key.into_entity_hash())
         .map(AddressableEntityHash::from)
         .expect("should have contract hash");
 
-    let contract_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, cep18_contract_hash);
+    let cep85_contract_key =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_contract_hash);
 
     let install_request_contract_test = ExecuteRequestBuilder::standard(
         *DEFAULT_ACCOUNT_ADDR,
         CEP85_TEST_CONTRACT_WASM,
         runtime_args! {
-            ARG_TOKEN_CONTRACT => contract_key
+            ARG_TOKEN_CONTRACT => cep85_contract_key
         },
     )
     .build();
@@ -111,12 +113,15 @@ pub fn setup_with_args(install_args: RuntimeArgs) -> (LmdbWasmTestBuilder, TestC
         .get_entity_with_named_keys_by_account_hash(*DEFAULT_ACCOUNT_ADDR)
         .expect("should have account");
 
-    let cep85_test_contract = account
+    let cep85_test_contract_hash = account
         .named_keys()
         .get(CEP85_TEST_CONTRACT_NAME)
         .and_then(|key| key.into_entity_hash())
         .map(AddressableEntityHash::from)
         .expect("should have contract hash");
+
+    let cep85_test_contract_key =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
 
     let cep85_test_contract_package = account
         .named_keys()
@@ -126,8 +131,10 @@ pub fn setup_with_args(install_args: RuntimeArgs) -> (LmdbWasmTestBuilder, TestC
         .expect("should have contract package hash");
 
     let test_context = TestContext {
-        cep18_contract_hash,
-        cep85_test_contract,
+        cep85_contract_hash,
+        cep85_contract_key,
+        cep85_test_contract_hash,
+        cep85_test_contract_key,
         cep85_test_contract_package,
     };
 
@@ -153,7 +160,7 @@ pub fn get_test_result<T: FromBytes + CLTyped>(
 
 pub fn cep85_set_uri<'a>(
     builder: &'a mut LmdbWasmTestBuilder,
-    cep18_contract_hash: &'a AddressableEntityHash,
+    cep85_contract_hash: &'a AddressableEntityHash,
     updating_account: &'a AccountHash,
     uri: &str,
     id: Option<U256>,
@@ -170,7 +177,7 @@ pub fn cep85_set_uri<'a>(
     };
     let set_uri_request = ExecuteRequestBuilder::contract_call_by_hash(
         *updating_account,
-        *cep18_contract_hash,
+        *cep85_contract_hash,
         ENTRY_POINT_SET_URI,
         set_uri_args,
     )
@@ -199,7 +206,7 @@ pub fn cep85_check_uri(
 
 pub fn cep85_mint<'a>(
     builder: &'a mut LmdbWasmTestBuilder,
-    cep18_contract_hash: &'a AddressableEntityHash,
+    cep85_contract_hash: &'a AddressableEntityHash,
     minting_account: &'a AccountHash,
     recipient: &Key,
     id: &U256,
@@ -216,7 +223,7 @@ pub fn cep85_mint<'a>(
     }
     let mint_request = ExecuteRequestBuilder::contract_call_by_hash(
         *minting_account,
-        *cep18_contract_hash,
+        *cep85_contract_hash,
         ENTRY_POINT_MINT,
         mint_args,
     )
@@ -226,7 +233,7 @@ pub fn cep85_mint<'a>(
 
 pub fn cep85_batch_mint<'a>(
     builder: &'a mut LmdbWasmTestBuilder,
-    cep18_contract_hash: &'a AddressableEntityHash,
+    cep85_contract_hash: &'a AddressableEntityHash,
     minting_account: &'a AccountHash,
     recipient: &Key,
     ids: Vec<U256>,
@@ -243,7 +250,7 @@ pub fn cep85_batch_mint<'a>(
     }
     let mint_request = ExecuteRequestBuilder::contract_call_by_hash(
         *minting_account,
-        *cep18_contract_hash,
+        *cep85_contract_hash,
         ENTRY_POINT_BATCH_MINT,
         batch_mint_args,
     )
@@ -341,14 +348,14 @@ pub fn cep85_check_balance_of_batch(
 
 pub fn cep85_set_total_supply_of<'a>(
     builder: &'a mut LmdbWasmTestBuilder,
-    cep18_contract_hash: &'a AddressableEntityHash,
+    cep85_contract_hash: &'a AddressableEntityHash,
     admin_account: &'a AccountHash,
     id: &U256,
     total_supply: &U256,
 ) -> &'a mut LmdbWasmTestBuilder {
     let set_total_supply_request = ExecuteRequestBuilder::contract_call_by_hash(
         *admin_account,
-        *cep18_contract_hash,
+        *cep85_contract_hash,
         ENTRY_POINT_SET_TOTAL_SUPPLY_OF,
         runtime_args! {
             ARG_ID => *id,
@@ -381,14 +388,14 @@ pub fn cep85_check_total_supply_of(
 
 pub fn cep85_set_total_supply_of_batch<'a>(
     builder: &'a mut LmdbWasmTestBuilder,
-    cep18_contract_hash: &'a AddressableEntityHash,
+    cep85_contract_hash: &'a AddressableEntityHash,
     sender: &'a AccountHash,
     ids: Vec<U256>,
     total_supplies: Vec<U256>,
 ) -> &'a mut LmdbWasmTestBuilder {
     let set_total_supply_of_batch_request = ExecuteRequestBuilder::contract_call_by_hash(
         *sender,
-        *cep18_contract_hash,
+        *cep85_contract_hash,
         ENTRY_POINT_SET_TOTAL_SUPPLY_OF_BATCH,
         runtime_args! {
             ARG_IDS => ids,
@@ -461,14 +468,14 @@ pub fn cep85_check_supply_of_batch(
 
 pub fn cep85_set_approval_for_all<'a>(
     builder: &'a mut LmdbWasmTestBuilder,
-    cep18_contract_hash: &'a AddressableEntityHash,
+    cep85_contract_hash: &'a AddressableEntityHash,
     owner: &'a AccountHash,
     operator: &'a Key,
     approved: bool,
 ) -> &'a mut LmdbWasmTestBuilder {
     let set_approval_for_all_request = ExecuteRequestBuilder::contract_call_by_hash(
         *owner,
-        *cep18_contract_hash,
+        *cep85_contract_hash,
         ENTRY_POINT_SET_APPROVAL_FOR_ALL,
         runtime_args! {
             ARG_OPERATOR => *operator,
@@ -503,7 +510,7 @@ pub fn cep85_check_is_approved(
 
 pub fn cep85_make_dictionary_item_key(
     builder: &mut LmdbWasmTestBuilder,
-    cep18_contract_hash: &AddressableEntityHash,
+    cep85_contract_hash: &AddressableEntityHash,
     key: &Key,
     id: Option<U256>,
     operator: Option<Key>,
@@ -528,7 +535,7 @@ pub fn cep85_make_dictionary_item_key(
     };
     let dictionary_item_key_request = ExecuteRequestBuilder::contract_call_by_hash(
         *DEFAULT_ACCOUNT_ADDR,
-        *cep18_contract_hash,
+        *cep85_contract_hash,
         ENTRY_POINT_MAKE_DICTIONARY_ITEM_KEY,
         args,
     )
@@ -549,7 +556,7 @@ pub struct TransferData<'a> {
 
 pub fn cep85_transfer_from<'a>(
     builder: &'a mut LmdbWasmTestBuilder,
-    cep18_contract_hash: &'a AddressableEntityHash,
+    cep85_contract_hash: &'a AddressableEntityHash,
     sender: &'a AccountHash,
     transfer_data: TransferData<'a>,
     direct_call_test_contract: Option<bool>,
@@ -562,42 +569,34 @@ pub fn cep85_transfer_from<'a>(
         data,
     } = transfer_data;
 
+    let mut args = runtime_args! {
+        ARG_FROM => *from,
+        ARG_TO => *to,
+        ARG_ID => ids[0],
+        ARG_AMOUNT => amounts[0],
+    };
+
+    if let Some(data) = data {
+        let _ = args.insert(ARG_DATA, data);
+    }
+
+    let call_package =
+        direct_call_test_contract.is_none() || direct_call_test_contract == Some(false);
+
     let transfer_request = match from {
-        Key::Account(_hash) => {
-            let mut args = runtime_args! {
-                ARG_FROM => *from,
-                ARG_TO => *to,
-                ARG_ID => ids[0],
-                ARG_AMOUNT => amounts[0],
-            };
-
-            if let Some(data) = data {
-                let _ = args.insert(ARG_DATA, data);
-            }
-
+        Key::Account(_hash_addr) => {
             ExecuteRequestBuilder::contract_call_by_hash(
-                *sender, /* We do not use above _hash here because from and sender could be
+                *sender, /* We do not use above hash_addr here because from and sender could be
                           * different */
-                *cep18_contract_hash,
+                *cep85_contract_hash,
                 ENTRY_POINT_TRANSFER_FROM,
                 args,
             )
             .build()
         }
-        Key::Hash(hash) => {
-            let hash_bytes: &[u8; 32] = hash.as_slice().try_into().expect("Hash must be 32 bytes");
-            let call_package =
-                direct_call_test_contract.is_none() || direct_call_test_contract == Some(false);
+        Key::Hash(hash_addr) => {
             if call_package {
-                let contract_package_hash = PackageHash::from(*hash_bytes);
-                let args = runtime_args! {
-                    ARG_FROM => *from,
-                    ARG_TO => *to,
-                    ARG_ID => ids[0],
-                    ARG_AMOUNT => amounts[0],
-                    ARG_DATA => data,
-                };
-
+                let contract_package_hash = PackageHash::new(*hash_addr);
                 ExecuteRequestBuilder::versioned_contract_call_by_hash(
                     *sender,
                     contract_package_hash,
@@ -607,15 +606,7 @@ pub fn cep85_transfer_from<'a>(
                 )
                 .build()
             } else {
-                let contract_hash = AddressableEntityHash::from(*hash_bytes);
-                let args = runtime_args! {
-                    ARG_FROM => *from,
-                    ARG_TO => *to,
-                    ARG_ID => ids[0],
-                    ARG_AMOUNT => amounts[0],
-                    ARG_DATA => data,
-                };
-
+                let contract_hash = AddressableEntityHash::from(*hash_addr);
                 ExecuteRequestBuilder::contract_call_by_hash(
                     *sender,
                     contract_hash,
@@ -625,6 +616,39 @@ pub fn cep85_transfer_from<'a>(
                 .build()
             }
         }
+        Key::AddressableEntity(entity_addr) => match entity_addr {
+            EntityAddr::System(_) => panic!("Not a use case"),
+            EntityAddr::Account(_hash_addr) => ExecuteRequestBuilder::contract_call_by_hash(
+                *sender, /* We do not use above hash_addr here because from and sender could be
+                          * different */
+                *cep85_contract_hash,
+                ENTRY_POINT_TRANSFER_FROM,
+                args,
+            )
+            .build(),
+            EntityAddr::SmartContract(hash_addr) => {
+                if call_package {
+                    let contract_package_hash = PackageHash::new(*hash_addr);
+                    ExecuteRequestBuilder::versioned_contract_call_by_hash(
+                        *DEFAULT_ACCOUNT_ADDR,
+                        contract_package_hash,
+                        None,
+                        ENTRY_POINT_CHECK_TRANSFER_FROM,
+                        args,
+                    )
+                    .build()
+                } else {
+                    let contract_hash = AddressableEntityHash::from(*hash_addr);
+                    ExecuteRequestBuilder::contract_call_by_hash(
+                        *sender,
+                        contract_hash,
+                        ENTRY_POINT_CHECK_TRANSFER_FROM,
+                        args,
+                    )
+                    .build()
+                }
+            }
+        },
         _ => panic!("Unknown variant"),
     };
     builder.exec(transfer_request)
@@ -644,18 +668,23 @@ pub fn cep85_transfer_from_as_contract<'a>(
         data,
     } = transfer_data;
 
+    let mut args = runtime_args! {
+        ARG_FROM => *from,
+        ARG_TO => *to,
+        ARG_ID => ids[0],
+        ARG_AMOUNT => amounts[0],
+    };
+
+    if let Some(data) = data {
+        let _ = args.insert(ARG_DATA, data);
+    }
+
     let transfer_request = ExecuteRequestBuilder::versioned_contract_call_by_hash(
         *sender,
         *contract_package_hash,
         None,
         ENTRY_POINT_CHECK_TRANSFER_FROM,
-        runtime_args! {
-            ARG_FROM => *from,
-            ARG_TO => *to,
-            ARG_ID => ids[0],
-            ARG_AMOUNT => amounts[0],
-            ARG_DATA => data,
-        },
+        args,
     )
     .build();
 
@@ -664,7 +693,7 @@ pub fn cep85_transfer_from_as_contract<'a>(
 
 pub fn cep85_batch_transfer_from<'a>(
     builder: &'a mut LmdbWasmTestBuilder,
-    cep18_contract_hash: &'a AddressableEntityHash,
+    cep85_contract_hash: &'a AddressableEntityHash,
     sender: &'a AccountHash,
     transfer_data: TransferData<'a>,
     direct_call_test_contract: Option<bool>,
@@ -677,64 +706,86 @@ pub fn cep85_batch_transfer_from<'a>(
         data,
     } = transfer_data;
 
-    let transfer_request = match from {
-        Key::Account(_hash) => {
-            let mut args = runtime_args! {
-                ARG_FROM => *from,
-                ARG_TO => *to,
-                ARG_IDS => ids,
-                ARG_AMOUNTS => amounts,
-            };
+    let mut args = runtime_args! {
+        ARG_FROM => *from,
+        ARG_TO => *to,
+        ARG_IDS => ids,
+        ARG_AMOUNTS => amounts,
+    };
 
-            if let Some(data) = data {
-                let _ = args.insert(ARG_DATA, data);
-            }
+    if let Some(data) = data {
+        let _ = args.insert(ARG_DATA, data);
+    }
+
+    let call_package =
+        direct_call_test_contract.is_none() || direct_call_test_contract == Some(false);
+
+    let transfer_request = match from {
+        Key::Account(_hash_addr) => {
             ExecuteRequestBuilder::contract_call_by_hash(
                 *sender, /* We do not use above _hash here because from and sender could be
                           * different */
-                *cep18_contract_hash,
+                *cep85_contract_hash,
                 ENTRY_POINT_BATCH_TRANSFER_FROM,
                 args,
             )
             .build()
         }
-        Key::Hash(hash) => {
-            let hash_bytes: &[u8; 32] = hash.as_slice().try_into().expect("Hash must be 32 bytes");
-            let call_package =
-                direct_call_test_contract.is_none() || direct_call_test_contract == Some(false);
+        Key::Hash(hash_addr) => {
             if call_package {
-                let contract_package_hash = PackageHash::from(*hash_bytes);
+                let contract_package_hash = PackageHash::from(*hash_addr);
                 ExecuteRequestBuilder::versioned_contract_call_by_hash(
                     *sender,
                     contract_package_hash,
                     None,
                     ENTRY_POINT_CHECK_BATCH_TRANSFER_FROM,
-                    runtime_args! {
-                        ARG_FROM => *from,
-                        ARG_TO => *to,
-                        ARG_IDS => ids,
-                        ARG_AMOUNTS => amounts,
-                        ARG_DATA => data,
-                    },
+                    args,
                 )
                 .build()
             } else {
-                let contract_hash = AddressableEntityHash::from(*hash_bytes);
+                let contract_hash = AddressableEntityHash::from(*hash_addr);
                 ExecuteRequestBuilder::contract_call_by_hash(
                     *sender,
                     contract_hash,
                     ENTRY_POINT_CHECK_BATCH_TRANSFER_FROM,
-                    runtime_args! {
-                        ARG_FROM => *from,
-                        ARG_TO => *to,
-                        ARG_IDS => ids,
-                        ARG_AMOUNTS => amounts,
-                        ARG_DATA => data,
-                    },
+                    args,
                 )
                 .build()
             }
         }
+        Key::AddressableEntity(entity_addr) => match entity_addr {
+            EntityAddr::System(_) => panic!("Not a use case"),
+            EntityAddr::Account(_hash_addr) => ExecuteRequestBuilder::contract_call_by_hash(
+                *sender, /* We do not use above hash_addr here because from and sender could be
+                          * different */
+                *cep85_contract_hash,
+                ENTRY_POINT_BATCH_TRANSFER_FROM,
+                args,
+            )
+            .build(),
+            EntityAddr::SmartContract(hash_addr) => {
+                if call_package {
+                    let contract_package_hash = PackageHash::new(*hash_addr);
+                    ExecuteRequestBuilder::versioned_contract_call_by_hash(
+                        *DEFAULT_ACCOUNT_ADDR,
+                        contract_package_hash,
+                        None,
+                        ENTRY_POINT_CHECK_BATCH_TRANSFER_FROM,
+                        args,
+                    )
+                    .build()
+                } else {
+                    let contract_hash = AddressableEntityHash::from(*hash_addr);
+                    ExecuteRequestBuilder::contract_call_by_hash(
+                        *sender,
+                        contract_hash,
+                        ENTRY_POINT_CHECK_BATCH_TRANSFER_FROM,
+                        args,
+                    )
+                    .build()
+                }
+            }
+        },
         _ => panic!("Unknown variant"),
     };
 
@@ -815,7 +866,7 @@ pub fn cep85_check_total_fungible_supply(
 
 pub fn cep85_set_modalities<'a>(
     builder: &'a mut LmdbWasmTestBuilder,
-    cep18_contract_hash: &'a AddressableEntityHash,
+    cep85_contract_hash: &'a AddressableEntityHash,
     owner: &'a AccountHash,
     burn_enable: Option<bool>,
     events_mode: Option<EventsMode>,
@@ -829,7 +880,7 @@ pub fn cep85_set_modalities<'a>(
     };
     let set_modalities_request = ExecuteRequestBuilder::contract_call_by_hash(
         *owner,
-        *cep18_contract_hash,
+        *cep85_contract_hash,
         ENTRY_POINT_SET_MODALITIES,
         args,
     )
@@ -847,7 +898,7 @@ pub struct SecurityLists {
 
 pub fn cep85_change_security<'a>(
     builder: &'a mut LmdbWasmTestBuilder,
-    cep18_contract_hash: &'a AddressableEntityHash,
+    cep85_contract_hash: &'a AddressableEntityHash,
     admin_account: &'a AccountHash,
     security_lists: SecurityLists,
 ) -> &'a mut LmdbWasmTestBuilder {
@@ -861,7 +912,7 @@ pub fn cep85_change_security<'a>(
 
     let change_security_request = ExecuteRequestBuilder::contract_call_by_hash(
         *admin_account,
-        *cep18_contract_hash,
+        *cep85_contract_hash,
         ENTRY_POINT_CHANGE_SECURITY,
         runtime_args! {
             MINTER_LIST => minter_list.unwrap_or_default(),

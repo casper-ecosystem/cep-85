@@ -11,7 +11,7 @@ fn should_check_if_fungible() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -26,7 +26,7 @@ fn should_check_if_fungible() {
     // Set total supply to 2 for the token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -36,7 +36,7 @@ fn should_check_if_fungible() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -57,7 +57,7 @@ fn should_check_if_non_fungible() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -70,7 +70,7 @@ fn should_check_if_non_fungible() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -91,7 +91,7 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -106,7 +106,7 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
     // Set total supply to 2 for the token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -116,7 +116,7 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -136,7 +136,7 @@ fn should_check_if_non_fungible_if_total_supply_is_reduced_to_one() {
     // Set total supply to 2 for the token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -155,7 +155,7 @@ fn should_get_total_fungible_supply() {
     let (
         mut builder,
         TestContext {
-            cep18_contract_hash,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
@@ -170,7 +170,7 @@ fn should_get_total_fungible_supply() {
     // Set total supply to 10 for the 4 token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -180,7 +180,7 @@ fn should_get_total_fungible_supply() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep18_contract_hash,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
