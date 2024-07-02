@@ -59,13 +59,11 @@ impl FromBytes for TransferFilterContractResult {
     fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), casper_types::bytesrepr::Error> {
         match bytes.split_first() {
             None => Err(casper_types::bytesrepr::Error::EarlyEndOfStream),
-            Some((byte, rem)) => match TransferFilterContractResult::try_from(*byte) {
-                Ok(kind) => Ok((kind, rem)),
-                Err(_) => Err(casper_types::bytesrepr::Error::EarlyEndOfStream),
-            },
+            Some((byte, rem)) => Ok((TransferFilterContractResult::from(*byte), rem)),
         }
     }
 }
+
 impl ToBytes for TransferFilterContractResult {
     fn to_bytes(&self) -> Result<alloc::vec::Vec<u8>, casper_types::bytesrepr::Error> {
         Ok(vec![*self as u8])
