@@ -265,19 +265,12 @@ fn should_make_dictionary_item_key_for_dict_balances_queries() {
     let key = Key::AddressableEntity(EntityAddr::Account(DEFAULT_ACCOUNT_ADDR.value()));
     let id = U256::one();
 
-    cep85_make_dictionary_item_key(
-        &mut builder,
-        &cep85_contract_hash,
-        &key,
-        Some(id),
-        None,
-        None,
-    );
+    cep85_make_dictionary_item_key(&mut builder, &key, Some(id), None, None);
 
     let dictionary_item_key = builder
         .query(
             None,
-            Key::AddressableEntity(EntityAddr::Account(DEFAULT_ACCOUNT_ADDR.value())),
+            Key::Account(*DEFAULT_ACCOUNT_ADDR),
             &[DEFAULT_DICT_ITEM_KEY_NAME.to_string()],
         )
         .unwrap()
@@ -290,7 +283,7 @@ fn should_make_dictionary_item_key_for_dict_balances_queries() {
     // This is the dictionary item key to query balances dictionary with casper-client-rs
     assert_eq!(
         dictionary_item_key,
-        "d4cc85d3e1ba5d7e915ccd9083dcf81cd7d6e1e8d8ea4e431edd85b5a7bf9360".to_string()
+        "6d0b0c89f1bdc809a0fcf2fedaa1a4ae2ef060593a3431299badbf8d6c770b13".to_string()
     );
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
@@ -322,13 +315,7 @@ fn should_make_dictionary_item_key_for_dict_balances_queries() {
 #[test]
 fn should_make_dictionary_item_key_for_dict_balances_queries_with_specific_session_named_key_name()
 {
-    let (
-        mut builder,
-        TestContext {
-            cep85_contract_hash,
-            ..
-        },
-    ) = setup();
+    let (mut builder, ..) = setup();
 
     let key = Key::AddressableEntity(EntityAddr::Account(DEFAULT_ACCOUNT_ADDR.value()));
     let id = U256::one();
@@ -336,7 +323,6 @@ fn should_make_dictionary_item_key_for_dict_balances_queries_with_specific_sessi
 
     cep85_make_dictionary_item_key(
         &mut builder,
-        &cep85_contract_hash,
         &key,
         Some(id),
         None,
@@ -344,7 +330,11 @@ fn should_make_dictionary_item_key_for_dict_balances_queries_with_specific_sessi
     );
 
     let dictionary_item_key = builder
-        .query(None, key, &[session_named_key_name])
+        .query(
+            None,
+            Key::Account(*DEFAULT_ACCOUNT_ADDR),
+            &[session_named_key_name.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -355,6 +345,6 @@ fn should_make_dictionary_item_key_for_dict_balances_queries_with_specific_sessi
     // This is the dictionary item key to query balances dictionary with casper-client-rs
     assert_eq!(
         dictionary_item_key,
-        "d4cc85d3e1ba5d7e915ccd9083dcf81cd7d6e1e8d8ea4e431edd85b5a7bf9360".to_string()
+        "6d0b0c89f1bdc809a0fcf2fedaa1a4ae2ef060593a3431299badbf8d6c770b13".to_string()
     );
 }

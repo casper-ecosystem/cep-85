@@ -5,7 +5,7 @@ use casper_contract::{
     contract_api::runtime::{self, get_key},
     unwrap_or_revert::UnwrapOrRevert,
 };
-use casper_types::{Key, U256};
+use casper_types::{EntityAddr, Key, U256};
 
 use crate::{
     constants::{ARG_CONTRACT_HASH, DICT_BALANCES},
@@ -45,11 +45,10 @@ pub fn transfer_balance(sender: &Key, recipient: &Key, id: &U256, amount: &U256)
         runtime::revert(Cep85Error::SelfTransfer);
     }
 
-    // Check if the recipient is a an account or a contract or a package
-    if (*recipient).into_account().is_none()
-        && (*recipient).into_entity_hash().is_none()
-        && (*recipient).into_package_hash().is_none()
-    {
+    let is_recipient_account = matches!(recipient.as_entity_addr(), Some(EntityAddr::Account(_)));
+
+    // Check if the recipient is a an account or a package
+    if !is_recipient_account && (*recipient).into_package_hash().is_none() {
         runtime::revert(Cep85Error::InvalidRecipient);
     }
 

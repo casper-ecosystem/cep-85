@@ -15,7 +15,7 @@ use alloc::{
 use casper_contract::{
     self,
     contract_api::{
-        runtime::{call_contract, get_key, get_named_arg, put_key, ret, try_get_named_arg},
+        runtime::{call_contract, get_key, get_named_arg, put_key, ret},
         storage,
     },
     unwrap_or_revert::UnwrapOrRevert,
@@ -35,7 +35,9 @@ use cep85::{
         ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY, ENTRY_POINT_TOTAL_SUPPLY_OF,
         ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH, ENTRY_POINT_TRANSFER_FROM, ENTRY_POINT_URI,
     },
+    error::Cep85Error,
     modalities::TransferFilterContractResult,
+    utils::get_optional_named_arg_with_user_errors,
 };
 use constants::{
     ARG_FILTER_CONTRACT_RETURN_VALUE, CEP85_TEST_CONTRACT_NAME, CEP85_TEST_PACKAGE_NAME,
@@ -66,13 +68,6 @@ pub extern "C" fn set_filter_contract_return_value() {
 // Check that some values are sent by token contract and return a TransferFilterContractResult
 #[no_mangle]
 pub extern "C" fn can_transfer() {
-    let _operator: Key = get_named_arg(ARG_OPERATOR);
-    let _from: Key = get_named_arg(ARG_FROM);
-    let _to: Key = get_named_arg(ARG_FROM);
-    let _ids: Vec<U256> = get_named_arg(ARG_IDS);
-    let _amounts: Vec<U256> = get_named_arg(ARG_AMOUNTS);
-    let _data: Option<Bytes> = get_named_arg(ARG_DATA);
-
     let key = get_key(ARG_FILTER_CONTRACT_RETURN_VALUE);
     if key.is_none() {
         ret(CLValue::from_t(TransferFilterContractResult::DenyTransfer).unwrap_or_revert());
@@ -169,7 +164,8 @@ pub extern "C" fn check_transfer_from() {
     let to: Key = get_named_arg(ARG_TO);
     let id: U256 = get_named_arg(ARG_ID);
     let amount: U256 = get_named_arg(ARG_AMOUNT);
-    //let data: Option<Bytes> = try_get_named_arg(ARG_DATA);
+    let data: Option<Bytes> =
+        get_optional_named_arg_with_user_errors(ARG_DATA, Cep85Error::InvalidValue);
 
     let mut transfer_from_args = runtime_args! {
         ARG_FROM => from,
@@ -177,9 +173,9 @@ pub extern "C" fn check_transfer_from() {
         ARG_ID => id,
         ARG_AMOUNT => amount,
     };
-    // if let Some(data) = data {
-    //     let _ = transfer_from_args.insert(ARG_DATA, data);
-    // }
+    if let Some(data) = data {
+        let _ = transfer_from_args.insert(ARG_DATA, data);
+    }
     call_contract::<()>(
         token_contract,
         ENTRY_POINT_TRANSFER_FROM,
@@ -194,7 +190,8 @@ pub extern "C" fn check_batch_transfer_from() {
     let to: Key = get_named_arg(ARG_TO);
     let ids: Vec<U256> = get_named_arg(ARG_IDS);
     let amounts: Vec<U256> = get_named_arg(ARG_AMOUNTS);
-    //let data: Option<Bytes> = try_get_named_arg(ARG_DATA);
+    let data: Option<Bytes> =
+        get_optional_named_arg_with_user_errors(ARG_DATA, Cep85Error::InvalidValue);
 
     let mut batch_transfer_from_args = runtime_args! {
         ARG_FROM => from,
@@ -202,9 +199,9 @@ pub extern "C" fn check_batch_transfer_from() {
         ARG_IDS => ids,
         ARG_AMOUNTS => amounts,
     };
-    // if let Some(data) = data {
-    //     let _ = batch_transfer_from_args.insert(ARG_DATA, data);
-    // }
+    if let Some(data) = data {
+        let _ = batch_transfer_from_args.insert(ARG_DATA, data);
+    }
 
     call_contract::<()>(
         token_contract,

@@ -1,5 +1,3 @@
-use std::hash::Hash;
-
 use crate::utility::{
     installer_request_builders::{
         cep85_batch_mint, cep85_batch_transfer_from, cep85_check_balance_of,
@@ -919,7 +917,6 @@ fn should_transfer_account_to_contract_package() {
         TestContext {
             cep85_contract_hash,
             cep85_test_contract_package,
-            cep85_test_contract_key,
             ..
         },
     ) = setup();
@@ -927,7 +924,7 @@ fn should_transfer_account_to_contract_package() {
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let from = account_user_1_key;
     let minting_recipient = from;
-    let to = cep85_test_contract_key;
+    let to = Key::Package(cep85_test_contract_package.value());
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
@@ -1156,6 +1153,7 @@ fn should_batch_transfer_contract_package_to_contract() {
         mut builder,
         TestContext {
             cep85_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
             ..
         },
@@ -1165,10 +1163,9 @@ fn should_batch_transfer_contract_package_to_contract() {
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
 
-    // TODO Fix key type
-    let from = Key::Hash(cep85_test_contract_package.value());
+    let from = Key::Package(cep85_test_contract_package.value());
 
-    let minting_recipient = from;
+    let minting_recipient = cep85_test_contract_key;
     let to = Key::AddressableEntity(EntityAddr::SmartContract([42; 32]));
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
@@ -1594,12 +1591,9 @@ fn should_transfer_account_to_contract_package_to_account() {
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let from = account_user_1_key;
-    let minting_recipient = from;
-    let to = Key::Package(cep85_test_contract_package.value());
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
-    let transfer_amount = U256::one();
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let mint_call = cep85_mint(
@@ -1624,6 +1618,10 @@ fn should_transfer_account_to_contract_package_to_account() {
     let expected_balance_before = U256::one();
 
     assert_eq!(actual_balance_before, expected_balance_before);
+
+    let from = minting_recipient;
+    let to = Key::Package(cep85_test_contract_package.value());
+    let transfer_amount = U256::one();
 
     let transfer_call = cep85_transfer_from(
         &mut builder,

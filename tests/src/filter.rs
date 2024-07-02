@@ -1,13 +1,13 @@
 use casper_engine_test_support::{
     utils::create_run_genesis_request, ExecuteRequestBuilder, LmdbWasmTestBuilder, ARG_AMOUNT,
-    DEFAULT_ACCOUNT_ADDR, DEFAULT_ACCOUNT_PUBLIC_KEY,
+    DEFAULT_ACCOUNTS, DEFAULT_ACCOUNT_ADDR,
 };
 use casper_types::{
     addressable_entity::EntityKindTag,
     bytesrepr::Bytes,
     runtime_args,
     system::mint::{ARG_ID, ARG_TO},
-    AddressableEntityHash, EntityAddr, GenesisAccount, Key, Motes, PackageHash, U256, U512,
+    AddressableEntityHash, EntityAddr, Key, PackageHash, U256,
 };
 use cep85::{
     constants::{
@@ -31,317 +31,318 @@ use crate::utility::{
         cep85_batch_mint, cep85_check_balance_of, cep85_check_balance_of_batch,
         cep85_set_total_supply_of_batch, cep85_transfer_from, TransferData,
     },
-    support::assert_expected_error,
+    support::{assert_expected_error, get_test_account},
 };
 
-// #[test]
-// fn check_transfers_with_transfer_filter_contract() {
-//     let mut builder = LmdbWasmTestBuilder::default();
-//     builder.run_genesis(create_run_genesis_request(vec![GenesisAccount::Account {
-//         public_key: DEFAULT_ACCOUNT_PUBLIC_KEY.clone(),
-//         balance: Motes::new(U512::from(5_000_000_000_000_u64)),
-//         validator: None,
-//     }]));
+#[test]
+fn check_transfers_with_transfer_filter_contract() {
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+    let (account_user_2_key, _, _) = get_test_account("ACCOUNT_USER_2");
 
-//     let account_user_1 = create_funded_dummy_account(&mut builder, Some(ACCOUNT_USER_1));
-//     let account_user_2 = create_funded_dummy_account(&mut builder, Some(ACCOUNT_USER_2));
+    let mut builder = LmdbWasmTestBuilder::default();
 
-//     // Install filter contract first with empty TOKEN_CONTRACT value, we will update it after token
-//     // installation
+    builder
+        .run_genesis(create_run_genesis_request(DEFAULT_ACCOUNTS.to_vec()))
+        .commit();
 
-//     let install_request_contract_test = ExecuteRequestBuilder::standard(
-//         *DEFAULT_ACCOUNT_ADDR,
-//         CEP85_TEST_CONTRACT_WASM,
-//         runtime_args! {
-//             ARG_TOKEN_CONTRACT =>  Key::addressable_entity_key(
-//                 EntityKindTag::SmartContract, AddressableEntityHash::from([0u8; 32])
-//             ),
-//         },
-//     )
-//     .build();
+    // Install filter contract first with empty TOKEN_CONTRACT value, we will update it after token
+    // installation
 
-//     builder
-//         .exec(install_request_contract_test)
-//         .expect_success()
-//         .commit();
+    let install_request_contract_test = ExecuteRequestBuilder::standard(
+        *DEFAULT_ACCOUNT_ADDR,
+        CEP85_TEST_CONTRACT_WASM,
+        runtime_args! {
+            ARG_TOKEN_CONTRACT =>  Key::addressable_entity_key(
+                EntityKindTag::SmartContract, AddressableEntityHash::from([0u8; 32])
+            ),
+        },
+    )
+    .build();
 
-//     let account = builder
-//         .get_entity_with_named_keys_by_account_hash(*DEFAULT_ACCOUNT_ADDR)
-//         .expect("should have account");
+    builder
+        .exec(install_request_contract_test)
+        .expect_success()
+        .commit();
 
-//     let transfer_filter_contract = account
-//         .named_keys()
-//         .get(CEP85_TEST_CONTRACT_NAME)
-//         .and_then(|key| key.into_entity_hash())
-//         .map(AddressableEntityHash::from)
-//         .expect("should have contract hash");
+    let account = builder
+        .get_entity_with_named_keys_by_account_hash(*DEFAULT_ACCOUNT_ADDR)
+        .expect("should have account");
 
-//     let addressable_entity_key =
-//         Key::addressable_entity_key(EntityKindTag::SmartContract, transfer_filter_contract);
-//     let install_args = runtime_args! {
-//         ARG_NAME => TOKEN_NAME,
-//         ARG_URI => TOKEN_URI,
-//         ARG_TRANSFER_FILTER_CONTRACT => addressable_entity_key,
-//         ARG_TRANSFER_FILTER_METHOD => ENTRY_POINT_TRANSFER_FILTER_METHOD
-//     };
+    let transfer_filter_contract_hash = account
+        .named_keys()
+        .get(CEP85_TEST_CONTRACT_NAME)
+        .and_then(|key| key.into_entity_hash())
+        .map(AddressableEntityHash::from)
+        .expect("should have contract hash");
 
-//     // Install token
-//     let install_request_contract =
-//         ExecuteRequestBuilder::standard(*DEFAULT_ACCOUNT_ADDR, CEP85_CONTRACT_WASM, install_args)
-//             .build();
+    let transfer_filter_contract_key =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, transfer_filter_contract_hash);
 
-//     builder
-//         .exec(install_request_contract)
-//         .expect_success()
-//         .commit();
+    let install_args = runtime_args! {
+        ARG_NAME => TOKEN_NAME,
+        ARG_URI => TOKEN_URI,
+        ARG_TRANSFER_FILTER_CONTRACT => transfer_filter_contract_key,
+        ARG_TRANSFER_FILTER_METHOD => ENTRY_POINT_TRANSFER_FILTER_METHOD
+    };
 
-//     let account = builder
-//         .get_entity_with_named_keys_by_account_hash(*DEFAULT_ACCOUNT_ADDR)
-//         .expect("should have account");
+    // Install token
+    let install_request_contract =
+        ExecuteRequestBuilder::standard(*DEFAULT_ACCOUNT_ADDR, CEP85_CONTRACT_WASM, install_args)
+            .build();
 
-//     let cep85_contract_hash = account
-//         .named_keys()
-//         .get(CEP85_TEST_TOKEN_CONTRACT_NAME)
-//         .and_then(|key| key.into_entity_hash())
-//         .map(AddressableEntityHash::from)
-//         .expect("should have contract hash");
+    builder
+        .exec(install_request_contract)
+        .expect_success()
+        .commit();
 
-//     let cep85_test_contract_package = account
-//         .named_keys()
-//         .get(CEP85_TEST_PACKAGE_NAME)
-//         .and_then(|key| key.into_package_hash())
-//         .map(PackageHash::new)
-//         .expect("should have contract package hash");
+    let account = builder
+        .get_entity_with_named_keys_by_account_hash(*DEFAULT_ACCOUNT_ADDR)
+        .expect("should have account");
 
-//     let contract_entity_addr = EntityAddr::new_smart_contract(cep85_contract_hash.value());
-//     let transfer_filter_contract_stored: AddressableEntityHash = builder
-//         .get_value::<Option<AddressableEntityHash>>(
-//             contract_entity_addr,
-//             ARG_TRANSFER_FILTER_CONTRACT,
-//         )
-//         .unwrap();
-//     let transfer_filter_method_stored: String = builder
-//         .get_value::<Option<String>>(contract_entity_addr, ARG_TRANSFER_FILTER_METHOD)
-//         .unwrap();
+    let cep85_contract_hash = account
+        .named_keys()
+        .get(CEP85_TEST_TOKEN_CONTRACT_NAME)
+        .and_then(|key| key.into_entity_hash())
+        .map(AddressableEntityHash::from)
+        .expect("should have contract hash");
 
-//     assert_eq!(transfer_filter_contract_stored, transfer_filter_contract);
-//     assert_eq!(
-//         transfer_filter_method_stored,
-//         ENTRY_POINT_TRANSFER_FILTER_METHOD
-//     );
+    let cep85_test_contract_package = account
+        .named_keys()
+        .get(CEP85_TEST_PACKAGE_NAME)
+        .and_then(|key| key.into_package_hash())
+        .map(PackageHash::from)
+        .expect("should have contract package hash");
 
-//     // Update test contract TOKEN_CONTRACT value
-//     let contract_key =
-//         Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_contract_hash);
-//     let set_token_contract_request_for_transfer_filter_contract =
-//         ExecuteRequestBuilder::contract_call_by_hash(
-//             *DEFAULT_ACCOUNT_ADDR,
-//             transfer_filter_contract,
-//             ENTRY_POINT_INIT,
-//             runtime_args! {
-//                 ARG_TOKEN_CONTRACT => contract_key
-//             },
-//         )
-//         .build();
+    let contract_entity_addr = EntityAddr::new_smart_contract(cep85_contract_hash.value());
 
-//     builder
-//         .exec(set_token_contract_request_for_transfer_filter_contract)
-//         .expect_success()
-//         .commit();
+    let transfer_filter_contract_stored: AddressableEntityHash = builder
+        .get_value::<Option<AddressableEntityHash>>(
+            contract_entity_addr,
+            ARG_TRANSFER_FILTER_CONTRACT,
+        )
+        .unwrap();
+    let transfer_filter_method_stored: String = builder
+        .get_value::<Option<String>>(contract_entity_addr, ARG_TRANSFER_FILTER_METHOD)
+        .unwrap();
 
-//     let contract = builder
-//         .get_entity_with_named_keys_by_entity_hash(transfer_filter_contract)
-//         .expect("should have contract");
-//     let named_keys = contract.named_keys();
-//     let token_contract_stored = *named_keys.get(ARG_TOKEN_CONTRACT).unwrap();
+    assert_eq!(
+        transfer_filter_contract_stored,
+        transfer_filter_contract_hash
+    );
+    assert_eq!(
+        transfer_filter_method_stored,
+        ENTRY_POINT_TRANSFER_FILTER_METHOD
+    );
 
-//     assert_eq!(token_contract_stored, contract_key);
+    let cep85_test_contract_key =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_contract_hash);
 
-//     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-//     let recipient_user_1 =  Key::AddressableEntity(EntityAddr::Account(account_user_1.value());
-//     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
-//     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
-//     let total_supplies = amounts.clone();
+    // Update test contract TOKEN_CONTRACT value
+    let set_token_contract_request_for_transfer_filter_contract =
+        ExecuteRequestBuilder::contract_call_by_hash(
+            *DEFAULT_ACCOUNT_ADDR,
+            transfer_filter_contract_hash,
+            ENTRY_POINT_INIT,
+            runtime_args! {
+                ARG_TOKEN_CONTRACT => cep85_test_contract_key
+            },
+        )
+        .build();
 
-//     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
-//         &mut builder,
-//         &cep85_contract_hash,
-//         &minting_account,
-//         ids.clone(),
-//         total_supplies,
-//     );
+    builder
+        .exec(set_token_contract_request_for_transfer_filter_contract)
+        .expect_success()
+        .commit();
 
-//     set_total_supply_of_batch_call.expect_success().commit();
+    let transfer_filter_contract = builder
+        .get_entity_with_named_keys_by_entity_hash(transfer_filter_contract_hash)
+        .expect("should have contract");
+    let named_keys = transfer_filter_contract.named_keys();
+    let token_contract_stored = *named_keys.get(ARG_TOKEN_CONTRACT).unwrap();
 
-//     // batch_mint is only one recipient
-//     let mint_call = cep85_batch_mint(
-//         &mut builder,
-//         &cep85_contract_hash,
-//         &minting_account,
-//         &recipient_user_1,
-//         ids.clone(),
-//         amounts,
-//         None,
-//     );
+    assert_eq!(token_contract_stored, cep85_test_contract_key);
 
-//     mint_call.expect_success().commit();
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let recipient_user_1 = account_user_1_key;
+    let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
+    let total_supplies = amounts.clone();
 
-//     let recipients: Vec<Key> = vec![recipient_user_1, recipient_user_1];
+    let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
+        &mut builder,
+        &cep85_contract_hash,
+        &minting_account,
+        ids.clone(),
+        total_supplies,
+    );
 
-//     let actual_balances = cep85_check_balance_of_batch(
-//         &mut builder,
-//         &cep85_test_contract_package,
-//         recipients,
-//         ids.clone(),
-//     );
+    set_total_supply_of_batch_call.expect_success().commit();
 
-//     let expected_balances = [U256::one(), U256::from(2)];
+    // batch_mint is only one recipient
+    let mint_call = cep85_batch_mint(
+        &mut builder,
+        &cep85_contract_hash,
+        &minting_account,
+        &recipient_user_1,
+        ids.clone(),
+        amounts,
+        None,
+    );
 
-//     assert_eq!(
-//         actual_balances,
-//         expected_balances
-//             .iter()
-//             .map(|&amount| Some(amount))
-//             .collect::<Vec<Option<U256>>>()
-//     );
+    mint_call.expect_success().commit();
 
-//     let id = ids[0];
-//     let from = recipient_user_1;
-//     let to =  Key::AddressableEntity(EntityAddr::Account(account_user_2.value()));
-//     let transfer_amount = U256::one();
-//     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
+    let recipients: Vec<Key> = vec![recipient_user_1, recipient_user_1];
 
-//     let failing_transfer_call = cep85_transfer_from(
-//         &mut builder,
-//         &cep85_contract_hash,
-//         &account_user_1,
-//         TransferData {
-//             from: &from,
-//             to: &to,
-//             ids: vec![id],
-//             amounts: vec![transfer_amount],
-//             data: data.clone(),
-//         },
-//         None,
-//     );
-//     failing_transfer_call.expect_failure();
+    let actual_balances = cep85_check_balance_of_batch(
+        &mut builder,
+        &cep85_test_contract_package,
+        recipients,
+        ids.clone(),
+    );
 
-//     let error = builder.get_error().expect("must have error");
+    let expected_balances = [U256::one(), U256::from(2)];
 
-//     assert_expected_error(
-//         error,
-//         Cep85Error::TransferFilterContractDenied as u16,
-//         "should not allow transfer with default TransferFilterContractResult::DenyTransfer",
-//     );
+    assert_eq!(
+        actual_balances,
+        expected_balances
+            .iter()
+            .map(|&amount| Some(amount))
+            .collect::<Vec<Option<U256>>>()
+    );
 
-//     let actual_balance_from =
-//         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
-//     let expected_balance_from = U256::one();
+    let id = ids[0];
+    let from = recipient_user_1;
+    let to = account_user_2_key;
+    let transfer_amount = U256::one();
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
-//     assert_eq!(actual_balance_from, expected_balance_from);
+    let failing_transfer_call = cep85_transfer_from(
+        &mut builder,
+        &cep85_contract_hash,
+        &account_user_1_account_hash,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data: data.clone(),
+        },
+        None,
+    );
+    failing_transfer_call.expect_failure();
 
-//     let actual_balance_to =
-//         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
-//     let expected_balance_to = U256::zero();
+    let error = builder.get_error().expect("must have error");
 
-//     assert_eq!(actual_balance_to, expected_balance_to);
+    assert_expected_error(
+        error,
+        Cep85Error::TransferFilterContractDenied as u16,
+        "should not allow transfer with default TransferFilterContractResult::DenyTransfer",
+    );
 
-//     let transfer_filter_contract_set_return_value_request =
-//         ExecuteRequestBuilder::contract_call_by_hash(
-//             *DEFAULT_ACCOUNT_ADDR,
-//             transfer_filter_contract,
-//             ENTRY_POINT_SET_FILTER_CONTRACT_RETURN_VALUE,
-//             runtime_args! {
-//                 ARG_FILTER_CONTRACT_RETURN_VALUE => TransferFilterContractResult::ProceedTransfer
-//             },
-//         )
-//         .build();
+    let actual_balance_from =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
+    let expected_balance_from = U256::one();
 
-//     builder
-//         .exec(transfer_filter_contract_set_return_value_request)
-//         .expect_success()
-//         .commit();
+    assert_eq!(actual_balance_from, expected_balance_from);
 
-//     let transfer_call = cep85_transfer_from(
-//         &mut builder,
-//         &cep85_contract_hash,
-//         &account_user_1,
-//         TransferData {
-//             from: &from,
-//             to: &to,
-//             ids: vec![id],
-//             amounts: vec![transfer_amount],
-//             data: data.clone(),
-//         },
-//         None,
-//     );
-//     transfer_call.expect_success().commit();
+    let actual_balance_to =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
+    let expected_balance_to = U256::zero();
 
-//     let actual_balance_from =
-//         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
-//     let expected_balance_from = U256::zero();
+    assert_eq!(actual_balance_to, expected_balance_to);
 
-//     assert_eq!(actual_balance_from, expected_balance_from);
+    let transfer_filter_contract_set_return_value_request =
+        ExecuteRequestBuilder::contract_call_by_hash(
+            *DEFAULT_ACCOUNT_ADDR,
+            transfer_filter_contract_hash,
+            ENTRY_POINT_SET_FILTER_CONTRACT_RETURN_VALUE,
+            runtime_args! {
+                ARG_FILTER_CONTRACT_RETURN_VALUE => TransferFilterContractResult::ProceedTransfer
+            },
+        )
+        .build();
 
-//     let actual_balance_to =
-//         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
-//     let expected_balance_to = U256::one();
+    builder
+        .exec(transfer_filter_contract_set_return_value_request)
+        .expect_success()
+        .commit();
 
-//     assert_eq!(actual_balance_to, expected_balance_to);
+    let transfer_call = cep85_transfer_from(
+        &mut builder,
+        &cep85_contract_hash,
+        &account_user_1_account_hash,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data: data.clone(),
+        },
+        None,
+    );
+    transfer_call.expect_success().commit();
 
-//     // NB: token_receiver and token_owner are swapped
-//     let failing_transfer_request = ExecuteRequestBuilder::contract_call_by_hash(
-//         *DEFAULT_ACCOUNT_ADDR,
-//         cep85_contract_hash,
-//         ENTRY_POINT_TRANSFER_FROM,
-//         runtime_args! {
-//             ARG_FROM => to,
-//             ARG_TO => from,
-//             ARG_ID => id,
-//             ARG_AMOUNT => transfer_amount,
-//             ARG_DATA => data.clone(),
-//         },
-//     )
-//     .build();
-//     let failing_transfer_call = builder.exec(failing_transfer_request);
-//     failing_transfer_call.expect_failure();
+    let actual_balance_from =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
+    let expected_balance_from = U256::zero();
 
-//     let error = builder.get_error().expect("must have error");
+    assert_eq!(actual_balance_from, expected_balance_from);
 
-//     assert_expected_error(
-//         error,
-//         Cep85Error::NotApproved as u16,
-//         "should not allow transfer when from operator is not owner of the token",
-//     );
+    let actual_balance_to =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
+    let expected_balance_to = U256::one();
 
-//     let id = ids[1];
-//     let transfer_amount = U256::from(2);
+    assert_eq!(actual_balance_to, expected_balance_to);
 
-//     let transfer_call = cep85_transfer_from(
-//         &mut builder,
-//         &cep85_contract_hash,
-//         &account_user_1,
-//         TransferData {
-//             from: &from,
-//             to: &to,
-//             ids: vec![id],
-//             amounts: vec![transfer_amount],
-//             data,
-//         },
-//         None,
-//     );
-//     transfer_call.expect_success().commit();
-// }
+    // NB: token_receiver and token_owner are swapped
+    let failing_transfer_request = ExecuteRequestBuilder::contract_call_by_hash(
+        *DEFAULT_ACCOUNT_ADDR,
+        cep85_contract_hash,
+        ENTRY_POINT_TRANSFER_FROM,
+        runtime_args! {
+            ARG_FROM => to,
+            ARG_TO => from,
+            ARG_ID => id,
+            ARG_AMOUNT => transfer_amount,
+            ARG_DATA => data.clone(),
+        },
+    )
+    .build();
+    let failing_transfer_call = builder.exec(failing_transfer_request);
+    failing_transfer_call.expect_failure();
+
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::NotApproved as u16,
+        "should not allow transfer when from operator is not owner of the token",
+    );
+
+    let id = ids[1];
+    let transfer_amount = U256::from(2);
+
+    let transfer_call = cep85_transfer_from(
+        &mut builder,
+        &cep85_contract_hash,
+        &account_user_1_account_hash,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+        None,
+    );
+    transfer_call.expect_success().commit();
+}
 
 #[test]
 fn should_revert_with_invalid_filter_contract_method() {
     let mut builder = LmdbWasmTestBuilder::default();
     builder
-        .run_genesis(create_run_genesis_request(vec![GenesisAccount::Account {
-            public_key: DEFAULT_ACCOUNT_PUBLIC_KEY.clone(),
-            balance: Motes::new(U512::from(5_000_000_000_000_u64)),
-            validator: None,
-        }]))
+        .run_genesis(create_run_genesis_request(DEFAULT_ACCOUNTS.to_vec()))
         .commit();
 
     let install_request_contract_test = ExecuteRequestBuilder::standard(

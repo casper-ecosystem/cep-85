@@ -10,7 +10,6 @@ use std::fmt::Debug;
 
 pub fn assert_expected_error(actual_error: EngineStateError, error_code: u16, reason: &str) {
     let actual = format!("{actual_error:?}");
-    dbg!(actual.clone());
     let expected = format!(
         "{:?}",
         EngineStateError::Exec(ExecError::Revert(ApiError::User(error_code)))

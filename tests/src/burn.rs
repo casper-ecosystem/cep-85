@@ -10,7 +10,7 @@ use crate::utility::{
 };
 
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{addressable_entity::EntityKindTag, runtime_args, Key, U256};
+use casper_types::{runtime_args, Key, U256};
 use cep85::{
     constants::{ARG_ENABLE_BURN, BURNER_LIST},
     error::Cep85Error,
@@ -1046,10 +1046,9 @@ fn should_allow_contract_to_burn_token() {
     ) = setup_with_args(runtime_args! {
         ARG_ENABLE_BURN => true,
     });
-    let contract_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_contract_hash);
+
     let security_lists = SecurityLists {
-        burner_list: Some(vec![contract_key]),
+        burner_list: Some(vec![cep85_test_contract_key]),
         minter_list: None,
         meta_list: None,
         admin_list: None,
@@ -1113,11 +1112,8 @@ fn should_allow_contract_to_batch_burn_token() {
         ARG_ENABLE_BURN => true,
     });
 
-    let contract_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_contract_hash);
-
     let security_lists = SecurityLists {
-        burner_list: Some(vec![contract_key]),
+        burner_list: Some(vec![cep85_test_contract_key]),
         minter_list: None,
         meta_list: None,
         admin_list: None,
@@ -1486,6 +1482,7 @@ fn should_allow_contract_as_operator_to_burn_token() {
         TestContext {
             cep85_contract_hash,
             cep85_test_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
             ..
         },
@@ -1493,11 +1490,8 @@ fn should_allow_contract_as_operator_to_burn_token() {
         ARG_ENABLE_BURN => true,
     });
 
-    let contract_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_contract_hash);
-
     let security_lists = SecurityLists {
-        burner_list: Some(vec![contract_key]),
+        burner_list: Some(vec![cep85_test_contract_key]),
         minter_list: None,
         meta_list: None,
         admin_list: None,
@@ -1531,8 +1525,7 @@ fn should_allow_contract_as_operator_to_burn_token() {
 
     mint_call.expect_success().commit();
 
-    let operator =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
+    let operator = cep85_test_contract_key;
     let burning_account = minting_account;
     let owner = account_user_1_key;
     let burn_amount = U256::one();
@@ -1596,6 +1589,7 @@ fn should_allow_contract_as_operator_to_batch_burn_token() {
         TestContext {
             cep85_contract_hash,
             cep85_test_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
             ..
         },
@@ -1603,11 +1597,8 @@ fn should_allow_contract_as_operator_to_batch_burn_token() {
         ARG_ENABLE_BURN => true,
     });
 
-    let contract_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_contract_hash);
-
     let security_lists = SecurityLists {
-        burner_list: Some(vec![contract_key]),
+        burner_list: Some(vec![cep85_test_contract_key]),
         minter_list: None,
         meta_list: None,
         admin_list: None,
@@ -1642,8 +1633,7 @@ fn should_allow_contract_as_operator_to_batch_burn_token() {
 
     mint_call.expect_success().commit();
 
-    let operator =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
+    let operator = cep85_test_contract_key;
     let burning_account = minting_account;
     let owner = account_user_1_key;
 

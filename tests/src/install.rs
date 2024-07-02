@@ -5,9 +5,9 @@ use crate::utility::{
 };
 use casper_engine_test_support::{
     utils::create_run_genesis_request, ExecuteRequestBuilder, LmdbWasmTestBuilder,
-    DEFAULT_ACCOUNT_ADDR, DEFAULT_ACCOUNT_PUBLIC_KEY,
+    DEFAULT_ACCOUNTS, DEFAULT_ACCOUNT_ADDR,
 };
-use casper_types::{runtime_args, AddressableEntityHash, EntityAddr, GenesisAccount, Motes, U512};
+use casper_types::{runtime_args, AddressableEntityHash, EntityAddr};
 use cep85::{
     constants::{
         ARG_ENABLE_BURN, ARG_EVENTS_MODE, ARG_NAME, ARG_PACKAGE_HASH, ARG_TRANSFER_FILTER_CONTRACT,
@@ -111,11 +111,7 @@ fn should_not_store_balances_or_allowances_under_account_after_install() {
 fn should_reject_invalid_collection_name() {
     let mut builder = LmdbWasmTestBuilder::default();
     builder
-        .run_genesis(create_run_genesis_request(vec![GenesisAccount::Account {
-            public_key: DEFAULT_ACCOUNT_PUBLIC_KEY.clone(),
-            balance: Motes::new(U512::from(5_000_000_000_000_u64)),
-            validator: None,
-        }]))
+        .run_genesis(create_run_genesis_request(DEFAULT_ACCOUNTS.to_vec()))
         .commit();
     let install_request = ExecuteRequestBuilder::standard(
         *DEFAULT_ACCOUNT_ADDR,
