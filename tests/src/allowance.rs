@@ -1171,6 +1171,7 @@ fn should_batch_transfer_from_account_to_account_through_package_with_allowance(
 }
 
 #[test]
+#[ignore = "Should not transfer to contract"]
 fn should_transfer_from_account_to_contract_through_contract_with_allowance() {
     let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
@@ -1259,6 +1260,7 @@ fn should_transfer_from_account_to_contract_through_contract_with_allowance() {
 }
 
 #[test]
+#[ignore = "Should not transfer to contract"]
 fn should_transfer_from_account_to_contract_through_package_with_allowance() {
     let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
@@ -1347,6 +1349,7 @@ fn should_transfer_from_account_to_contract_through_package_with_allowance() {
 }
 
 #[test]
+#[ignore = "Should not transfer to contract"]
 fn should_batch_transfer_from_account_to_contract_through_contract_with_allowance() {
     let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
@@ -1440,6 +1443,7 @@ fn should_batch_transfer_from_account_to_contract_through_contract_with_allowanc
 }
 
 #[test]
+#[ignore = "Should not transfer to contract"]
 fn should_batch_transfer_from_account_to_contract_through_package_with_allowance() {
     let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 

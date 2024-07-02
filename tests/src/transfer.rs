@@ -982,6 +982,7 @@ fn should_transfer_account_to_contract_package() {
 }
 
 #[test]
+#[ignore = "Should not transfer to contract"]
 fn should_batch_transfer_account_to_contract_package() {
     let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
@@ -1076,6 +1077,7 @@ fn should_batch_transfer_account_to_contract_package() {
 }
 
 #[test]
+#[ignore = "Should not transfer to contract"]
 fn should_transfer_contract_package_to_contract() {
     let (
         mut builder,
@@ -1148,6 +1150,7 @@ fn should_transfer_contract_package_to_contract() {
 }
 
 #[test]
+#[ignore = "Should not transfer to contract"]
 fn should_batch_transfer_contract_package_to_contract() {
     let (
         mut builder,
@@ -1243,6 +1246,7 @@ fn should_batch_transfer_contract_package_to_contract() {
 }
 
 #[test]
+#[ignore = "Should not transfer to contract"]
 fn should_transfer_account_to_contract() {
     let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
@@ -1317,6 +1321,89 @@ fn should_transfer_account_to_contract() {
 }
 
 #[test]
+fn should_prevent_transfer_account_to_contract() {
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            cep85_test_contract_key,
+            cep85_test_contract_package,
+            ..
+        },
+    ) = setup();
+
+    let minting_account = *DEFAULT_ACCOUNT_ADDR;
+    let from = account_user_1_key;
+    let minting_recipient = from;
+    let to = cep85_test_contract_key;
+    let mint_amount = U256::one();
+    let id = U256::one();
+    let transfer_amount = U256::one();
+    let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
+
+    let mint_call = cep85_mint(
+        &mut builder,
+        &cep85_contract_hash,
+        &minting_account,
+        &minting_recipient,
+        &id,
+        &mint_amount,
+        None,
+    );
+
+    mint_call.expect_success().commit();
+
+    let actual_balance_before = cep85_check_balance_of(
+        &mut builder,
+        &cep85_test_contract_package,
+        &minting_recipient,
+        &id,
+    )
+    .unwrap();
+    let expected_balance_before = U256::one();
+
+    assert_eq!(actual_balance_before, expected_balance_before);
+
+    let failing_transfer_call = cep85_transfer_from(
+        &mut builder,
+        &cep85_contract_hash,
+        &account_user_1_account_hash,
+        TransferData {
+            from: &from,
+            to: &to,
+            ids: vec![id],
+            amounts: vec![transfer_amount],
+            data,
+        },
+        None,
+    );
+    failing_transfer_call.expect_failure();
+
+    let error = builder.get_error().expect("must have error");
+
+    assert_expected_error(
+        error,
+        Cep85Error::InvalidRecipient as u16,
+        "should return error when trying to fund a contract",
+    );
+
+    let actual_balance_from =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &from, &id).unwrap();
+    let expected_balance_from = U256::one();
+
+    assert_eq!(actual_balance_from, expected_balance_from);
+
+    let actual_balance_to =
+        cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &to, &id).unwrap();
+    let expected_balance_to = U256::zero();
+
+    assert_eq!(actual_balance_to, expected_balance_to);
+}
+
+#[test]
+#[ignore = "Should not transfer to contract"]
 fn should_batch_transfer_account_to_contract() {
     let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
@@ -1412,6 +1499,7 @@ fn should_batch_transfer_account_to_contract() {
 }
 
 #[test]
+#[ignore = "Should not transfer to contract"]
 fn should_transfer_contract_to_contract() {
     let (
         mut builder,
@@ -1484,6 +1572,7 @@ fn should_transfer_contract_to_contract() {
 }
 
 #[test]
+#[ignore = "Should not transfer to contract"]
 fn should_batch_transfer_contract_to_contract() {
     let (
         mut builder,
