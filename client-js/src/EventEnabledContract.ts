@@ -129,7 +129,7 @@ export default class EventEnabledContract {
       .map(r => ({
         ...r.event,
         contractHash: `hash-${encodeBase16(r.event.contractHash || new Uint8Array())}`,
-        PackageHash: `hash-${encodeBase16(r.event.PackageHash || new Uint8Array())}`
-      })) as CEP85Event[];
+        PackageHash: `hash-${encodeBase16(r.event.contractPackageHash || new Uint8Array())}`
+      })) as unknown as CEP85Event[];
   }
 }

@@ -69,15 +69,15 @@ const usage = async () => {
       `cep85_contract_hash_${name}`
     );
 
-    const PackageHash = getAccountNamedKeyValue(
+    const contractPackageHash = getAccountNamedKeyValue(
       accountInfo,
       `cep85_contract_package_hash_${name}`
     );
 
     console.log(`... Contract Hash: ${contractHash}`);
-    console.log(`... Contract Package Hash: ${PackageHash}`);
+    console.log(`... Contract Package Hash: ${contractPackageHash}`);
 
-    cep85.setContractHash(contractHash, PackageHash);
+    cep85.setContractHash(contractHash, contractPackageHash);
 
     // TODO FIX
     // if (EVENT_STREAM_ADDRESS) {
@@ -423,7 +423,7 @@ const usage = async () => {
       `cep85_contract_version_${name}`
     );
 
-    cep85.setContractHash(upgradedContractHash, PackageHash);
+    cep85.setContractHash(upgradedContractHash, contractPackageHash);
 
     stateRootHash = await casperClientRPC.getStateRootHash();
     const upgradedContractVersionStoredValue = await casperClientRPC.getBlockState(stateRootHash, upgradedContractVersionUref, []);
