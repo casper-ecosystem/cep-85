@@ -1008,13 +1008,14 @@ pub extern "C" fn set_modalities() {
     // Only the installing account can change the mutable variables.
     sec_check(vec![SecurityBadge::Admin]);
 
+    let mut events_to_record = vec![Event::SetModalities(SetModalities {})];
+
     if let Some(enable_burn) = get_optional_named_arg_with_user_errors::<bool>(
         ARG_ENABLE_BURN,
         Cep85Error::InvalidEventsMode,
     ) {
         runtime::put_key(ARG_ENABLE_BURN, storage::new_uref(enable_burn).into());
-        record_event_dictionary(Event::SetModalities(SetModalities {}));
-        record_event_dictionary(Event::ChangeEnableBurnMode(ChangeEnableBurnMode {
+        events_to_record.push(Event::ChangeEnableBurnMode(ChangeEnableBurnMode {
             enable_burn,
         }));
     }
@@ -1036,8 +1037,11 @@ pub extern "C" fn set_modalities() {
                 let _ = manage_message_topic(EVENTS, MessageTopicOperation::Add);
             }
         };
-        record_event_dictionary(Event::SetModalities(SetModalities {}));
-        record_event_dictionary(Event::ChangeEventsMode(ChangeEventsMode { events_mode }));
+        events_to_record.push(Event::ChangeEventsMode(ChangeEventsMode { events_mode }));
+    }
+
+    for event in events_to_record {
+        record_event_dictionary(event);
     }
 }
 
