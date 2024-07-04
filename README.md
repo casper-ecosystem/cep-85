@@ -237,3 +237,10 @@ The expected behavior of the multi-token contract implementation is asserted by 
 | 79   | InvalidValue                  |
 | 80   | MissingValue                  |
 | 81   | NonSuppliedTokenId            |
+| 82   | FailedToConvertBytes          |
+| 83   | InvalidContext                |
+| 84   | UrefNotFound                  |
+| 85   | FailedToReadFromStorage       |
+| 86   | FailedToInsertToSecurityList  |
+| 87   | FailedToGetKey                |
+| 88   | InvalidKeyType                |
