@@ -92,6 +92,13 @@ pub enum Cep85Error {
     InvalidValue = 79,
     MissingValue = 80,
     NonSuppliedTokenId = 81,
+    FailedToConvertBytes = 82,
+    InvalidContext = 83,
+    UrefNotFound = 84,
+    FailedToReadFromStorage = 85,
+    FailedToInsertToSecurityList = 86,
+    FailedToGetKey = 87,
+    InvalidKeyType = 88,
 }
 
 impl From<Cep85Error> for ApiError {

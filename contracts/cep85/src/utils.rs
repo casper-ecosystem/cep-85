@@ -31,7 +31,7 @@ pub fn get_verified_caller() -> (Key, Option<Key>) {
         .iter()
         .nth_back(1)
         .to_owned()
-        .unwrap_or_revert();
+        .unwrap_or_revert_with(Cep85Error::InvalidContext);
 
     match get_verified_caller {
         Caller::Initiator { account_hash } => (
@@ -54,8 +54,9 @@ where
     T: FromBytes + CLTyped,
 {
     let uref = get_uref(name);
-    let value: T = storage::read(uref).unwrap_or_revert().unwrap_or_revert();
-    value
+    storage::read(uref)
+        .unwrap_or_revert_with(Cep85Error::UrefNotFound)
+        .unwrap_or_revert_with(Cep85Error::FailedToReadFromStorage)
 }
 
 #[cfg(feature = "contract-support")]
@@ -127,8 +128,12 @@ pub fn make_dictionary_item_key<T: CLTyped + ToBytes, V: CLTyped + ToBytes>(
     key: &T,
     value: &V,
 ) -> String {
-    let mut bytes_a = key.to_bytes().unwrap_or_revert();
-    let mut bytes_b = value.to_bytes().unwrap_or_revert();
+    let mut bytes_a = key
+        .to_bytes()
+        .unwrap_or_revert_with(Cep85Error::FailedToConvertBytes);
+    let mut bytes_b = value
+        .to_bytes()
+        .unwrap_or_revert_with(Cep85Error::FailedToConvertBytes);
 
     bytes_a.append(&mut bytes_b);
 
@@ -193,8 +198,9 @@ pub fn replace_token_id_in_uri(raw_uri: &str, id: &U256) -> String {
 fn get_uref(name: &str) -> URef {
     let key = runtime::get_key(name)
         .ok_or(ApiError::MissingKey)
-        .unwrap_or_revert();
-    key.try_into().unwrap_or_revert()
+        .unwrap_or_revert_with(Cep85Error::FailedToGetKey);
+    key.try_into()
+        .unwrap_or_revert_with(Cep85Error::InvalidKeyType)
 }
 
 #[cfg(feature = "contract-support")]

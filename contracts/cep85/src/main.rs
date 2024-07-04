@@ -20,7 +20,7 @@ use alloc::{
 };
 use casper_contract::{
     contract_api::{
-        runtime::{self, call_contract, get_key, put_key, revert},
+        runtime::{self, call_contract, get_key, manage_message_topic, put_key, revert},
         storage,
     },
     unwrap_or_revert::UnwrapOrRevert,
@@ -45,9 +45,9 @@ use cep85::{
     entry_points::generate_entry_points,
     error::Cep85Error,
     events::{
-        init_events, record_event_dictionary, ApprovalForAll, Burn, BurnBatch, ChangeSecurity,
-        Event, Mint, MintBatch, SetModalities, SetTotalSupply, Transfer, TransferBatch, Upgrade,
-        Uri, UriBatch,
+        init_events, record_event_dictionary, ApprovalForAll, Burn, BurnBatch,
+        ChangeEnableBurnMode, ChangeEventsMode, ChangeSecurity, Event, Mint, MintBatch,
+        SetModalities, SetTotalSupply, Transfer, TransferBatch, Upgrade, Uri, UriBatch,
     },
     modalities::{EventsMode, TransferFilterContractResult},
     operators::{read_operator, write_operator},
@@ -134,7 +134,8 @@ pub extern "C" fn init() {
 
     init_events();
 
-    storage::new_dictionary(DICT_SECURITY_BADGES).unwrap_or_revert();
+    storage::new_dictionary(DICT_SECURITY_BADGES)
+        .unwrap_or_revert_with(Cep85Error::FailedToCreateDictionary);
 
     let mut badge_map: BTreeMap<Key, SecurityBadge> = BTreeMap::new();
 
@@ -1012,36 +1013,30 @@ pub extern "C" fn set_modalities() {
         Cep85Error::InvalidEventsMode,
     ) {
         runtime::put_key(ARG_ENABLE_BURN, storage::new_uref(enable_burn).into());
+        record_event_dictionary(Event::ChangeEnableBurnMode(ChangeEnableBurnMode {
+            enable_burn,
+        }));
     }
 
-    if let Some(optional_events_mode) = get_optional_named_arg_with_user_errors::<u8>(
+    if let Some(events_mode) = get_optional_named_arg_with_user_errors::<u8>(
         ARG_EVENTS_MODE,
         Cep85Error::InvalidEventsMode,
     ) {
-        let old_events_mode: EventsMode = get_stored_value_with_user_errors::<u8>(
-            ARG_EVENTS_MODE,
-            Cep85Error::MissingEventsMode,
-            Cep85Error::InvalidEventsMode,
-        )
-        .try_into()
-        .unwrap_or_revert();
-
-        runtime::put_key(
-            ARG_EVENTS_MODE,
-            storage::new_uref(optional_events_mode).into(),
-        );
-
-        let new_events_mode: EventsMode = optional_events_mode
-            .try_into()
-            .unwrap_or_revert_with(Cep85Error::InvalidEventsMode);
-
-        // Check if current_events_mode and requested_events_mode are both CES
-        if old_events_mode != EventsMode::CES && new_events_mode == EventsMode::CES {
-            // Initialize events structures
-            init_events();
-        }
+        runtime::put_key(ARG_EVENTS_MODE, storage::new_uref(events_mode).into());
+        match EventsMode::try_from(events_mode).unwrap_or_revert_with(Cep85Error::InvalidEventsMode)
+        {
+            EventsMode::NoEvents => {}
+            EventsMode::CES => init_events(),
+            EventsMode::Native => {
+                let _ = manage_message_topic(EVENTS, MessageTopicOperation::Add);
+            }
+            EventsMode::NativeNCES => {
+                init_events();
+                let _ = manage_message_topic(EVENTS, MessageTopicOperation::Add);
+            }
+        };
+        record_event_dictionary(Event::ChangeEventsMode(ChangeEventsMode { events_mode }));
     }
-
     record_event_dictionary(Event::SetModalities(SetModalities {}));
 }
 
@@ -1056,7 +1051,7 @@ pub extern "C" fn upgrade() {
         )
         .unwrap_or_revert(),
     );
-    record_event_dictionary(Event::Upgrade(Upgrade {}))
+    record_event_dictionary(Event::Upgrade(Upgrade {}));
 }
 
 fn install_contract() {
@@ -1160,23 +1155,29 @@ fn install_contract() {
         get_optional_named_arg_with_user_errors(NONE_LIST, Cep85Error::InvalidNoneList);
 
     if let Some(admin_list) = admin_list {
-        init_args.insert(ADMIN_LIST, admin_list).unwrap_or_revert();
+        init_args
+            .insert(ADMIN_LIST, admin_list)
+            .unwrap_or_revert_with(Cep85Error::FailedToInsertToSecurityList);
     }
     if let Some(minter_list) = minter_list {
         init_args
             .insert(MINTER_LIST, minter_list)
-            .unwrap_or_revert();
+            .unwrap_or_revert_with(Cep85Error::FailedToInsertToSecurityList);
     }
     if let Some(burner_list) = burner_list {
         init_args
             .insert(BURNER_LIST, burner_list)
-            .unwrap_or_revert();
+            .unwrap_or_revert_with(Cep85Error::FailedToInsertToSecurityList);
     }
     if let Some(meta_list) = meta_list {
-        init_args.insert(META_LIST, meta_list).unwrap_or_revert();
+        init_args
+            .insert(META_LIST, meta_list)
+            .unwrap_or_revert_with(Cep85Error::FailedToInsertToSecurityList);
     }
     if let Some(none_list) = none_list {
-        init_args.insert(NONE_LIST, none_list).unwrap_or_revert();
+        init_args
+            .insert(NONE_LIST, none_list)
+            .unwrap_or_revert_with(Cep85Error::FailedToInsertToSecurityList);
     }
 
     runtime::call_contract::<()>(contract_hash, ENTRY_POINT_INIT, init_args);

@@ -7,7 +7,7 @@ use casper_types::{
 use crate::error::Cep85Error;
 
 #[repr(u8)]
-#[derive(PartialEq, Eq, Default)]
+#[derive(PartialEq, Eq, Default, Clone, Copy)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum EventsMode {
     #[default]
