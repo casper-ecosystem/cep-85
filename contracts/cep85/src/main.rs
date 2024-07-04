@@ -1114,7 +1114,9 @@ fn install_contract() {
 
     let package_key_name = format!("{PREFIX_CONTRACT_PACKAGE_NAME}_{name}");
     let mut message_topics = BTreeMap::new();
-    let message_topics = if EventsMode::Native == events_mode.try_into().unwrap_or_default() {
+    let message_topics = if [EventsMode::Native, EventsMode::NativeNCES]
+        .contains(&events_mode.try_into().unwrap_or_default())
+    {
         message_topics.insert(EVENTS.to_string(), MessageTopicOperation::Add);
         Some(message_topics)
     } else {

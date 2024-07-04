@@ -42,8 +42,6 @@ pub enum Event {
 
 #[cfg(feature = "contract-support")]
 pub fn record_event_dictionary(event: Event) {
-    use crate::error::Cep85Error;
-
     let events_mode: EventsMode = EventsMode::try_from(get_stored_value::<u8>(ARG_EVENTS_MODE))
         .unwrap_or_revert_with(Cep85Error::InvalidEventsMode);
 
