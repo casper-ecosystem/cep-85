@@ -6,7 +6,7 @@ use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
 use casper_types::runtime_args;
 use cep85::{
     constants::{ARG_ENABLE_BURN, ARG_EVENTS_MODE},
-    events::SetModalities,
+    events::{ChangeEnableBurnMode, ChangeEventsMode, SetModalities},
     modalities::EventsMode,
 };
 
@@ -115,20 +115,6 @@ fn should_toggle_events_mode() {
     assert_eq!(events_mode, EventsMode::NoEvents as u8);
 
     let owner = *DEFAULT_ACCOUNT_ADDR;
-    let set_modalities_call =
-        cep85_set_modalities(&mut builder, &cep85_contract_hash, &owner, None, None);
-    set_modalities_call.expect_success().commit();
-
-    let events_mode = builder
-        .query(None, cep85_contract_key, &[ARG_EVENTS_MODE.to_string()])
-        .unwrap()
-        .as_cl_value()
-        .unwrap()
-        .to_owned()
-        .into_t::<u8>()
-        .unwrap_or_default();
-
-    assert_eq!(events_mode, EventsMode::NoEvents as u8);
 
     let set_modalities_call = cep85_set_modalities(
         &mut builder,
@@ -156,6 +142,14 @@ fn should_toggle_events_mode() {
     assert_eq!(
         actual_event, expected_event,
         "Expected SetModalities event."
+    );
+
+    // Expect ChangeEventsMode event
+    let expected_event = ChangeEventsMode::new(EventsMode::CES as u8);
+    let actual_event: ChangeEventsMode = get_event(&mut builder, &cep85_contract_hash, 1);
+    assert_eq!(
+        actual_event, expected_event,
+        "Expected ChangeEventsMode event."
     );
 
     let set_modalities_call = cep85_set_modalities(
@@ -189,7 +183,7 @@ fn should_toggle_events_mode() {
         .expect("must convert to dictionary seed uref");
 
     builder
-        .query_dictionary_item(None, dictionary_seed_uref, "1")
+        .query_dictionary_item(None, dictionary_seed_uref, "2")
         .expect_err("should not have dictionary value for a second SetModalities event");
 }
 
@@ -223,19 +217,6 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
     assert!(!enable_burn);
 
     let owner = *DEFAULT_ACCOUNT_ADDR;
-    let set_modalities_call =
-        cep85_set_modalities(&mut builder, &cep85_contract_hash, &owner, None, None);
-    set_modalities_call.expect_success().commit();
-
-    let enable_burn: bool = builder
-        .query(None, cep85_contract_key, &[ARG_ENABLE_BURN.to_string()])
-        .unwrap()
-        .as_cl_value()
-        .unwrap()
-        .to_owned()
-        .into_t::<bool>()
-        .unwrap();
-    assert!(!enable_burn);
 
     let set_modalities_call =
         cep85_set_modalities(&mut builder, &cep85_contract_hash, &owner, Some(true), None);
@@ -257,5 +238,13 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
     assert_eq!(
         actual_event, expected_event,
         "Expected SetModalities event."
+    );
+
+    // Expect ChangeEnableBurnMode event
+    let expected_event = ChangeEnableBurnMode::new(true);
+    let actual_event: ChangeEnableBurnMode = get_event(&mut builder, &cep85_contract_hash, 1);
+    assert_eq!(
+        actual_event, expected_event,
+        "Expected ChangeEnableBurnMode event."
     );
 }

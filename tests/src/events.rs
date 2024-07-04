@@ -11,8 +11,9 @@ use casper_types::{runtime_args, EntityAddr, U256};
 use cep85::{
     constants::ARG_EVENTS_MODE,
     events::{
-        ApprovalForAll, Burn, BurnBatch, ChangeSecurity, Mint, MintBatch, SetModalities,
-        SetTotalSupply, Transfer, TransferBatch, Upgrade, Uri, UriBatch,
+        ApprovalForAll, Burn, BurnBatch, ChangeEnableBurnMode, ChangeEventsMode, ChangeSecurity,
+        Mint, MintBatch, SetModalities, SetTotalSupply, Transfer, TransferBatch, Upgrade, Uri,
+        UriBatch,
     },
     modalities::EventsMode,
 };
@@ -41,7 +42,9 @@ fn should_have_events_schema_in_events_mode() {
         .with::<SetTotalSupply>()
         .with::<ChangeSecurity>()
         .with::<SetModalities>()
-        .with::<Upgrade>();
+        .with::<Upgrade>()
+        .with::<ChangeEventsMode>()
+        .with::<ChangeEnableBurnMode>();
     let contract_entity_addr = EntityAddr::new_smart_contract(cep85_contract_hash.value());
     let actual_schemas: Schemas = builder.get_value(contract_entity_addr, EVENTS_SCHEMA);
     assert_eq!(actual_schemas, expected_schemas, "Schemas mismatch.");
@@ -86,7 +89,7 @@ fn should_have_events_dict_with_events_mode_ces() {
 }
 
 #[test]
-fn should_record_events_in_events_mode() {
+fn should_record_events_in_ces_events_mode() {
     let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
 
     let (

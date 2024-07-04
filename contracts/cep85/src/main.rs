@@ -1013,6 +1013,7 @@ pub extern "C" fn set_modalities() {
         Cep85Error::InvalidEventsMode,
     ) {
         runtime::put_key(ARG_ENABLE_BURN, storage::new_uref(enable_burn).into());
+        record_event_dictionary(Event::SetModalities(SetModalities {}));
         record_event_dictionary(Event::ChangeEnableBurnMode(ChangeEnableBurnMode {
             enable_burn,
         }));
@@ -1035,9 +1036,9 @@ pub extern "C" fn set_modalities() {
                 let _ = manage_message_topic(EVENTS, MessageTopicOperation::Add);
             }
         };
+        record_event_dictionary(Event::SetModalities(SetModalities {}));
         record_event_dictionary(Event::ChangeEventsMode(ChangeEventsMode { events_mode }));
     }
-    record_event_dictionary(Event::SetModalities(SetModalities {}));
 }
 
 #[no_mangle]

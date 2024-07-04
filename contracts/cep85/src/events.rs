@@ -335,7 +335,8 @@ pub fn init_events() {
             .with::<ChangeSecurity>()
             .with::<SetModalities>()
             .with::<Upgrade>()
-            .with::<ChangeEventsMode>();
+            .with::<ChangeEventsMode>()
+            .with::<ChangeEnableBurnMode>();
         casper_event_standard::init(schemas);
     }
 }
