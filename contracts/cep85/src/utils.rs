@@ -99,7 +99,7 @@ pub fn get_optional_named_arg_with_user_errors<T: FromBytes>(
     match get_named_arg_with_user_errors::<T>(name, Cep85Error::Phantom, invalid) {
         Ok(val) => Some(val),
         Err(Cep85Error::Phantom) => None,
-        Err(_) => runtime::revert(invalid),
+        Err(e) => runtime::revert(e),
     }
 }
 
