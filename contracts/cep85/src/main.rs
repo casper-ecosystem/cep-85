@@ -20,14 +20,14 @@ use alloc::{
 };
 use casper_contract::{
     contract_api::{
-        runtime::{self, call_contract, get_key, put_key, revert},
+        runtime::{self, call_contract, get_key, manage_message_topic, put_key, revert},
         storage,
     },
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    bytesrepr::Bytes, contracts::NamedKeys, runtime_args, CLValue, ContractHash, Key, RuntimeArgs,
-    U256,
+    addressable_entity::NamedKeys, bytesrepr::Bytes, contract_messages::MessageTopicOperation,
+    runtime_args, AddressableEntityHash, CLValue, EntityAddr, Key, RuntimeArgs, U256,
 };
 use cep85::{
     balances::{batch_transfer_balance, read_balance_from, transfer_balance, write_balance_to},
@@ -39,15 +39,15 @@ use cep85::{
         ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD, ARG_UPGRADE_FLAG, ARG_URI,
         BURNER_LIST, DEFAULT_DICT_ITEM_KEY_NAME, DICT_BALANCES, DICT_OPERATORS,
         DICT_SECURITY_BADGES, DICT_SUPPLY, DICT_TOKEN_URI, DICT_TOTAL_SUPPLY, ENTRY_POINT_INIT,
-        ENTRY_POINT_UPGRADE, META_LIST, MINTER_LIST, NONE_LIST, PREFIX_ACCESS_KEY_NAME,
+        ENTRY_POINT_UPGRADE, EVENTS, META_LIST, MINTER_LIST, NONE_LIST, PREFIX_ACCESS_KEY_NAME,
         PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME, PREFIX_CONTRACT_VERSION,
     },
     entry_points::generate_entry_points,
     error::Cep85Error,
     events::{
-        init_events, record_event_dictionary, ApprovalForAll, Burn, BurnBatch, ChangeSecurity,
-        Event, Mint, MintBatch, SetModalities, SetTotalSupply, Transfer, TransferBatch, Upgrade,
-        Uri, UriBatch,
+        init_events, record_event_dictionary, ApprovalForAll, Burn, BurnBatch,
+        ChangeEnableBurnMode, ChangeEventsMode, ChangeSecurity, Event, Mint, MintBatch,
+        SetModalities, SetTotalSupply, Transfer, TransferBatch, Upgrade, Uri, UriBatch,
     },
     modalities::{EventsMode, TransferFilterContractResult},
     operators::{read_operator, write_operator},
@@ -97,9 +97,11 @@ pub extern "C" fn init() {
         )
         .unwrap_or_default();
 
-    let transfer_filter_contract: Option<ContractHash> =
+    let transfer_filter_contract: Option<AddressableEntityHash> =
         transfer_filter_contract_key.map(|transfer_filter_contract_key| {
-            ContractHash::from(transfer_filter_contract_key.into_hash().unwrap_or_revert())
+            transfer_filter_contract_key
+                .into_entity_hash()
+                .unwrap_or_revert()
         });
 
     runtime::put_key(
@@ -132,7 +134,8 @@ pub extern "C" fn init() {
 
     init_events();
 
-    storage::new_dictionary(DICT_SECURITY_BADGES).unwrap_or_revert();
+    storage::new_dictionary(DICT_SECURITY_BADGES)
+        .unwrap_or_revert_with(Cep85Error::FailedToCreateDictionary);
 
     let mut badge_map: BTreeMap<Key, SecurityBadge> = BTreeMap::new();
 
@@ -1005,42 +1008,41 @@ pub extern "C" fn set_modalities() {
     // Only the installing account can change the mutable variables.
     sec_check(vec![SecurityBadge::Admin]);
 
+    let mut events_to_record = vec![Event::SetModalities(SetModalities {})];
+
     if let Some(enable_burn) = get_optional_named_arg_with_user_errors::<bool>(
         ARG_ENABLE_BURN,
         Cep85Error::InvalidEventsMode,
     ) {
         runtime::put_key(ARG_ENABLE_BURN, storage::new_uref(enable_burn).into());
+        events_to_record.push(Event::ChangeEnableBurnMode(ChangeEnableBurnMode {
+            enable_burn,
+        }));
     }
 
-    if let Some(optional_events_mode) = get_optional_named_arg_with_user_errors::<u8>(
+    if let Some(events_mode) = get_optional_named_arg_with_user_errors::<u8>(
         ARG_EVENTS_MODE,
         Cep85Error::InvalidEventsMode,
     ) {
-        let old_events_mode: EventsMode = get_stored_value_with_user_errors::<u8>(
-            ARG_EVENTS_MODE,
-            Cep85Error::MissingEventsMode,
-            Cep85Error::InvalidEventsMode,
-        )
-        .try_into()
-        .unwrap_or_revert();
-
-        runtime::put_key(
-            ARG_EVENTS_MODE,
-            storage::new_uref(optional_events_mode).into(),
-        );
-
-        let new_events_mode: EventsMode = optional_events_mode
-            .try_into()
-            .unwrap_or_revert_with(Cep85Error::InvalidEventsMode);
-
-        // Check if current_events_mode and requested_events_mode are both CES
-        if old_events_mode != EventsMode::CES && new_events_mode == EventsMode::CES {
-            // Initialize events structures
-            init_events();
-        }
+        runtime::put_key(ARG_EVENTS_MODE, storage::new_uref(events_mode).into());
+        match EventsMode::try_from(events_mode).unwrap_or_revert_with(Cep85Error::InvalidEventsMode)
+        {
+            EventsMode::NoEvents => {}
+            EventsMode::CES => init_events(),
+            EventsMode::Native => {
+                let _ = manage_message_topic(EVENTS, MessageTopicOperation::Add);
+            }
+            EventsMode::NativeNCES => {
+                init_events();
+                let _ = manage_message_topic(EVENTS, MessageTopicOperation::Add);
+            }
+        };
+        events_to_record.push(Event::ChangeEventsMode(ChangeEventsMode { events_mode }));
     }
 
-    record_event_dictionary(Event::SetModalities(SetModalities {}));
+    for event in events_to_record {
+        record_event_dictionary(event);
+    }
 }
 
 #[no_mangle]
@@ -1054,7 +1056,7 @@ pub extern "C" fn upgrade() {
         )
         .unwrap_or_revert(),
     );
-    record_event_dictionary(Event::Upgrade(Upgrade {}))
+    record_event_dictionary(Event::Upgrade(Upgrade {}));
 }
 
 fn install_contract() {
@@ -1111,15 +1113,26 @@ fn install_contract() {
     let entry_points = generate_entry_points();
 
     let package_key_name = format!("{PREFIX_CONTRACT_PACKAGE_NAME}_{name}");
+    let mut message_topics = BTreeMap::new();
+    let message_topics = if [EventsMode::Native, EventsMode::NativeNCES]
+        .contains(&events_mode.try_into().unwrap_or_default())
+    {
+        message_topics.insert(EVENTS.to_string(), MessageTopicOperation::Add);
+        Some(message_topics)
+    } else {
+        None
+    };
 
     let (contract_hash, contract_version) = storage::new_contract(
         entry_points,
         Some(named_keys),
         Some(package_key_name.clone()),
         Some(format!("{PREFIX_ACCESS_KEY_NAME}_{name}")),
+        message_topics,
     );
 
-    let contract_hash_key = Key::from(contract_hash);
+    let contract_hash_key =
+        Key::AddressableEntity(EntityAddr::SmartContract(contract_hash.value()));
 
     runtime::put_key(&format!("{PREFIX_CONTRACT_NAME}_{name}"), contract_hash_key);
     runtime::put_key(
@@ -1149,23 +1162,29 @@ fn install_contract() {
         get_optional_named_arg_with_user_errors(NONE_LIST, Cep85Error::InvalidNoneList);
 
     if let Some(admin_list) = admin_list {
-        init_args.insert(ADMIN_LIST, admin_list).unwrap_or_revert();
+        init_args
+            .insert(ADMIN_LIST, admin_list)
+            .unwrap_or_revert_with(Cep85Error::FailedToInsertToSecurityList);
     }
     if let Some(minter_list) = minter_list {
         init_args
             .insert(MINTER_LIST, minter_list)
-            .unwrap_or_revert();
+            .unwrap_or_revert_with(Cep85Error::FailedToInsertToSecurityList);
     }
     if let Some(burner_list) = burner_list {
         init_args
             .insert(BURNER_LIST, burner_list)
-            .unwrap_or_revert();
+            .unwrap_or_revert_with(Cep85Error::FailedToInsertToSecurityList);
     }
     if let Some(meta_list) = meta_list {
-        init_args.insert(META_LIST, meta_list).unwrap_or_revert();
+        init_args
+            .insert(META_LIST, meta_list)
+            .unwrap_or_revert_with(Cep85Error::FailedToInsertToSecurityList);
     }
     if let Some(none_list) = none_list {
-        init_args.insert(NONE_LIST, none_list).unwrap_or_revert();
+        init_args
+            .insert(NONE_LIST, none_list)
+            .unwrap_or_revert_with(Cep85Error::FailedToInsertToSecurityList);
     }
 
     runtime::call_contract::<()>(contract_hash, ENTRY_POINT_INIT, init_args);
@@ -1174,14 +1193,15 @@ fn install_contract() {
 fn upgrade_contract(name: &str, contract_package_hash: Key) {
     let (contract_hash, contract_version) = storage::add_contract_version(
         contract_package_hash
-            .into_hash()
-            .unwrap_or_revert_with(Cep85Error::InvalidPackageHash)
-            .into(),
+            .into_package_hash()
+            .unwrap_or_revert_with(Cep85Error::InvalidPackageHash),
         generate_entry_points(),
         NamedKeys::new(),
+        BTreeMap::new(),
     );
 
-    let contract_hash_key = Key::from(contract_hash);
+    let contract_hash_key =
+        Key::AddressableEntity(EntityAddr::SmartContract(contract_hash.value()));
 
     runtime::put_key(&format!("{PREFIX_CONTRACT_NAME}_{name}"), contract_hash_key);
     runtime::put_key(

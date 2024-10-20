@@ -1,6 +1,6 @@
 [package]
 name = "cep85"
-version = "1.0.0"
+version = "2.0.0"
 description = "A library for developing CEP-85 tokens for the Casper network."
 edition.workspace = true
 homepage.workspace = true
@@ -9,9 +9,11 @@ readme.workspace = true
 repository.workspace = true
 
 [dependencies]
-casper-contract = { version = "4.0.0", optional = true }
+casper-contract = { git = "https://github.com/casper-network/casper-node.git", branch = "release-2.0.0-rc3", optional = true, features = [
+  "test-support",
+] }
 casper-types.workspace = true
-casper-event-standard = { version = "0.5.0", default-features = false }
+casper-event-standard = { git = "https://github.com/deuszex/casper-event-standard", branch = "condor", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 
 [[bin]]
@@ -20,6 +22,10 @@ path = "src/main.rs"
 bench = false
 doctest = false
 test = false
+
+[lib]
+name = "cep85"
+path = "src/lib.rs"
 
 [features]
 default = ["contract-support"]

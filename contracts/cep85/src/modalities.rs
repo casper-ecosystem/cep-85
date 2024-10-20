@@ -7,11 +7,14 @@ use casper_types::{
 use crate::error::Cep85Error;
 
 #[repr(u8)]
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Default, Clone, Copy)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum EventsMode {
+    #[default]
     NoEvents = 0,
     CES = 1,
+    Native = 2,
+    NativeNCES = 3,
 }
 
 impl TryFrom<u8> for EventsMode {
@@ -21,6 +24,8 @@ impl TryFrom<u8> for EventsMode {
         match value {
             0 => Ok(EventsMode::NoEvents),
             1 => Ok(EventsMode::CES),
+            2 => Ok(EventsMode::Native),
+            3 => Ok(EventsMode::NativeNCES),
             _ => Err(Cep85Error::InvalidEventsMode),
         }
     }
@@ -54,13 +59,11 @@ impl FromBytes for TransferFilterContractResult {
     fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), casper_types::bytesrepr::Error> {
         match bytes.split_first() {
             None => Err(casper_types::bytesrepr::Error::EarlyEndOfStream),
-            Some((byte, rem)) => match TransferFilterContractResult::try_from(*byte) {
-                Ok(kind) => Ok((kind, rem)),
-                Err(_) => Err(casper_types::bytesrepr::Error::EarlyEndOfStream),
-            },
+            Some((byte, rem)) => Ok((TransferFilterContractResult::from(*byte), rem)),
         }
     }
 }
+
 impl ToBytes for TransferFilterContractResult {
     fn to_bytes(&self) -> Result<alloc::vec::Vec<u8>, casper_types::bytesrepr::Error> {
         Ok(vec![*self as u8])

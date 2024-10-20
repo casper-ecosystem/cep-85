@@ -135,10 +135,10 @@ export class CEP85Client extends TypedContract {
   /**
  * Sets the contract hash and contract package hash for the SmartContractService.
  * @param contractHash The hash of the smart contract.
- * @param contractPackageHash (Optional) The hash of the contract package if applicable.
+ * @param PackageHash (Optional) The hash of the contract package if applicable.
  */
-  public setContractHash(contractHash: string, contractPackageHash?: string) {
-    this.contractClient.setContractHash(contractHash, contractPackageHash);
+  public setContractHash(contractHash: string, PackageHash?: string) {
+    this.contractClient.setContractHash(contractHash, PackageHash);
     this.contractHashKey = CLValueBuilder.key(
       CLValueBuilder.byteArray(convertHashStringToBuffer(contractHash))
     );

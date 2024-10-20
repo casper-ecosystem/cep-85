@@ -1,12 +1,13 @@
 use casper_engine_test_support::{
-    ExecuteRequestBuilder, InMemoryWasmTestBuilder, ARG_AMOUNT, DEFAULT_ACCOUNT_ADDR,
-    PRODUCTION_RUN_GENESIS_REQUEST,
+    utils::create_run_genesis_request, ExecuteRequestBuilder, LmdbWasmTestBuilder, ARG_AMOUNT,
+    DEFAULT_ACCOUNTS, DEFAULT_ACCOUNT_ADDR,
 };
 use casper_types::{
+    addressable_entity::EntityKindTag,
     bytesrepr::Bytes,
     runtime_args,
     system::mint::{ARG_ID, ARG_TO},
-    ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
+    AddressableEntityHash, EntityAddr, Key, PackageHash, U256,
 };
 use cep85::{
     constants::{
@@ -23,31 +24,37 @@ use cep85_test_contract::constants::{
 
 use crate::utility::{
     constants::{
-        ACCOUNT_USER_1, ACCOUNT_USER_2, CEP85_CONTRACT_WASM, CEP85_TEST_CONTRACT_WASM,
-        CEP85_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME, TOKEN_URI,
+        CEP85_CONTRACT_WASM, CEP85_TEST_CONTRACT_WASM, CEP85_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME,
+        TOKEN_URI,
     },
     installer_request_builders::{
         cep85_batch_mint, cep85_check_balance_of, cep85_check_balance_of_batch,
         cep85_set_total_supply_of_batch, cep85_transfer_from, TransferData,
     },
-    support::{assert_expected_error, create_funded_dummy_account},
+    support::{assert_expected_error, get_test_account},
 };
 
 #[test]
 fn check_transfers_with_transfer_filter_contract() {
-    let mut builder = InMemoryWasmTestBuilder::default();
-    builder.run_genesis(&PRODUCTION_RUN_GENESIS_REQUEST);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+    let (account_user_2_key, _, _) = get_test_account("ACCOUNT_USER_2");
 
-    let account_user_1 = create_funded_dummy_account(&mut builder, Some(ACCOUNT_USER_1));
-    let account_user_2 = create_funded_dummy_account(&mut builder, Some(ACCOUNT_USER_2));
+    let mut builder = LmdbWasmTestBuilder::default();
+
+    builder
+        .run_genesis(create_run_genesis_request(DEFAULT_ACCOUNTS.to_vec()))
+        .commit();
 
     // Install filter contract first with empty TOKEN_CONTRACT value, we will update it after token
     // installation
+
     let install_request_contract_test = ExecuteRequestBuilder::standard(
         *DEFAULT_ACCOUNT_ADDR,
         CEP85_TEST_CONTRACT_WASM,
         runtime_args! {
-            ARG_TOKEN_CONTRACT => Key::from(ContractHash::from([0u8; 32])),
+            ARG_TOKEN_CONTRACT =>  Key::addressable_entity_key(
+                EntityKindTag::SmartContract, AddressableEntityHash::from([0u8; 32])
+            ),
         },
     )
     .build();
@@ -58,20 +65,23 @@ fn check_transfers_with_transfer_filter_contract() {
         .commit();
 
     let account = builder
-        .get_account(*DEFAULT_ACCOUNT_ADDR)
+        .get_entity_with_named_keys_by_account_hash(*DEFAULT_ACCOUNT_ADDR)
         .expect("should have account");
 
-    let transfer_filter_contract = account
+    let transfer_filter_contract_hash = account
         .named_keys()
         .get(CEP85_TEST_CONTRACT_NAME)
-        .and_then(|key| key.into_hash())
-        .map(ContractHash::new)
+        .and_then(|key| key.into_entity_hash())
+        .map(AddressableEntityHash::from)
         .expect("should have contract hash");
+
+    let transfer_filter_contract_key =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, transfer_filter_contract_hash);
 
     let install_args = runtime_args! {
         ARG_NAME => TOKEN_NAME,
         ARG_URI => TOKEN_URI,
-        ARG_TRANSFER_FILTER_CONTRACT => Key::from(transfer_filter_contract),
+        ARG_TRANSFER_FILTER_CONTRACT => transfer_filter_contract_key,
         ARG_TRANSFER_FILTER_METHOD => ENTRY_POINT_TRANSFER_FILTER_METHOD
     };
 
@@ -86,44 +96,55 @@ fn check_transfers_with_transfer_filter_contract() {
         .commit();
 
     let account = builder
-        .get_account(*DEFAULT_ACCOUNT_ADDR)
+        .get_entity_with_named_keys_by_account_hash(*DEFAULT_ACCOUNT_ADDR)
         .expect("should have account");
 
-    let cep85_token = account
+    let cep85_contract_hash = account
         .named_keys()
         .get(CEP85_TEST_TOKEN_CONTRACT_NAME)
-        .and_then(|key| key.into_hash())
-        .map(ContractHash::new)
+        .and_then(|key| key.into_entity_hash())
+        .map(AddressableEntityHash::from)
         .expect("should have contract hash");
 
     let cep85_test_contract_package = account
         .named_keys()
         .get(CEP85_TEST_PACKAGE_NAME)
-        .and_then(|key| key.into_hash())
-        .map(ContractPackageHash::new)
+        .and_then(|key| key.into_package_hash())
+        .map(PackageHash::from)
         .expect("should have contract package hash");
 
-    let transfer_filter_contract_stored: ContractHash = builder
-        .get_value::<Option<ContractHash>>(cep85_token, ARG_TRANSFER_FILTER_CONTRACT)
+    let contract_entity_addr = EntityAddr::new_smart_contract(cep85_contract_hash.value());
+
+    let transfer_filter_contract_stored: AddressableEntityHash = builder
+        .get_value::<Option<AddressableEntityHash>>(
+            contract_entity_addr,
+            ARG_TRANSFER_FILTER_CONTRACT,
+        )
         .unwrap();
     let transfer_filter_method_stored: String = builder
-        .get_value::<Option<String>>(cep85_token, ARG_TRANSFER_FILTER_METHOD)
+        .get_value::<Option<String>>(contract_entity_addr, ARG_TRANSFER_FILTER_METHOD)
         .unwrap();
 
-    assert_eq!(transfer_filter_contract_stored, transfer_filter_contract);
+    assert_eq!(
+        transfer_filter_contract_stored,
+        transfer_filter_contract_hash
+    );
     assert_eq!(
         transfer_filter_method_stored,
         ENTRY_POINT_TRANSFER_FILTER_METHOD
     );
 
+    let cep85_test_contract_key =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_contract_hash);
+
     // Update test contract TOKEN_CONTRACT value
     let set_token_contract_request_for_transfer_filter_contract =
         ExecuteRequestBuilder::contract_call_by_hash(
             *DEFAULT_ACCOUNT_ADDR,
-            transfer_filter_contract,
+            transfer_filter_contract_hash,
             ENTRY_POINT_INIT,
             runtime_args! {
-                ARG_TOKEN_CONTRACT => Key::from(cep85_token)
+                ARG_TOKEN_CONTRACT => cep85_test_contract_key
             },
         )
         .build();
@@ -133,23 +154,23 @@ fn check_transfers_with_transfer_filter_contract() {
         .expect_success()
         .commit();
 
-    let contract = builder
-        .get_contract(transfer_filter_contract)
+    let transfer_filter_contract = builder
+        .get_entity_with_named_keys_by_entity_hash(transfer_filter_contract_hash)
         .expect("should have contract");
-    let named_keys = contract.named_keys();
+    let named_keys = transfer_filter_contract.named_keys();
     let token_contract_stored = *named_keys.get(ARG_TOKEN_CONTRACT).unwrap();
 
-    assert_eq!(token_contract_stored, Key::from(cep85_token));
+    assert_eq!(token_contract_stored, cep85_test_contract_key);
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient_user_1 = Key::from(account_user_1);
+    let recipient_user_1 = account_user_1_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
     let total_supplies = amounts.clone();
 
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies,
@@ -160,7 +181,7 @@ fn check_transfers_with_transfer_filter_contract() {
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &recipient_user_1,
         ids.clone(),
@@ -191,14 +212,14 @@ fn check_transfers_with_transfer_filter_contract() {
 
     let id = ids[0];
     let from = recipient_user_1;
-    let to = Key::from(account_user_2);
+    let to = account_user_2_key;
     let transfer_amount = U256::one();
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
 
     let failing_transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep85_token,
-        &account_user_1,
+        &cep85_contract_hash,
+        &account_user_1_account_hash,
         TransferData {
             from: &from,
             to: &to,
@@ -233,7 +254,7 @@ fn check_transfers_with_transfer_filter_contract() {
     let transfer_filter_contract_set_return_value_request =
         ExecuteRequestBuilder::contract_call_by_hash(
             *DEFAULT_ACCOUNT_ADDR,
-            transfer_filter_contract,
+            transfer_filter_contract_hash,
             ENTRY_POINT_SET_FILTER_CONTRACT_RETURN_VALUE,
             runtime_args! {
                 ARG_FILTER_CONTRACT_RETURN_VALUE => TransferFilterContractResult::ProceedTransfer
@@ -248,8 +269,8 @@ fn check_transfers_with_transfer_filter_contract() {
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep85_token,
-        &account_user_1,
+        &cep85_contract_hash,
+        &account_user_1_account_hash,
         TransferData {
             from: &from,
             to: &to,
@@ -276,7 +297,7 @@ fn check_transfers_with_transfer_filter_contract() {
     // NB: token_receiver and token_owner are swapped
     let failing_transfer_request = ExecuteRequestBuilder::contract_call_by_hash(
         *DEFAULT_ACCOUNT_ADDR,
-        cep85_token,
+        cep85_contract_hash,
         ENTRY_POINT_TRANSFER_FROM,
         runtime_args! {
             ARG_FROM => to,
@@ -303,8 +324,8 @@ fn check_transfers_with_transfer_filter_contract() {
 
     let transfer_call = cep85_transfer_from(
         &mut builder,
-        &cep85_token,
-        &account_user_1,
+        &cep85_contract_hash,
+        &account_user_1_account_hash,
         TransferData {
             from: &from,
             to: &to,
@@ -319,14 +340,18 @@ fn check_transfers_with_transfer_filter_contract() {
 
 #[test]
 fn should_revert_with_invalid_filter_contract_method() {
-    let mut builder = InMemoryWasmTestBuilder::default();
-    builder.run_genesis(&PRODUCTION_RUN_GENESIS_REQUEST);
+    let mut builder = LmdbWasmTestBuilder::default();
+    builder
+        .run_genesis(create_run_genesis_request(DEFAULT_ACCOUNTS.to_vec()))
+        .commit();
 
     let install_request_contract_test = ExecuteRequestBuilder::standard(
         *DEFAULT_ACCOUNT_ADDR,
         CEP85_TEST_CONTRACT_WASM,
         runtime_args! {
-            ARG_TOKEN_CONTRACT => Key::from(ContractHash::from([0u8; 32])),
+            ARG_TOKEN_CONTRACT => Key::addressable_entity_key(
+                EntityKindTag::SmartContract, AddressableEntityHash::from([0u8; 32])
+            ),
         },
     )
     .build();
@@ -337,20 +362,23 @@ fn should_revert_with_invalid_filter_contract_method() {
         .commit();
 
     let account = builder
-        .get_account(*DEFAULT_ACCOUNT_ADDR)
+        .get_entity_with_named_keys_by_account_hash(*DEFAULT_ACCOUNT_ADDR)
         .expect("should have account");
 
     let transfer_filter_contract = account
         .named_keys()
         .get(CEP85_TEST_CONTRACT_NAME)
-        .and_then(|key| key.into_hash())
-        .map(ContractHash::new)
+        .and_then(|key| key.into_entity_hash())
+        .map(AddressableEntityHash::from)
         .expect("should have contract hash");
+
+    let addressable_entity_key =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, transfer_filter_contract);
 
     let install_args = runtime_args! {
         ARG_NAME => TOKEN_NAME,
         ARG_URI => TOKEN_URI,
-        ARG_TRANSFER_FILTER_CONTRACT => Key::from(transfer_filter_contract),
+        ARG_TRANSFER_FILTER_CONTRACT => addressable_entity_key,
     };
 
     // Install token
@@ -368,10 +396,13 @@ fn should_revert_with_invalid_filter_contract_method() {
         "should not allow installation with filter contract withtout filter contract method",
     );
 
+    let addressable_entity_key =
+        Key::addressable_entity_key(EntityKindTag::SmartContract, transfer_filter_contract);
+
     let install_args = runtime_args! {
         ARG_NAME => TOKEN_NAME,
         ARG_URI => TOKEN_URI,
-        ARG_TRANSFER_FILTER_CONTRACT => Key::from(transfer_filter_contract),
+        ARG_TRANSFER_FILTER_CONTRACT => addressable_entity_key,
         ARG_TRANSFER_FILTER_METHOD => "" // test empty method
     };
 

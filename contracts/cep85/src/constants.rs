@@ -16,7 +16,6 @@ pub const ENTRY_POINT_CHANGE_SECURITY: &str = "change_security";
 pub const ENTRY_POINT_INIT: &str = "init";
 pub const ENTRY_POINT_IS_APPROVED_FOR_ALL: &str = "is_approved_for_all";
 pub const ENTRY_POINT_IS_NON_FUNGIBLE: &str = "is_non_fungible";
-pub const ENTRY_POINT_MAKE_DICTIONARY_ITEM_KEY: &str = "make_dictionary_item_key";
 pub const ENTRY_POINT_MINT: &str = "mint";
 pub const ENTRY_POINT_BATCH_TRANSFER_FROM: &str = "batch_transfer_from";
 pub const ENTRY_POINT_TRANSFER_FROM: &str = "transfer_from";
@@ -72,3 +71,5 @@ pub const DICT_SECURITY_BADGES: &str = "security_badges";
 pub const DICT_SUPPLY: &str = "supply";
 pub const DICT_TOKEN_URI: &str = "token_uri";
 pub const DICT_TOTAL_SUPPLY: &str = "total_supply";
+
+pub const EVENTS: &str = "events";

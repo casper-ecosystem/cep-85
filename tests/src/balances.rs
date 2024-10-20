@@ -1,13 +1,12 @@
 use crate::utility::{
-    constants::{ACCOUNT_USER_1, ACCOUNT_USER_2},
     installer_request_builders::{
         cep85_batch_mint, cep85_check_balance_of, cep85_check_balance_of_batch,
         cep85_make_dictionary_item_key, cep85_mint, setup, TestContext,
     },
-    support::{assert_expected_error, get_dictionary_value_from_key},
+    support::{assert_expected_error, get_dictionary_value_from_key, get_test_account},
 };
 use casper_engine_test_support::{ExecuteRequestBuilder, DEFAULT_ACCOUNT_ADDR};
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
+use casper_types::{runtime_args, EntityAddr, Key, U256};
 use cep85::{
     constants::{ARG_ACCOUNTS, ARG_IDS, DEFAULT_DICT_ITEM_KEY_NAME, DICT_BALANCES},
     error::Cep85Error,
@@ -15,24 +14,25 @@ use cep85::{
 use cep85_test_contract::constants::ENTRY_POINT_CHECK_BALANCE_OF_BATCH;
 #[test]
 fn should_check_balance_of() {
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep85_contract_hash,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -56,17 +56,18 @@ fn should_check_balance_of() {
 
 #[test]
 fn should_return_none_getting_balance_of_non_existing_token() {
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
     ) = setup();
 
     let id = U256::one();
-    let owner = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let owner = account_user_1_key;
 
     let actual_balance =
         cep85_check_balance_of(&mut builder, &cep85_test_contract_package, &owner, &id);
@@ -77,26 +78,28 @@ fn should_return_none_getting_balance_of_non_existing_token() {
 
 #[test]
 fn should_check_balance_of_batch() {
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
+    let (account_user_2_key, _, _) = get_test_account("ACCOUNT_USER_2");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep85_contract_hash,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient_user_1 = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
-    let recipient_user_2 = Key::from(*test_accounts.get(&ACCOUNT_USER_2).unwrap());
+    let recipient_user_1 = account_user_1_key;
+    let recipient_user_2 = account_user_2_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &recipient_user_1,
         ids.clone(),
@@ -124,26 +127,27 @@ fn should_check_balance_of_batch() {
 
 #[test]
 fn should_return_none_getting_balance_of_batch_non_existing_token() {
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
+    let (account_user_2_key, _, _) = get_test_account("ACCOUNT_USER_2");
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep85_contract_hash,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let recipient_user_1 = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
-    let recipient_user_2 = Key::from(*test_accounts.get(&ACCOUNT_USER_2).unwrap());
+    let recipient_user_1 = account_user_1_key;
+    let recipient_user_2 = account_user_2_key;
     let mut ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &recipient_user_1,
         ids.clone(),
@@ -167,25 +171,26 @@ fn should_return_none_getting_balance_of_batch_non_existing_token() {
 
 #[test]
 fn should_error_on_balance_of_batch_args_len_difference() {
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep85_contract_hash,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient = account_user_1_key;
     let mut ids: Vec<U256> = vec![U256::one()];
     let amounts: Vec<U256> = vec![U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -249,17 +254,23 @@ fn should_error_on_balance_of_batch_args_len_difference() {
 
 #[test]
 fn should_make_dictionary_item_key_for_dict_balances_queries() {
-    let (mut builder, TestContext { cep85_token, .. }) = setup();
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
+        },
+    ) = setup();
 
-    let key = Key::from(*DEFAULT_ACCOUNT_ADDR);
+    let key = Key::AddressableEntity(EntityAddr::Account(DEFAULT_ACCOUNT_ADDR.value()));
     let id = U256::one();
 
-    cep85_make_dictionary_item_key(&mut builder, &cep85_token, &key, Some(id), None, None);
+    cep85_make_dictionary_item_key(&mut builder, &key, Some(id), None, None);
 
     let dictionary_item_key = builder
         .query(
             None,
-            Key::from(*DEFAULT_ACCOUNT_ADDR),
+            Key::Account(*DEFAULT_ACCOUNT_ADDR),
             &[DEFAULT_DICT_ITEM_KEY_NAME.to_string()],
         )
         .unwrap()
@@ -272,16 +283,16 @@ fn should_make_dictionary_item_key_for_dict_balances_queries() {
     // This is the dictionary item key to query balances dictionary with casper-client-rs
     assert_eq!(
         dictionary_item_key,
-        "d4cc85d3e1ba5d7e915ccd9083dcf81cd7d6e1e8d8ea4e431edd85b5a7bf9360".to_string()
+        "6d0b0c89f1bdc809a0fcf2fedaa1a4ae2ef060593a3431299badbf8d6c770b13".to_string()
     );
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(minting_account);
+    let minting_recipient = Key::AddressableEntity(EntityAddr::Account(minting_account.value()));
     let mint_amount = U256::from(2);
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -292,8 +303,8 @@ fn should_make_dictionary_item_key_for_dict_balances_queries() {
     mint_call.expect_success().commit();
 
     let balance = get_dictionary_value_from_key::<U256>(
-        &builder,
-        &cep85_token.into(),
+        &mut builder,
+        &cep85_contract_hash,
         DICT_BALANCES,
         &dictionary_item_key,
     );
@@ -304,15 +315,14 @@ fn should_make_dictionary_item_key_for_dict_balances_queries() {
 #[test]
 fn should_make_dictionary_item_key_for_dict_balances_queries_with_specific_session_named_key_name()
 {
-    let (mut builder, TestContext { cep85_token, .. }) = setup();
+    let (mut builder, ..) = setup();
 
-    let key = Key::from(*DEFAULT_ACCOUNT_ADDR);
+    let key = Key::AddressableEntity(EntityAddr::Account(DEFAULT_ACCOUNT_ADDR.value()));
     let id = U256::one();
     let session_named_key_name = "my_session_named_key_name".to_string();
 
     cep85_make_dictionary_item_key(
         &mut builder,
-        &cep85_token,
         &key,
         Some(id),
         None,
@@ -322,8 +332,8 @@ fn should_make_dictionary_item_key_for_dict_balances_queries_with_specific_sessi
     let dictionary_item_key = builder
         .query(
             None,
-            Key::from(*DEFAULT_ACCOUNT_ADDR),
-            &[session_named_key_name],
+            Key::Account(*DEFAULT_ACCOUNT_ADDR),
+            &[session_named_key_name.to_string()],
         )
         .unwrap()
         .as_cl_value()
@@ -335,6 +345,6 @@ fn should_make_dictionary_item_key_for_dict_balances_queries_with_specific_sessi
     // This is the dictionary item key to query balances dictionary with casper-client-rs
     assert_eq!(
         dictionary_item_key,
-        "d4cc85d3e1ba5d7e915ccd9083dcf81cd7d6e1e8d8ea4e431edd85b5a7bf9360".to_string()
+        "6d0b0c89f1bdc809a0fcf2fedaa1a4ae2ef060593a3431299badbf8d6c770b13".to_string()
     );
 }

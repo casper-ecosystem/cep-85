@@ -80,7 +80,11 @@ pub fn sec_check(allowed_badge_list: Vec<SecurityBadge>) {
 fn get_security_badge(entity: &Key) -> Option<SecurityBadge> {
     get_dictionary_value_from_key(
         DICT_SECURITY_BADGES,
-        &hex::encode(entity.to_bytes().unwrap_or_revert()),
+        &hex::encode(
+            entity
+                .to_bytes()
+                .unwrap_or_revert_with(Cep85Error::FailedToConvertBytes),
+        ),
     )
 }
 
@@ -89,7 +93,10 @@ pub fn change_sec_badge(badge_map: &BTreeMap<Key, SecurityBadge>) {
     for (&user, &badge) in badge_map {
         set_dictionary_value_for_key(
             DICT_SECURITY_BADGES,
-            &hex::encode(user.to_bytes().unwrap_or_revert()),
+            &hex::encode(
+                user.to_bytes()
+                    .unwrap_or_revert_with(Cep85Error::FailedToConvertBytes),
+            ),
             &badge,
         );
     }

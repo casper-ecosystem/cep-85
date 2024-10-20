@@ -5,7 +5,7 @@ use casper_contract::{
     },
     unwrap_or_revert::UnwrapOrRevert,
 };
-use casper_types::{bytesrepr::ToBytes, CLTyped, ContractHash, Key};
+use casper_types::{bytesrepr::ToBytes, AddressableEntityHash, CLTyped, Key};
 
 use crate::{constants::RESULT_KEY, ARG_TOKEN_CONTRACT};
 
@@ -20,7 +20,7 @@ pub fn store_result<T: CLTyped + ToBytes>(result: T) {
     }
 }
 
-pub fn get_token_contract() -> ContractHash {
+pub fn get_token_contract() -> AddressableEntityHash {
     let key = get_key(ARG_TOKEN_CONTRACT).unwrap_or_revert();
-    key.into_hash().unwrap_or_revert().into()
+    key.into_entity_hash().unwrap_or_revert()
 }

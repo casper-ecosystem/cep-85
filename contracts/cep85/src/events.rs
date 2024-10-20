@@ -1,15 +1,25 @@
+#[cfg(feature = "contract-support")]
+mod contract_support {
+    pub use crate::{
+        constants::{ARG_EVENTS_MODE, EVENTS},
+        error::Cep85Error,
+        modalities::EventsMode,
+        utils::get_stored_value,
+    };
+    pub use alloc::format;
+    pub use casper_contract::{
+        contract_api::runtime::{emit_message, get_key},
+        unwrap_or_revert::UnwrapOrRevert,
+    };
+    pub use casper_event_standard::{emit, Schemas};
+    pub use core::convert::TryFrom;
+}
 use crate::security::SecurityBadge;
-#[cfg(feature = "contract-support")]
-use crate::{constants::ARG_EVENTS_MODE, modalities::EventsMode, utils::get_stored_value};
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
-#[cfg(feature = "contract-support")]
-use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_event_standard::Event;
-#[cfg(feature = "contract-support")]
-use casper_event_standard::{emit, Schemas};
 use casper_types::{bytesrepr::Bytes, Key, U256};
 #[cfg(feature = "contract-support")]
-use core::convert::TryFrom;
+use contract_support::*;
 
 #[derive(Debug)]
 pub enum Event {
@@ -26,16 +36,25 @@ pub enum Event {
     ChangeSecurity(ChangeSecurity),
     SetModalities(SetModalities),
     Upgrade(Upgrade),
+    ChangeEnableBurnMode(ChangeEnableBurnMode),
+    ChangeEventsMode(ChangeEventsMode),
 }
 
 #[cfg(feature = "contract-support")]
 pub fn record_event_dictionary(event: Event) {
-    let events_mode: EventsMode =
-        EventsMode::try_from(get_stored_value::<u8>(ARG_EVENTS_MODE)).unwrap_or_revert();
+    let events_mode: EventsMode = EventsMode::try_from(get_stored_value::<u8>(ARG_EVENTS_MODE))
+        .unwrap_or_revert_with(Cep85Error::InvalidEventsMode);
 
     match events_mode {
         EventsMode::NoEvents => {}
         EventsMode::CES => ces(event),
+        EventsMode::Native => emit_message(EVENTS, &format!("{event:?}").into())
+            .unwrap_or_revert_with(Cep85Error::InvalidEventsMode),
+        EventsMode::NativeNCES => {
+            emit_message(EVENTS, &format!("{event:?}").into())
+                .unwrap_or_revert_with(Cep85Error::InvalidEventsMode);
+            ces(event);
+        }
     }
 }
 
@@ -249,6 +268,28 @@ impl Upgrade {
     }
 }
 
+#[derive(Event, Debug, PartialEq, Eq)]
+pub struct ChangeEnableBurnMode {
+    pub enable_burn: bool,
+}
+
+impl ChangeEnableBurnMode {
+    pub fn new(enable_burn: bool) -> Self {
+        Self { enable_burn }
+    }
+}
+
+#[derive(Event, Debug, PartialEq, Eq)]
+pub struct ChangeEventsMode {
+    pub events_mode: u8,
+}
+
+impl ChangeEventsMode {
+    pub fn new(events_mode: u8) -> Self {
+        Self { events_mode }
+    }
+}
+
 #[cfg(feature = "contract-support")]
 fn ces(event: Event) {
     match event {
@@ -265,15 +306,19 @@ fn ces(event: Event) {
         Event::ChangeSecurity(ev) => emit(ev),
         Event::SetModalities(ev) => emit(ev),
         Event::Upgrade(ev) => emit(ev),
+        Event::ChangeEnableBurnMode(ev) => emit(ev),
+        Event::ChangeEventsMode(ev) => emit(ev),
     }
 }
 
 #[cfg(feature = "contract-support")]
 pub fn init_events() {
-    let events_mode =
-        EventsMode::try_from(get_stored_value::<u8>(ARG_EVENTS_MODE)).unwrap_or_revert();
+    let events_mode = EventsMode::try_from(get_stored_value::<u8>(ARG_EVENTS_MODE))
+        .unwrap_or_revert_with(Cep85Error::InvalidEventsMode);
 
-    if events_mode == EventsMode::CES {
+    if [EventsMode::CES, EventsMode::NativeNCES].contains(&events_mode)
+        && get_key(casper_event_standard::EVENTS_DICT).is_none()
+    {
         let schemas = Schemas::new()
             .with::<Mint>()
             .with::<MintBatch>()
@@ -287,7 +332,9 @@ pub fn init_events() {
             .with::<SetTotalSupply>()
             .with::<ChangeSecurity>()
             .with::<SetModalities>()
-            .with::<Upgrade>();
+            .with::<Upgrade>()
+            .with::<ChangeEventsMode>()
+            .with::<ChangeEnableBurnMode>();
         casper_event_standard::init(schemas);
     }
 }
