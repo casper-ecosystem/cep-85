@@ -24,8 +24,65 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b #v3.0.2
+      # Replace by above service with docker image of stable 2.0
+      - name: Clone casper-nctl-2-docker repository
+        run: |
+          git clone https://github.com/gRoussac/casper-nctl-2-docker.git
+
+      - name: Build and start the service
+        run: |
+          cd casper-nctl-2-docker
+          make build-start 2.0
+          cd ..
+
+      - name: Wait for the service to be ready
+        run: |
+          echo "Waiting for the service to be ready on port 11101..."
+          for i in {1..30}; do # wait for up to 30 seconds
+            if nc -z localhost 11101; then
+              echo "Service is up!"
+              echo "Wait 45s for nctl to boot and create keys"
+              sleep 45  # - name: wait for up to 45 seconds for an era like
+              break
+            fi
+            echo "Waiting..."
+            sleep 1
+          done
+
+          # Check if the service is still not ready after 30 seconds
+          if ! nc -z localhost 11101; then
+            echo "Service did not start in time!"
+            exit 1
+          fi
+
+      # - name: List files in the users directory
+      #   run: |
+      #     echo "Listing files in the users directory of the service container..."
+      #     docker exec ${{ job.services.casper-nctl.id }} ls /app/casper-nctl/assets/net-1/users/
+
+      # - name: List files in user-1 directory
+      #   run: |
+      #     echo "Listing files in ./assets/users/user-1/:"
+      #     ls -la ./casper-nctl-2-docker/assets/users/user-1/
+
+      # WARNING: These accounts, and their private keys, are now publicly known.
+      # Any funds sent to them on Mainnet or any other live network WILL BE LOST.
+      - name: Set SECRET_KEY_USER_1 and SECRET_KEY_USER_2 environment variables
+        run: |
+          echo "SECRET_KEY_USER_1=$(sed -n '2p' ./casper-nctl-2-docker/assets/users/user-1/secret_key.pem)" >> $GITHUB_ENV
+          echo "SECRET_KEY_USER_2=$(sed -n '2p' ./casper-nctl-2-docker/assets/users/user-2/secret_key.pem)" >> $GITHUB_ENV
+
+      - name: Delete user-1 directory
+        run: |
+          echo "Deleting ./casper-nctl-2-docker directories..."
+          sudo rm -rf ./casper-nctl-2-docker
+
+      - name: Print GITHUB_ENV
+        run: |
+          echo "Contents of GITHUB_ENV:"
+          cat $GITHUB_ENV
+
+      - uses: actions/checkout@v2
 
       - name: Swatinem cache
         uses: Swatinem/rust-cache@cb2cf0cc7c5198d3364b9630e2c3d457f160790c #v1.4.0
