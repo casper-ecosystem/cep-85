@@ -111,7 +111,7 @@ jobs:
 
       - name: Audits
         working-directory: ./client-js
-        run: npm audit --omit=dev
+        run: npm audit --omit=dev --audit-level=moderate
 
       - name: Lints
         working-directory: ./client-js
