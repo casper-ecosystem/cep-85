@@ -26,16 +26,16 @@ jobs:
       - name: Run tests
         run: make test
 
-      - name: Slack Notification
-        uses: ravsamhq/notify-slack-action@4ed28566c2bdcdaee6dca2b46b9666d01b4ed8a4 #v1.10.0
-        if: always()
-        with:
-          status: ${{ job.status }}
-          notification_title: '*{repo}*'
-          message_format: '{emoji} *{workflow}* *{status_message}* in <{repo_url}|{repo}@{branch}> on <{commit_url}|{commit_sha}>'
-          footer: '<{run_url}|View Run>'
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      # - name: Slack Notification
+      #   uses: ravsamhq/notify-slack-action@4ed28566c2bdcdaee6dca2b46b9666d01b4ed8a4 #v1.10.0
+      #   if: always()
+      #   with:
+      #     status: ${{ job.status }}
+      #     notification_title: '*{repo}*'
+      #     message_format: '{emoji} *{workflow}* *{status_message}* in <{repo_url}|{repo}@{branch}> on <{commit_url}|{commit_sha}>'
+      #     footer: '<{run_url}|View Run>'
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Fake Commit after 50 days
         uses: gautamkrishnar/keepalive-workflow@790c7f09285a59b09bb578c85e271c6ff2af97c4 #v1.1.0
