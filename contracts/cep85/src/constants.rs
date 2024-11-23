@@ -51,7 +51,6 @@ pub const ARG_OWNER: &str = "owner";
 pub const ARG_PACKAGE_HASH: &str = "package_hash";
 pub const ARG_RECIPIENT: &str = "recipient";
 pub const ARG_SESSION_NAMED_KEY_NAME: &str = "session_named_key_name";
-pub const ARG_TOKEN_CONTRACT: &str = "token_contract";
 pub const ARG_TOTAL_SUPPLIES: &str = "total_supplies";
 pub const ARG_TOTAL_SUPPLY: &str = "total_supply";
 pub const ARG_TO: &str = "to";

@@ -1,8 +1,9 @@
 pub const CEP85_TEST_CONTRACT_NAME: &str = "cep85_test_contract_hash";
-pub const CEP85_TEST_PACKAGE_NAME: &str = "cep85_test_contract_package_hash";
+pub const CEP85_TEST_CONTRACT_PACKAGE_NAME: &str = "cep85_test_contract_package_hash";
 pub const RESULT_KEY: &str = "result";
 
 pub const ARG_FILTER_CONTRACT_RETURN_VALUE: &str = "return_value";
+pub const ARG_TOKEN_CONTRACT: &str = "token_contract";
 
 pub const ENTRY_POINT_CHECK_BALANCE_OF: &str = "check_balance_of";
 pub const ENTRY_POINT_CHECK_BALANCE_OF_BATCH: &str = "check_balance_of_batch";

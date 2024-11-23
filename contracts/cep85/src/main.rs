@@ -8,8 +8,6 @@ compile_error!("target arch should be wasm32: compile with '--target wasm32-unkn
 // `no_std` environment.
 extern crate alloc;
 
-use core::convert::TryInto;
-
 use alloc::{
     borrow::ToOwned,
     collections::BTreeMap,
@@ -61,6 +59,7 @@ use cep85::{
         make_dictionary_item_key as utils_make_dictionary_item_key,
     },
 };
+use core::convert::TryInto;
 
 /// Initiates the contracts states. Only used by the installer call,
 /// later calls will cause it to revert.
@@ -1057,14 +1056,7 @@ pub extern "C" fn upgrade() {
     record_event_dictionary(Event::Upgrade(Upgrade {}))
 }
 
-fn install_contract() {
-    let name: String = get_named_arg_with_user_errors(
-        ARG_NAME,
-        Cep85Error::MissingCollectionName,
-        Cep85Error::InvalidCollectionName,
-    )
-    .unwrap_or_revert();
-
+fn install_contract(name: &str) {
     let uri: String = get_named_arg_with_user_errors(
         ARG_URI,
         Cep85Error::MissingUri,
@@ -1097,7 +1089,7 @@ fn install_contract() {
     }
 
     let mut named_keys = NamedKeys::new();
-    named_keys.insert(ARG_NAME.to_string(), storage::new_uref(name.clone()).into());
+    named_keys.insert(ARG_NAME.to_string(), storage::new_uref(name).into());
     named_keys.insert(ARG_URI.to_string(), storage::new_uref(uri).into());
     named_keys.insert(
         ARG_EVENTS_MODE.to_string(),
@@ -1242,18 +1234,24 @@ fn before_token_transfer(
 
 #[no_mangle]
 pub extern "C" fn call() {
+    let name: String = get_named_arg_with_user_errors(
+        ARG_NAME,
+        Cep85Error::MissingCollectionName,
+        Cep85Error::InvalidCollectionName,
+    )
+    .unwrap_or_revert();
+
     let upgrade_flag: Option<bool> =
         get_optional_named_arg_with_user_errors(ARG_UPGRADE_FLAG, Cep85Error::InvalidUpgradeFlag);
 
-    if upgrade_flag.is_some() && upgrade_flag.unwrap() {
-        let name: String =
-            get_optional_named_arg_with_user_errors(ARG_NAME, Cep85Error::MissingCollectionName)
-                .unwrap_or_revert_with(Cep85Error::InvalidCollectionName);
+    let access_key = runtime::get_key(&format!("{PREFIX_ACCESS_KEY_NAME}_{name}"));
+
+    if upgrade_flag.is_some() && upgrade_flag.unwrap() && access_key.is_some() {
         let contract_package_hash: Key =
             get_key(&format!("{PREFIX_CONTRACT_PACKAGE_NAME}_{}", name))
                 .unwrap_or_revert_with(Cep85Error::MissingPackageHash);
         upgrade_contract(&name, contract_package_hash)
     } else {
-        install_contract()
+        install_contract(&name)
     }
 }

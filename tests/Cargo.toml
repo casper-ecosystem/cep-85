@@ -8,7 +8,7 @@ cep85 = { path = "../contracts/cep85", default-features = false }
 cep85-test-contract = { path = "../contracts/test", default-features = false }
 casper-engine-test-support = "7.0.1"
 casper-execution-engine = "7.0.1"
-casper-types = "4.0.1"
+casper-types = "4.0.2"
 casper-event-standard = { version = "0.5.0", default-features = false }
 
 [lib]

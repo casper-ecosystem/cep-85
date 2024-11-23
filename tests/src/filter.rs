@@ -10,15 +10,16 @@ use casper_types::{
 };
 use cep85::{
     constants::{
-        ARG_DATA, ARG_FROM, ARG_NAME, ARG_TOKEN_CONTRACT, ARG_TRANSFER_FILTER_CONTRACT,
-        ARG_TRANSFER_FILTER_METHOD, ARG_URI, ENTRY_POINT_INIT, ENTRY_POINT_TRANSFER_FROM,
+        ARG_DATA, ARG_FROM, ARG_NAME, ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD,
+        ARG_URI, ENTRY_POINT_INIT, ENTRY_POINT_TRANSFER_FROM,
     },
     error::Cep85Error,
     modalities::TransferFilterContractResult,
 };
 use cep85_test_contract::constants::{
-    ARG_FILTER_CONTRACT_RETURN_VALUE, CEP85_TEST_CONTRACT_NAME, CEP85_TEST_PACKAGE_NAME,
-    ENTRY_POINT_SET_FILTER_CONTRACT_RETURN_VALUE, ENTRY_POINT_TRANSFER_FILTER_METHOD,
+    ARG_FILTER_CONTRACT_RETURN_VALUE, ARG_TOKEN_CONTRACT, CEP85_TEST_CONTRACT_NAME,
+    CEP85_TEST_CONTRACT_PACKAGE_NAME, ENTRY_POINT_SET_FILTER_CONTRACT_RETURN_VALUE,
+    ENTRY_POINT_TRANSFER_FILTER_METHOD,
 };
 
 use crate::utility::{
@@ -98,7 +99,7 @@ fn check_transfers_with_transfer_filter_contract() {
 
     let cep85_test_contract_package = account
         .named_keys()
-        .get(CEP85_TEST_PACKAGE_NAME)
+        .get(CEP85_TEST_CONTRACT_PACKAGE_NAME)
         .and_then(|key| key.into_hash())
         .map(ContractPackageHash::new)
         .expect("should have contract package hash");

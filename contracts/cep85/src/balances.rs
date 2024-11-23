@@ -1,12 +1,4 @@
 // //! Implementation of balances.
-
-use alloc::vec::Vec;
-use casper_contract::{
-    contract_api::runtime::{self, get_key},
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use casper_types::{Key, U256};
-
 use crate::{
     constants::{ARG_CONTRACT_HASH, DICT_BALANCES},
     error::Cep85Error,
@@ -14,6 +6,12 @@ use crate::{
         get_dictionary_value_from_key, make_dictionary_item_key, set_dictionary_value_for_key,
     },
 };
+use alloc::vec::Vec;
+use casper_contract::{
+    contract_api::runtime::{self, get_key},
+    unwrap_or_revert::UnwrapOrRevert,
+};
+use casper_types::{Key, U256};
 
 /// Writes token balance of a specified account into a dictionary.
 pub fn write_balance_to(account: &Key, id: &U256, amount: &U256) {
