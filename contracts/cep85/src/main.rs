@@ -1044,6 +1044,8 @@ pub extern "C" fn set_modalities() {
 
 #[no_mangle]
 pub extern "C" fn upgrade() {
+    sec_check(vec![SecurityBadge::Admin]);
+
     put_key(
         ARG_CONTRACT_HASH,
         get_named_arg_with_user_errors::<Key>(

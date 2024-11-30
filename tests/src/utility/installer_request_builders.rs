@@ -42,11 +42,11 @@ use cep85_test_contract::constants::{
 use std::collections::HashMap;
 
 #[derive(Clone)]
-pub struct TestContext {
-    pub cep85_token: ContractHash,
-    pub cep85_test_contract: ContractHash,
-    pub cep85_test_contract_package: ContractPackageHash,
-    pub test_accounts: HashMap<[u8; 32], AccountHash>,
+pub(crate) struct TestContext {
+    pub(crate) cep85_token: ContractHash,
+    pub(crate) cep85_test_contract: ContractHash,
+    pub(crate) cep85_test_contract_package: ContractPackageHash,
+    pub(crate) test_accounts: HashMap<[u8; 32], AccountHash>,
 }
 
 impl Drop for TestContext {

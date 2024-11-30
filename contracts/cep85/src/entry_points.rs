@@ -43,7 +43,7 @@ pub fn init() -> EntryPoint {
 pub fn upgrade() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_UPGRADE,
-        vec![Parameter::new(ARG_PACKAGE_HASH, CLType::Key)],
+        vec![Parameter::new(ARG_CONTRACT_HASH, CLType::Key)],
         CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,
