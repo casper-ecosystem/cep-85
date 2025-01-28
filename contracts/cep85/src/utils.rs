@@ -114,16 +114,6 @@ pub fn get_stored_value_with_user_errors<T: CLTyped + FromBytes>(
 }
 
 #[cfg(feature = "contract-support")]
-pub fn stringify_key<T: CLTyped>(key: Key) -> String {
-    match key {
-        // Key::Account(account_hash) => account_hash.to_string(),
-        // Key::Hash(hash_addr) => ContractHash::new(hash_addr).to_string(),
-        Key::AddressableEntity(hash_addr) => AddressableEntityHash::from(hash_addr).to_string(),
-        _ => runtime::revert(Cep85Error::InvalidKey),
-    }
-}
-
-#[cfg(feature = "contract-support")]
 pub fn make_dictionary_item_key<T: CLTyped + ToBytes, V: CLTyped + ToBytes>(
     key: &T,
     value: &V,
