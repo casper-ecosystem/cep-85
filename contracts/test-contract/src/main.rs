@@ -21,9 +21,9 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    addressable_entity::EntityKindTag, bytesrepr::Bytes, runtime_args, system::auction::ARG_AMOUNT,
-    ApiError, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointPayment,
-    EntryPointType, EntryPoints, Key, Parameter, U256,
+    bytesrepr::Bytes, runtime_args, system::auction::ARG_AMOUNT, ApiError, CLType, CLTyped,
+    CLValue, EntryPoint, EntryPointAccess, EntryPointPayment, EntryPointType, EntryPoints, Key,
+    Parameter, U256,
 };
 use cep85::{
     constants::{
@@ -93,7 +93,7 @@ pub extern "C" fn burn() {
         ARG_ID => id,
         ARG_AMOUNT => amount,
     };
-    call_contract::<()>(token_contract, ENTRY_POINT_BURN, burn_args);
+    call_contract::<()>(token_contract.into(), ENTRY_POINT_BURN, burn_args);
 }
 
 #[no_mangle]
@@ -107,7 +107,11 @@ pub extern "C" fn batch_burn() {
         ARG_IDS => ids,
         ARG_AMOUNTS => amounts,
     };
-    call_contract::<()>(token_contract, ENTRY_POINT_BATCH_BURN, batch_burn_args);
+    call_contract::<()>(
+        token_contract.into(),
+        ENTRY_POINT_BATCH_BURN,
+        batch_burn_args,
+    );
 }
 
 #[no_mangle]
@@ -119,7 +123,8 @@ pub extern "C" fn check_balance_of() {
         ARG_ACCOUNT => account,
         ARG_ID => id,
     };
-    let result: Option<U256> = call_contract(token_contract, ENTRY_POINT_BALANCE_OF, balance_args);
+    let result: Option<U256> =
+        call_contract(token_contract.into(), ENTRY_POINT_BALANCE_OF, balance_args);
     store_result(result);
 }
 
@@ -133,7 +138,7 @@ pub extern "C" fn check_balance_of_batch() {
         ARG_IDS => ids,
     };
     let result: Vec<Option<U256>> = call_contract(
-        token_contract,
+        token_contract.into(),
         ENTRY_POINT_BALANCE_OF_BATCH,
         balance_of_batch_args,
     );
@@ -150,7 +155,7 @@ pub extern "C" fn check_is_approved_for_all() {
         ARG_OPERATOR => operator,
     };
     let result: bool = call_contract(
-        token_contract,
+        token_contract.into(),
         ENTRY_POINT_IS_APPROVED_FOR_ALL,
         is_approved_for_all_args,
     );
@@ -177,7 +182,7 @@ pub extern "C" fn check_transfer_from() {
         let _ = transfer_from_args.insert(ARG_DATA, data);
     }
     call_contract::<()>(
-        token_contract,
+        token_contract.into(),
         ENTRY_POINT_TRANSFER_FROM,
         transfer_from_args,
     );
@@ -204,7 +209,7 @@ pub extern "C" fn check_batch_transfer_from() {
     }
 
     call_contract::<()>(
-        token_contract,
+        token_contract.into(),
         ENTRY_POINT_BATCH_TRANSFER_FROM,
         batch_transfer_from_args,
     );
@@ -217,8 +222,11 @@ pub extern "C" fn check_supply_of() {
     let check_supply_of_args = runtime_args! {
         ARG_ID => id,
     };
-    let result: Option<U256> =
-        call_contract(token_contract, ENTRY_POINT_SUPPLY_OF, check_supply_of_args);
+    let result: Option<U256> = call_contract(
+        token_contract.into(),
+        ENTRY_POINT_SUPPLY_OF,
+        check_supply_of_args,
+    );
     store_result(result);
 }
 
@@ -230,7 +238,7 @@ pub extern "C" fn check_supply_of_batch() {
         ARG_IDS => ids,
     };
     let result = call_contract::<Vec<Option<U256>>>(
-        token_contract,
+        token_contract.into(),
         ENTRY_POINT_SUPPLY_OF_BATCH,
         check_supply_of_batch_args,
     );
@@ -245,7 +253,7 @@ pub extern "C" fn check_total_supply_of() {
         ARG_ID => id,
     };
     let result: Option<U256> = call_contract(
-        token_contract,
+        token_contract.into(),
         ENTRY_POINT_TOTAL_SUPPLY_OF,
         check_total_supply_of_args,
     );
@@ -260,7 +268,7 @@ pub extern "C" fn check_total_supply_of_batch() {
         ARG_IDS => ids,
     };
     let result = call_contract::<Vec<Option<U256>>>(
-        token_contract,
+        token_contract.into(),
         ENTRY_POINT_TOTAL_SUPPLY_OF_BATCH,
         check_total_supply_of_batch_args,
     );
@@ -278,7 +286,8 @@ pub extern "C" fn check_uri() {
     } else {
         runtime_args! {}
     };
-    let result: Option<String> = call_contract(token_contract, ENTRY_POINT_URI, check_uri_args);
+    let result: Option<String> =
+        call_contract(token_contract.into(), ENTRY_POINT_URI, check_uri_args);
     store_result(result);
 }
 
@@ -292,7 +301,7 @@ pub extern "C" fn check_is_non_fungible() {
     };
 
     let is_non_fungible_result: Option<bool> = call_contract(
-        token_contract,
+        token_contract.into(),
         ENTRY_POINT_IS_NON_FUNGIBLE,
         is_non_fungible_args,
     );
@@ -309,7 +318,7 @@ pub extern "C" fn check_total_fungible_supply() {
     };
 
     let total_fungible_supply_result: Option<U256> = call_contract(
-        token_contract,
+        token_contract.into(),
         ENTRY_POINT_TOTAL_FUNGIBLE_SUPPLY,
         total_fungible_supply_args,
     );
@@ -532,8 +541,7 @@ pub extern "C" fn call() {
         None,
     );
 
-    let contract_hash_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, contract_hash);
+    let contract_hash_key = Key::contract_entity_key(contract_hash.into());
 
     put_key(CEP85_TEST_CONTRACT_NAME, contract_hash_key);
 

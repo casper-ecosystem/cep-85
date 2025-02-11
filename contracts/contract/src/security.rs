@@ -14,7 +14,7 @@ use casper_types::{
 use crate::{
     constants::DICT_SECURITY_BADGES,
     error::Cep85Error,
-    utils::{get_dictionary_value_from_key, get_verified_caller, set_dictionary_value_for_key},
+    utils::{get_dictionary_value_from_key, get_immediate_caller, set_dictionary_value_for_key},
 };
 
 #[repr(u8)]
@@ -61,7 +61,7 @@ impl FromBytes for SecurityBadge {
 
 #[cfg(feature = "contract-support")]
 pub fn sec_check(allowed_badge_list: Vec<SecurityBadge>) {
-    let (caller, caller_package) = get_verified_caller();
+    let (caller, caller_package) = get_immediate_caller();
     let caller_badge = get_security_badge(&caller);
     let package_badge = caller_package.and_then(|package| get_security_badge(&package));
 

@@ -43,7 +43,7 @@ pub fn transfer_balance(sender: &Key, recipient: &Key, id: &U256, amount: &U256)
         runtime::revert(Cep85Error::SelfTransfer);
     }
 
-    let is_recipient_account = matches!(recipient.as_entity_addr(), Some(EntityAddr::Account(_)));
+    let is_recipient_account = matches!(recipient.into_entity_addr(), Some(EntityAddr::Account(_)));
 
     // Check if the recipient is a an account or a package
     if !is_recipient_account && (*recipient).into_package_hash().is_none() {

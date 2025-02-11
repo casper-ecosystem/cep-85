@@ -26,8 +26,8 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    addressable_entity::NamedKeys, bytesrepr::Bytes, contract_messages::MessageTopicOperation,
-    runtime_args, AddressableEntityHash, CLValue, EntityAddr, Key, RuntimeArgs, U256,
+    bytesrepr::Bytes, contract_messages::MessageTopicOperation, runtime_args,
+    AddressableEntityHash, CLValue, EntityAddr, Key, NamedKeys, RuntimeArgs, U256,
 };
 use cep85::{
     balances::{batch_transfer_balance, read_balance_from, transfer_balance, write_balance_to},
@@ -55,9 +55,9 @@ use cep85::{
     supply::{read_supply_of, read_total_supply_of, write_supply_of, write_total_supply_of},
     uri::{read_uri_of, write_uri_of},
     utils::{
-        get_named_arg_with_user_errors, get_optional_named_arg_with_user_errors,
-        get_stored_value_with_user_errors, get_transfer_filter_contract,
-        get_transfer_filter_method, get_verified_caller,
+        get_immediate_caller, get_named_arg_with_user_errors,
+        get_optional_named_arg_with_user_errors, get_stored_value_with_user_errors,
+        get_transfer_filter_contract, get_transfer_filter_method,
         make_dictionary_item_key as utils_make_dictionary_item_key,
     },
 };
@@ -172,7 +172,7 @@ pub extern "C" fn init() {
             .unwrap_or_revert_with(Cep85Error::InvalidAdminList)
             .is_empty()
     {
-        badge_map.insert(get_verified_caller().0, SecurityBadge::Admin);
+        badge_map.insert(get_immediate_caller().0, SecurityBadge::Admin);
     } else if let Some(admin_list) = admin_list {
         for account_key in admin_list {
             badge_map.insert(account_key, SecurityBadge::Admin);
@@ -298,7 +298,7 @@ pub extern "C" fn set_approval_for_all() {
     )
     .unwrap_or_revert();
 
-    let (caller, caller_package) = get_verified_caller();
+    let (caller, caller_package) = get_immediate_caller();
 
     // If caller tries to approve itself as operator that's probably a mistake and we revert.
     let is_self_approval: bool = match caller_package {
@@ -334,7 +334,7 @@ pub extern "C" fn transfer_from() {
         get_named_arg_with_user_errors(ARG_FROM, Cep85Error::MissingFrom, Cep85Error::InvalidFrom)
             .unwrap_or_revert();
 
-    let (caller, caller_package) = get_verified_caller();
+    let (caller, caller_package) = get_immediate_caller();
 
     // Check if the caller is the spender or an operator
     let is_approved: bool = match caller_package {
@@ -410,7 +410,7 @@ pub extern "C" fn batch_transfer_from() {
         get_named_arg_with_user_errors(ARG_FROM, Cep85Error::MissingFrom, Cep85Error::InvalidFrom)
             .unwrap_or_revert();
 
-    let (caller, caller_package) = get_verified_caller();
+    let (caller, caller_package) = get_immediate_caller();
 
     // Check if the caller is the spender or an operator
     let is_approved: bool = match caller_package {
@@ -601,7 +601,7 @@ pub extern "C" fn burn() {
     )
     .unwrap_or_revert();
 
-    let (caller, caller_package) = get_verified_caller();
+    let (caller, caller_package) = get_immediate_caller();
 
     // Check if the caller is the owner or operator
     let is_approved: bool = match caller_package {
@@ -669,7 +669,7 @@ pub extern "C" fn batch_burn() {
     )
     .unwrap_or_revert();
 
-    let (caller, caller_package) = get_verified_caller();
+    let (caller, caller_package) = get_immediate_caller();
 
     // Check if the caller is the owner or operator
     let is_approved: bool = match caller_package {
@@ -991,7 +991,7 @@ pub extern "C" fn change_security() {
         }
     }
 
-    let (caller, _) = get_verified_caller();
+    let (caller, _) = get_immediate_caller();
     badge_map.remove(&caller);
 
     change_sec_badge(&badge_map);
@@ -1194,7 +1194,8 @@ fn upgrade_contract(name: &str, contract_package_hash: Key) {
     let (contract_hash, contract_version) = storage::add_contract_version(
         contract_package_hash
             .into_package_hash()
-            .unwrap_or_revert_with(Cep85Error::InvalidPackageHash),
+            .unwrap_or_revert_with(Cep85Error::InvalidPackageHash)
+            .into(),
         generate_entry_points(),
         NamedKeys::new(),
         BTreeMap::new(),
@@ -1251,7 +1252,7 @@ fn before_token_transfer(
                 .unwrap_or_revert_with(Cep85Error::FailedToCreateArg);
 
             let result: TransferFilterContractResult =
-                call_contract::<u8>(filter_contract, &filter_method, args).into();
+                call_contract::<u8>(filter_contract.into(), &filter_method, args).into();
 
             if TransferFilterContractResult::DenyTransfer == result {
                 revert(Cep85Error::TransferFilterContractDenied);

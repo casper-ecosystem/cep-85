@@ -4,7 +4,7 @@ use crate::{
     error::Cep85Error,
 };
 #[cfg(feature = "contract-support")]
-use alloc::{borrow::ToOwned, string::ToString, vec, vec::Vec};
+use alloc::{borrow::ToOwned, vec, vec::Vec};
 use alloc::{format, string::String};
 #[cfg(feature = "contract-support")]
 use casper_contract::{
@@ -17,34 +17,85 @@ use casper_types::U256;
 use casper_types::{
     api_error,
     bytesrepr::{self, FromBytes, ToBytes},
-    system::Caller,
+    system::CallStackElement,
     AddressableEntityHash, ApiError, CLTyped, Key, URef,
 };
 #[cfg(feature = "contract-support")]
 use core::{convert::TryInto, mem::MaybeUninit};
 
 #[cfg(feature = "contract-support")]
-pub fn get_verified_caller() -> (Key, Option<Key>) {
-    use casper_types::EntityAddr;
+// TODO CHECK *runtime::get_call_stack()
+/// ! TODO GR
+fn read_host_buffer(size: usize) -> Result<Vec<u8>, ApiError> {
+    let mut dest: Vec<u8> = if size == 0 {
+        Vec::new()
+    } else {
+        let bytes_non_null_ptr = contract_api::alloc_bytes(size);
+        unsafe { Vec::from_raw_parts(bytes_non_null_ptr.as_ptr(), size, size) }
+    };
+    read_host_buffer_into(&mut dest)?;
+    Ok(dest)
+}
 
-    let get_verified_caller: Caller = *runtime::get_call_stack()
+#[cfg(feature = "contract-support")]
+// TODO CHECK *runtime::get_call_stack()
+/// ! TODO GR
+fn read_host_buffer_into(dest: &mut [u8]) -> Result<usize, ApiError> {
+    let mut bytes_written = MaybeUninit::uninit();
+    let ret = unsafe {
+        ext_ffi::casper_read_host_buffer(dest.as_mut_ptr(), dest.len(), bytes_written.as_mut_ptr())
+    };
+    // NOTE: When rewriting below expression as `result_from(ret).map(|_| unsafe { ... })`, and the
+    // caller ignores the return value, execution of the contract becomes unstable and ultimately
+    // leads to `Unreachable` error.
+    api_error::result_from(ret)?;
+    Ok(unsafe { bytes_written.assume_init() })
+}
+
+#[cfg(feature = "contract-support")]
+// TODO CHECK *runtime::get_call_stack()
+/// ! TODO GR
+pub fn get_call_stack() -> Vec<CallStackElement> {
+    let (call_stack_len, result_size) = {
+        let mut call_stack_len: usize = 0;
+        let mut result_size: usize = 0;
+        let ret = unsafe {
+            #[allow(deprecated)]
+            ext_ffi::casper_load_call_stack(
+                &mut call_stack_len as *mut usize,
+                &mut result_size as *mut usize,
+            )
+        };
+        api_error::result_from(ret).unwrap_or_revert();
+        (call_stack_len, result_size)
+    };
+    if call_stack_len == 0 {
+        return Vec::new();
+    }
+    let bytes = read_host_buffer(result_size).unwrap_or_revert();
+    bytesrepr::deserialize(bytes).unwrap_or_revert()
+}
+
+#[cfg(feature = "contract-support")]
+// CHECK *runtime::get_call_stack() // get_immediate_caller() CallerInfo into Key (Caller ?)
+/// ! TODO GR
+pub fn get_immediate_caller() -> (Key, Option<Key>) {
+    match *get_call_stack()
         .iter()
         .nth_back(1)
         .to_owned()
-        .unwrap_or_revert_with(Cep85Error::InvalidContext);
-
-    match get_verified_caller {
-        Caller::Initiator { account_hash } => (
-            Key::AddressableEntity(EntityAddr::Account(account_hash.value())),
-            None,
-        ),
-        Caller::Entity {
-            package_hash,
-            entity_hash,
-        } => (
-            Key::AddressableEntity(EntityAddr::SmartContract(entity_hash.value())),
-            Some(package_hash.into()),
-        ),
+        .unwrap_or_revert()
+    {
+        CallStackElement::Session { account_hash } => (Key::from(account_hash), None),
+        CallStackElement::StoredSession {
+            account_hash: _, // Caller is contract
+            contract_package_hash,
+            contract_hash,
+        } => (contract_hash.into(), Some(contract_package_hash.into())),
+        CallStackElement::StoredContract {
+            contract_package_hash,
+            contract_hash,
+        } => (contract_hash.into(), Some(contract_package_hash.into())),
     }
 }
 
@@ -246,31 +297,6 @@ fn read_with_user_errors<T: CLTyped + FromBytes>(
     let value_bytes = read_host_buffer(value_size).unwrap_or_revert();
 
     bytesrepr::deserialize(value_bytes).unwrap_or_revert_with(invalid)
-}
-
-#[cfg(feature = "contract-support")]
-fn read_host_buffer(size: usize) -> Result<Vec<u8>, ApiError> {
-    let mut dest: Vec<u8> = if size == 0 {
-        Vec::new()
-    } else {
-        let bytes_non_null_ptr = contract_api::alloc_bytes(size);
-        unsafe { Vec::from_raw_parts(bytes_non_null_ptr.as_ptr(), size, size) }
-    };
-    read_host_buffer_into(&mut dest)?;
-    Ok(dest)
-}
-
-#[cfg(feature = "contract-support")]
-fn read_host_buffer_into(dest: &mut [u8]) -> Result<usize, ApiError> {
-    let mut bytes_written = MaybeUninit::uninit();
-    let ret = unsafe {
-        ext_ffi::casper_read_host_buffer(dest.as_mut_ptr(), dest.len(), bytes_written.as_mut_ptr())
-    };
-    // NOTE: When rewriting below expression as `result_from(ret).map(|_| unsafe { ... })`, and the
-    // caller ignores the return value, execution of the contract becomes unstable and ultimately
-    // leads to `Unreachable` error.
-    api_error::result_from(ret)?;
-    Ok(unsafe { bytes_written.assume_init() })
 }
 
 #[cfg(feature = "contract-support")]

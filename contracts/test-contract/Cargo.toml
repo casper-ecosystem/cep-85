@@ -1,6 +1,6 @@
 [package]
 name = "cep85-test-contract"
-version = "2.0.0"
+version.workspace = true
 edition.workspace = true
 homepage.workspace = true
 license-file.workspace = true
@@ -8,9 +8,9 @@ readme.workspace = true
 repository.workspace = true
 
 [dependencies]
-cep85 = { path = "../cep85", default-features = false }
-casper-contract = { git = "https://github.com/casper-network/casper-node.git", branch = "release-2.0.0-rc3", default-features = false, optional = true }
+cep85 = { path = "../contract" }
 casper-types.workspace = true
+casper-contract = { workspace = true }
 
 [[bin]]
 name = "cep85_test_contract"
@@ -20,4 +20,4 @@ doctest = false
 test = false
 
 [features]
-default = ["cep85/contract-support", "casper-contract/no-std-helpers"]
+default = ["cep85/contract-support"]

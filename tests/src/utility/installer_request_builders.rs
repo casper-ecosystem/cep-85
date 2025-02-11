@@ -646,7 +646,7 @@ pub fn cep85_transfer_from<'a>(
                 }
             }
         },
-        Key::Package(hash_addr) => {
+        Key::SmartContract(hash_addr) => {
             if call_package {
                 let contract_package_hash = PackageHash::new(*hash_addr);
                 ExecuteRequestBuilder::versioned_contract_call_by_hash(
@@ -805,7 +805,7 @@ pub fn cep85_batch_transfer_from<'a>(
                 }
             }
         },
-        Key::Package(hash_addr) => {
+        Key::SmartContract(hash_addr) => {
             if call_package {
                 let contract_package_hash = PackageHash::from(*hash_addr);
                 ExecuteRequestBuilder::versioned_contract_call_by_hash(

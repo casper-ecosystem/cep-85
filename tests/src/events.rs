@@ -197,7 +197,6 @@ fn should_record_events_in_native_events_mode() {
         mut builder,
         TestContext {
             cep85_contract_hash,
-            cep85_contract_key,
             cep85_test_contract_package,
             ..
         },
@@ -205,11 +204,11 @@ fn should_record_events_in_native_events_mode() {
         ARG_EVENTS_MODE => EventsMode::Native as u8,
     });
 
-    let binding = builder.query(None, cep85_contract_key, &[]).unwrap();
-    let entity = binding.as_addressable_entity().unwrap();
+    let binding = builder
+        .message_topics(None, cep85_contract_hash.value())
+        .unwrap();
 
-    let (topic_name, message_topic_hash) = entity
-        .message_topics()
+    let (topic_name, message_topic_hash) = binding
         .iter()
         .next()
         .expect("should have at least one topic");
@@ -247,7 +246,7 @@ fn should_record_events_in_native_events_mode() {
     let binding = builder
         .query(
             None,
-            Key::message_topic(entity.entity_addr(cep85_contract_hash), *message_topic_hash),
+            Key::message_topic(cep85_contract_hash.value(), *message_topic_hash),
             &[],
         )
         .unwrap();
@@ -264,7 +263,7 @@ fn should_record_events_in_native_events_mode() {
 
     let mint_message = &format!("Mint(Mint {{ id: 1, recipient: Key::AddressableEntity(account-{account_user_1_account_hash}), amount: 1 }})");
     let mint_message = Message::new(
-        entity.entity_addr(cep85_contract_hash),
+        cep85_contract_hash.value(),
         mint_message.into(),
         EVENTS.to_string(),
         *message_topic_hash,
@@ -274,7 +273,7 @@ fn should_record_events_in_native_events_mode() {
 
     let uri_message = &format!("Uri(Uri {{ value: \"{TOKEN_URI}\", id: Some({id}) }})");
     let uri_message = Message::new(
-        entity.entity_addr(cep85_contract_hash),
+        cep85_contract_hash.value(),
         uri_message.into(),
         EVENTS.to_string(),
         *message_topic_hash,
@@ -293,7 +292,6 @@ fn should_record_events_in_native_and_ces_events_mode() {
         mut builder,
         TestContext {
             cep85_contract_hash,
-            cep85_contract_key,
             cep85_test_contract_package,
             ..
         },
@@ -301,11 +299,11 @@ fn should_record_events_in_native_and_ces_events_mode() {
         ARG_EVENTS_MODE => EventsMode::NativeNCES as u8,
     });
 
-    let binding = builder.query(None, cep85_contract_key, &[]).unwrap();
-    let entity = binding.as_addressable_entity().unwrap();
+    let binding = builder
+        .message_topics(None, cep85_contract_hash.value())
+        .unwrap();
 
-    let (topic_name, message_topic_hash) = entity
-        .message_topics()
+    let (topic_name, message_topic_hash) = binding
         .iter()
         .next()
         .expect("should have at least one topic");
@@ -343,7 +341,7 @@ fn should_record_events_in_native_and_ces_events_mode() {
     let binding = builder
         .query(
             None,
-            Key::message_topic(entity.entity_addr(cep85_contract_hash), *message_topic_hash),
+            Key::message_topic(cep85_contract_hash.value(), *message_topic_hash),
             &[],
         )
         .unwrap();
@@ -360,7 +358,7 @@ fn should_record_events_in_native_and_ces_events_mode() {
     let messages = exec_result.messages();
     let mint_message = &format!("Mint(Mint {{ id: 1, recipient: Key::AddressableEntity(account-{account_user_1_account_hash}), amount: 1 }})");
     let mint_message = Message::new(
-        entity.entity_addr(cep85_contract_hash),
+        cep85_contract_hash.value(),
         mint_message.into(),
         EVENTS.to_string(),
         *message_topic_hash,
@@ -370,7 +368,7 @@ fn should_record_events_in_native_and_ces_events_mode() {
 
     let uri_message = &format!("Uri(Uri {{ value: \"{TOKEN_URI}\", id: Some({id}) }})");
     let uri_message = Message::new(
-        entity.entity_addr(cep85_contract_hash),
+        cep85_contract_hash.value(),
         uri_message.into(),
         EVENTS.to_string(),
         *message_topic_hash,

@@ -1,0 +1,30 @@
+[package]
+name = "cep85"
+version.workspace = true
+edition.workspace = true
+description.workspace = true
+homepage.workspace = true
+license-file.workspace = true
+readme.workspace = true
+repository.workspace = true
+
+[dependencies]
+casper-types.workspace = true
+casper-contract = { workspace = true, optional = true }
+casper-event-standard = { workspace = true, default-features = false }
+hex = { version = "*", default-features = false }
+
+[[bin]]
+name = "cep85"
+path = "src/main.rs"
+bench = false
+doctest = false
+test = false
+
+[lib]
+name = "cep85"
+path = "src/lib.rs"
+
+[features]
+default = ["contract-support"]
+contract-support = ["dep:casper-contract"]

@@ -1,0 +1,18 @@
+[package]
+name = "cep85-make-dictionary-item-key"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+cep85 = { path = "../../contract", default-features = false, features = [
+  "contract-support",
+] }
+casper-types.workspace = true
+casper-contract.workspace = true
+
+[[bin]]
+name = "cep85_make_dictionary_item_key"
+path = "src/main.rs"
+bench = false
+doctest = false
+test = false

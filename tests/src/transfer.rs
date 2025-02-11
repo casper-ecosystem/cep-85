@@ -924,7 +924,7 @@ fn should_transfer_account_to_contract_package() {
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let from = account_user_1_key;
     let minting_recipient = from;
-    let to = Key::Package(cep85_test_contract_package.value());
+    let to = Key::SmartContract(cep85_test_contract_package.value());
     let mint_amount = U256::one();
     let id = U256::one();
     let transfer_amount = U256::one();
@@ -1000,7 +1000,7 @@ fn should_batch_transfer_account_to_contract_package() {
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
     let from = account_user_1_key;
     let minting_recipient = from;
-    let to = Key::Package(cep85_test_contract_package.value());
+    let to = Key::SmartContract(cep85_test_contract_package.value());
     let data = Some(Bytes::from("Casper Labs free bytes".as_bytes()));
     let recipients = vec![from, from, to, to];
     let expected_balances_before: Vec<U256> =
@@ -1166,7 +1166,7 @@ fn should_batch_transfer_contract_package_to_contract() {
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
 
-    let from = Key::Package(cep85_test_contract_package.value());
+    let from = Key::SmartContract(cep85_test_contract_package.value());
 
     let minting_recipient = cep85_test_contract_key;
     let to = Key::AddressableEntity(EntityAddr::SmartContract([42; 32]));
@@ -1709,7 +1709,7 @@ fn should_transfer_account_to_contract_package_to_account() {
     assert_eq!(actual_balance_before, expected_balance_before);
 
     let from = minting_recipient;
-    let to = Key::Package(cep85_test_contract_package.value());
+    let to = Key::SmartContract(cep85_test_contract_package.value());
     let transfer_amount = U256::one();
 
     let transfer_call = cep85_transfer_from(
@@ -1740,7 +1740,7 @@ fn should_transfer_account_to_contract_package_to_account() {
     assert_eq!(actual_balance_to, expected_balance_to);
 
     // Let's check package can transfer
-    let from = Key::Package(cep85_test_contract_package.value());
+    let from = Key::SmartContract(cep85_test_contract_package.value());
     let to = account_user_2_key;
 
     let transfer_call = cep85_transfer_from(

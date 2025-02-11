@@ -1,52 +1,69 @@
-ALL_CONTRACTS = cep85 cep85-test-contract
-TARGET_DIR = $(CURDIR)/target
-CONTRACT_TARGET_DIR = $(TARGET_DIR)/wasm32-unknown-unknown/release
 PINNED_TOOLCHAIN := $(shell cat contracts/rust-toolchain)
-
-export CARGO_TARGET_DIR=$(TARGET_DIR)
+WASM_TARGET_DIR := ./target/wasm32-unknown-unknown/release
+WASM_OUTPUT_DIR := tests/wasm
+WASM_FILES := cep85.wasm cep85_test_contract.wasm
+RUSTFLAGS := -C target-cpu=mvp
+CARGO_BUILD_FLAGS := -Z build-std=std,panic_abort
 
 prepare:
+	rustup install $(PINNED_TOOLCHAIN)
 	rustup target add wasm32-unknown-unknown
-	rustup component add clippy --toolchain ${PINNED_TOOLCHAIN}
-	rustup component add rustfmt --toolchain ${PINNED_TOOLCHAIN}
-	rustup component add rust-src --toolchain ${PINNED_TOOLCHAIN}
+	rustup component add clippy --toolchain $(PINNED_TOOLCHAIN)
+	rustup component add rustfmt --toolchain $(PINNED_TOOLCHAIN)
+	rustup component add rust-src --toolchain $(PINNED_TOOLCHAIN)
 
-.PHONY:	build-contract
+.PHONY: build-contract
 build-contract:
-	cd contracts/cep85 && RUSTFLAGS="-C target-cpu=mvp" cargo build --release --target wasm32-unknown-unknown -Z build-std=std,panic_abort
-	wasm-strip $(CONTRACT_TARGET_DIR)/cep85.wasm
+	RUSTFLAGS="$(RUSTFLAGS)" cargo +$(PINNED_TOOLCHAIN) build --release --target wasm32-unknown-unknown $(CARGO_BUILD_FLAGS) -p cep85
+	wasm-strip $(WASM_TARGET_DIR)/$(word 1, $(WASM_FILES))
 
-.PHONY:	build-all-contracts
-build-all-contracts:
-	cd contracts && RUSTFLAGS="-C target-cpu=mvp" cargo build --release --target wasm32-unknown-unknown $(patsubst %,-p %, $(ALL_CONTRACTS)) -Z build-std=std,panic_abort
-	$(foreach WASM, $(ALL_CONTRACTS), wasm-strip $(CONTRACT_TARGET_DIR)/$(subst -,_,$(WASM)).wasm ;)
-	cd client/make_dictionary_item_key && RUSTFLAGS="-C target-cpu=mvp" cargo build --release --target wasm32-unknown-unknown -Z build-std=std,panic_abort
-	wasm-strip $(CONTRACT_TARGET_DIR)/cep85_make_dictionary_item_key.wasm
+.PHONY: build-all-contracts
+build-all-contracts: build-contract
+	RUSTFLAGS="$(RUSTFLAGS)" cargo +$(PINNED_TOOLCHAIN) build --release --target wasm32-unknown-unknown $(CARGO_BUILD_FLAGS) -p cep85-test-contract
+	wasm-strip $(WASM_TARGET_DIR)/$(word 2, $(WASM_FILES))
 
-setup-test: build-all-contracts
-	mkdir -p tests/wasm
-	cp $(CONTRACT_TARGET_DIR)/cep85.wasm tests/wasm
-	cp $(CONTRACT_TARGET_DIR)/cep85_test_contract.wasm tests/wasm
-	cp $(CONTRACT_TARGET_DIR)/cep85_make_dictionary_item_key.wasm tests/wasm
+.PHONY: setup-test
+setup-test: build-all-contracts copy-wasm
+
+.PHONY: copy-wasm
+copy-wasm:
+	mkdir -p $(WASM_OUTPUT_DIR)
+	cp $(addprefix $(WASM_TARGET_DIR)/, $(WASM_FILES)) $(WASM_OUTPUT_DIR)
+
+native-test: setup-test
+	cargo test -p tests --lib should_transfer_account_to_account
 
 test: setup-test
-	cd tests && cargo test
+	cargo test -p tests --lib
 
 clippy:
-	cd contracts && cargo clippy --bins -- -D warnings
-	cd contracts && cargo clippy --lib -- -D warnings
-	cd contracts && cargo clippy --lib --no-default-features -- -D warnings
-	cd tests && cargo clippy --all-targets -- -D warnings
-
-check-lint: clippy
-	cd contracts && cargo fmt -- --check
-	cd tests && cargo fmt -- --check
+	cargo +$(PINNED_TOOLCHAIN) clippy --release -p cep85 --bins --target wasm32-unknown-unknown $(CARGO_BUILD_FLAGS) -- -D warnings
+	cargo +$(PINNED_TOOLCHAIN) clippy --release -p cep85 --lib --target wasm32-unknown-unknown $(CARGO_BUILD_FLAGS) -- -D warnings
+	cargo +$(PINNED_TOOLCHAIN) clippy --release -p cep85 --lib --target wasm32-unknown-unknown $(CARGO_BUILD_FLAGS) --no-default-features -- -D warnings
+	cargo +$(PINNED_TOOLCHAIN) clippy -p cep85-test-contract --bins --target wasm32-unknown-unknown $(CARGO_BUILD_FLAGS) -- -D warnings
+	cargo clippy -p tests --all-targets -- -D warnings
 
 format:
-	cd contracts && cargo fmt
-	cd tests && cargo fmt
+	cargo +$(PINNED_TOOLCHAIN) fmt -p cep85
+	cargo +$(PINNED_TOOLCHAIN) fmt -p cep85-test-contract
+	cargo fmt -p tests
+
+check-lint: clippy
+	cargo +$(PINNED_TOOLCHAIN) fmt -p cep85
+	cargo +$(PINNED_TOOLCHAIN) fmt -p cep85-test-contract
+	cargo fmt -p tests -- --check
+
+lint: clippy format
 
 clean:
-	cd contracts && cargo clean
-	cd tests && cargo clean
-	rm -rf tests/wasm
+	cargo clean -p cep85
+	cargo clean -p cep85-test-contract
+	cargo clean -p tests
+	rm -rf $(WASM_OUTPUT_DIR)
+	rm -rf ./*/Cargo.lock
+
+.PHONY: cargo-update
+cargo-update:
+	cargo update -p cep85
+	cargo update -p cep85-test-contract
+	cargo update -p tests
