@@ -55,7 +55,7 @@ use cep85::{
     supply::{read_supply_of, read_total_supply_of, write_supply_of, write_total_supply_of},
     uri::{read_uri_of, write_uri_of},
     utils::{
-        get_immediate_caller, get_named_arg_with_user_errors,
+        get_contract_version_key, get_immediate_caller, get_named_arg_with_user_errors,
         get_optional_named_arg_with_user_errors, get_stored_value_with_user_errors,
         get_transfer_filter_contract, get_transfer_filter_method,
         make_dictionary_item_key as utils_make_dictionary_item_key,
@@ -1137,7 +1137,7 @@ fn install_contract() {
     runtime::put_key(&format!("{PREFIX_CONTRACT_NAME}_{name}"), contract_hash_key);
     runtime::put_key(
         &format!("{PREFIX_CONTRACT_VERSION}_{name}"),
-        storage::new_uref(contract_version).into(),
+        storage::new_uref(get_contract_version_key(contract_version).to_string()).into(),
     );
 
     let package_hash_key = runtime::get_key(&package_key_name).unwrap_or_revert();
@@ -1207,7 +1207,7 @@ fn upgrade_contract(name: &str, contract_package_hash: Key) {
     runtime::put_key(&format!("{PREFIX_CONTRACT_NAME}_{name}"), contract_hash_key);
     runtime::put_key(
         &format!("{PREFIX_CONTRACT_VERSION}_{name}"),
-        storage::new_uref(contract_version).into(),
+        storage::new_uref(get_contract_version_key(contract_version).to_string()).into(),
     );
 
     let runtime_args = runtime_args! {

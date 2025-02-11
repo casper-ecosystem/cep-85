@@ -38,10 +38,27 @@ fn should_upgrade_and_update_account_contract_contexts() {
         .as_cl_value()
         .unwrap()
         .to_owned()
-        .into_t::<u32>()
+        .into_t::<String>()
         .unwrap();
 
-    assert_eq!(cep85_contract_hash_contract_version, 1_u32);
+    // Split into major and minor parts
+    let parts: Vec<&str> = cep85_contract_hash_contract_version.split('.').collect();
+
+    // Parse the major and minor components
+    let version_1_major: u32 = parts
+        .first()
+        .expect("Failed to get the major version")
+        .parse()
+        .expect("Failed to parse the major version as u32");
+
+    let version_1_minor: u32 = parts
+        .get(1)
+        .unwrap_or(&"0") // Default to "0" if no minor version exists
+        .parse()
+        .expect("Failed to parse the minor version as u32");
+
+    assert_eq!(version_1_major, 2_u32);
+    assert_eq!(version_1_minor, 1_u32);
 
     let contract_hash_on_install: AddressableEntityHash = contract
         .named_keys()
@@ -102,10 +119,27 @@ fn should_upgrade_and_update_account_contract_contexts() {
         .as_cl_value()
         .unwrap()
         .to_owned()
-        .into_t::<u32>()
+        .into_t::<String>()
         .unwrap();
 
-    assert_eq!(cep85_contract_hash_contract_version, 2_u32);
+    // Split into major and minor parts
+    let parts: Vec<&str> = cep85_contract_hash_contract_version.split('.').collect();
+
+    // Parse the major and minor components
+    let version_2_major: u32 = parts
+        .first()
+        .expect("Failed to get the major version")
+        .parse()
+        .expect("Failed to parse the major version as u32");
+
+    let version_2_minor: u32 = parts
+        .get(1)
+        .unwrap_or(&"0") // Default to "0" if no minor version exists
+        .parse()
+        .expect("Failed to parse the minor version as u32");
+
+    assert_eq!(version_2_major, 2_u32);
+    assert_eq!(version_2_minor, 2_u32);
 }
 
 #[test]

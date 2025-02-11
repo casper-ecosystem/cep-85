@@ -8,7 +8,11 @@ use alloc::{borrow::ToOwned, vec, vec::Vec};
 use alloc::{format, string::String};
 #[cfg(feature = "contract-support")]
 use casper_contract::{
-    contract_api::{self, runtime, storage},
+    contract_api::{
+        self,
+        runtime::{self, get_protocol_version},
+        storage,
+    },
     ext_ffi,
     unwrap_or_revert::UnwrapOrRevert,
 };
@@ -17,6 +21,7 @@ use casper_types::U256;
 use casper_types::{
     api_error,
     bytesrepr::{self, FromBytes, ToBytes},
+    contracts::ContractVersionKey,
     system::CallStackElement,
     AddressableEntityHash, ApiError, CLTyped, EntityAddr, Key, URef,
 };
@@ -106,6 +111,12 @@ pub fn get_immediate_caller() -> (Key, Option<Key>) {
             Some(Key::SmartContract(contract_package_hash.value())),
         ),
     }
+}
+
+#[cfg(feature = "contract-support")]
+pub fn get_contract_version_key(contract_version: u32) -> ContractVersionKey {
+    let (major, _, _) = get_protocol_version().destructure();
+    ContractVersionKey::new(major, contract_version)
 }
 
 #[cfg(feature = "contract-support")]
