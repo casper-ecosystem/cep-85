@@ -1,7 +1,7 @@
 PINNED_TOOLCHAIN := $(shell cat contracts/rust-toolchain)
 WASM_TARGET_DIR := ./target/wasm32-unknown-unknown/release
 WASM_OUTPUT_DIR := tests/wasm
-WASM_FILES := cep85.wasm cep85_test_contract.wasm
+WASM_FILES := cep85.wasm cep85_test_contract.wasm cep85_make_dictionary_item_key.wasm
 RUSTFLAGS := -C target-cpu=mvp
 CARGO_BUILD_FLAGS := -Z build-std=std,panic_abort
 
@@ -20,6 +20,7 @@ build-contract:
 .PHONY: build-all-contracts
 build-all-contracts: build-contract
 	RUSTFLAGS="$(RUSTFLAGS)" cargo +$(PINNED_TOOLCHAIN) build --release --target wasm32-unknown-unknown $(CARGO_BUILD_FLAGS) -p cep85-test-contract
+	RUSTFLAGS="$(RUSTFLAGS)" cargo +$(PINNED_TOOLCHAIN) build --release --target wasm32-unknown-unknown $(CARGO_BUILD_FLAGS) -p cep85-make-dictionary-item-key
 	wasm-strip $(WASM_TARGET_DIR)/$(word 2, $(WASM_FILES))
 
 .PHONY: setup-test

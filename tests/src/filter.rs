@@ -75,8 +75,7 @@ fn check_transfers_with_transfer_filter_contract() {
         .map(AddressableEntityHash::from)
         .expect("should have contract hash");
 
-    let transfer_filter_contract_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, transfer_filter_contract_hash);
+    let transfer_filter_contract_key = Key::contract_entity_key(transfer_filter_contract_hash);
 
     let install_args = runtime_args! {
         ARG_NAME => TOKEN_NAME,
@@ -134,8 +133,7 @@ fn check_transfers_with_transfer_filter_contract() {
         ENTRY_POINT_TRANSFER_FILTER_METHOD
     );
 
-    let cep85_test_contract_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_contract_hash);
+    let cep85_test_contract_key = Key::contract_entity_key(cep85_contract_hash);
 
     // Update test contract TOKEN_CONTRACT value
     let set_token_contract_request_for_transfer_filter_contract =
@@ -349,8 +347,7 @@ fn should_revert_with_invalid_filter_contract_method() {
         *DEFAULT_ACCOUNT_ADDR,
         CEP85_TEST_CONTRACT_WASM,
         runtime_args! {
-            ARG_TOKEN_CONTRACT => Key::addressable_entity_key(
-                EntityKindTag::SmartContract, AddressableEntityHash::from([0u8; 32])
+            ARG_TOKEN_CONTRACT => Key::contract_entity_key(AddressableEntityHash::from([0u8; 32])
             ),
         },
     )
@@ -372,8 +369,7 @@ fn should_revert_with_invalid_filter_contract_method() {
         .map(AddressableEntityHash::from)
         .expect("should have contract hash");
 
-    let addressable_entity_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, transfer_filter_contract);
+    let addressable_entity_key = Key::contract_entity_key(transfer_filter_contract);
 
     let install_args = runtime_args! {
         ARG_NAME => TOKEN_NAME,
@@ -396,8 +392,7 @@ fn should_revert_with_invalid_filter_contract_method() {
         "should not allow installation with filter contract withtout filter contract method",
     );
 
-    let addressable_entity_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, transfer_filter_contract);
+    let addressable_entity_key = Key::contract_entity_key(transfer_filter_contract);
 
     let install_args = runtime_args! {
         ARG_NAME => TOKEN_NAME,

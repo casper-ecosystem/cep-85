@@ -91,8 +91,7 @@ pub fn setup_with_args(install_args: RuntimeArgs) -> (LmdbWasmTestBuilder, TestC
         .map(AddressableEntityHash::from)
         .expect("should have contract hash");
 
-    let cep85_contract_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_contract_hash);
+    let cep85_contract_key = Key::contract_entity_key(cep85_contract_hash);
 
     let install_request_contract_test = ExecuteRequestBuilder::standard(
         *DEFAULT_ACCOUNT_ADDR,
@@ -119,8 +118,7 @@ pub fn setup_with_args(install_args: RuntimeArgs) -> (LmdbWasmTestBuilder, TestC
         .map(AddressableEntityHash::from)
         .expect("should have contract hash");
 
-    let cep85_test_contract_key =
-        Key::addressable_entity_key(EntityKindTag::SmartContract, cep85_test_contract_hash);
+    let cep85_test_contract_key = Key::contract_entity_key(cep85_test_contract_hash);
 
     let cep85_test_contract_package = account
         .named_keys()

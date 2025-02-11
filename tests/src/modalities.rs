@@ -3,7 +3,7 @@ use crate::utility::{
     support::get_event,
 };
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::runtime_args;
+use casper_types::{contracts::ContractHash, runtime_args, Key};
 use cep85::{
     constants::{ARG_ENABLE_BURN, ARG_EVENTS_MODE},
     events::{ChangeEnableBurnMode, ChangeEventsMode, SetModalities},
@@ -16,7 +16,6 @@ fn should_toggle_enable_burn() {
         mut builder,
         TestContext {
             cep85_contract_hash,
-            cep85_contract_key,
             ..
         },
     ) = setup();
@@ -27,8 +26,15 @@ fn should_toggle_enable_burn() {
     let named_keys = contract.named_keys();
     assert!(named_keys.contains(ARG_ENABLE_BURN), "{:?}", named_keys);
 
+    // TODO GR check why ContractHash in builder.query
+    let cep85_contract_has_as_contract_hash: ContractHash = cep85_contract_hash.into();
+
     let enable_burn: bool = builder
-        .query(None, cep85_contract_key, &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            Key::from(cep85_contract_has_as_contract_hash),
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -43,7 +49,11 @@ fn should_toggle_enable_burn() {
     set_modalities_call.expect_success().commit();
 
     let enable_burn: bool = builder
-        .query(None, cep85_contract_key, &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            Key::from(cep85_contract_has_as_contract_hash),
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -57,7 +67,11 @@ fn should_toggle_enable_burn() {
     set_modalities_call.expect_success().commit();
 
     let enable_burn: bool = builder
-        .query(None, cep85_contract_key, &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            Key::from(cep85_contract_has_as_contract_hash),
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -76,7 +90,11 @@ fn should_toggle_enable_burn() {
     set_modalities_call.expect_success().commit();
 
     let enable_burn: bool = builder
-        .query(None, cep85_contract_key, &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            Key::from(cep85_contract_has_as_contract_hash),
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -92,7 +110,6 @@ fn should_toggle_events_mode() {
         mut builder,
         TestContext {
             cep85_contract_hash,
-            cep85_contract_key,
             ..
         },
     ) = setup();
@@ -103,8 +120,15 @@ fn should_toggle_events_mode() {
     let named_keys = contract.named_keys();
     assert!(named_keys.contains(ARG_EVENTS_MODE), "{:?}", named_keys);
 
+    // TODO GR check why ContractHash in builder.query
+    let cep85_contract_has_as_contract_hash: ContractHash = cep85_contract_hash.into();
+
     let events_mode = builder
-        .query(None, cep85_contract_key, &[ARG_EVENTS_MODE.to_string()])
+        .query(
+            None,
+            Key::from(cep85_contract_has_as_contract_hash),
+            &[ARG_EVENTS_MODE.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -126,7 +150,11 @@ fn should_toggle_events_mode() {
     set_modalities_call.expect_success().commit();
 
     let events_mode = builder
-        .query(None, cep85_contract_key, &[ARG_EVENTS_MODE.to_string()])
+        .query(
+            None,
+            Key::from(cep85_contract_has_as_contract_hash),
+            &[ARG_EVENTS_MODE.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -162,7 +190,11 @@ fn should_toggle_events_mode() {
     set_modalities_call.expect_success().commit();
 
     let events_mode = builder
-        .query(None, cep85_contract_key, &[ARG_EVENTS_MODE.to_string()])
+        .query(
+            None,
+            Key::from(cep85_contract_has_as_contract_hash),
+            &[ARG_EVENTS_MODE.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -193,7 +225,6 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
         mut builder,
         TestContext {
             cep85_contract_hash,
-            cep85_contract_key,
             ..
         },
     ) = setup_with_args(runtime_args! {
@@ -206,8 +237,15 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
     let named_keys = contract.named_keys();
     assert!(named_keys.contains(ARG_ENABLE_BURN), "{:?}", named_keys);
 
+    // TODO GR check why ContractHash in builder.query
+    let cep85_contract_has_as_contract_hash: ContractHash = cep85_contract_hash.into();
+
     let enable_burn: bool = builder
-        .query(None, cep85_contract_key, &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            Key::from(cep85_contract_has_as_contract_hash),
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -223,7 +261,11 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
     set_modalities_call.expect_success().commit();
 
     let enable_burn: bool = builder
-        .query(None, cep85_contract_key, &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            Key::from(cep85_contract_has_as_contract_hash),
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()

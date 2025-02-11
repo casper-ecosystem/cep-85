@@ -18,7 +18,7 @@ use casper_types::{
     api_error,
     bytesrepr::{self, FromBytes, ToBytes},
     system::CallStackElement,
-    AddressableEntityHash, ApiError, CLTyped, Key, URef,
+    AddressableEntityHash, ApiError, CLTyped, EntityAddr, Key, URef,
 };
 #[cfg(feature = "contract-support")]
 use core::{convert::TryInto, mem::MaybeUninit};
@@ -86,16 +86,25 @@ pub fn get_immediate_caller() -> (Key, Option<Key>) {
         .to_owned()
         .unwrap_or_revert()
     {
-        CallStackElement::Session { account_hash } => (Key::from(account_hash), None),
+        CallStackElement::Session { account_hash } => (
+            Key::AddressableEntity(EntityAddr::Account(account_hash.value())),
+            None,
+        ),
         CallStackElement::StoredSession {
             account_hash: _, // Caller is contract
             contract_package_hash,
             contract_hash,
-        } => (contract_hash.into(), Some(contract_package_hash.into())),
+        } => (
+            Key::AddressableEntity(EntityAddr::SmartContract(contract_hash.value())),
+            Some(Key::SmartContract(contract_package_hash.value())),
+        ),
         CallStackElement::StoredContract {
             contract_package_hash,
             contract_hash,
-        } => (contract_hash.into(), Some(contract_package_hash.into())),
+        } => (
+            Key::AddressableEntity(EntityAddr::SmartContract(contract_hash.value())),
+            Some(Key::SmartContract(contract_package_hash.value())),
+        ),
     }
 }
 
