@@ -8,7 +8,6 @@ use casper_engine_test_support::{
 };
 use casper_types::{
     account::AccountHash,
-    addressable_entity::EntityKindTag,
     bytesrepr::{Bytes, FromBytes},
     runtime_args,
     system::mint::{ARG_ID, ARG_TO},
@@ -40,6 +39,8 @@ use cep85_test_contract::constants::{
 #[derive(Clone)]
 pub struct TestContext {
     pub cep85_contract_hash: AddressableEntityHash,
+    // TOOR GR check cep85_contract_key in query.builder
+    #[allow(dead_code)]
     pub cep85_contract_key: Key,
     pub cep85_test_contract_hash: AddressableEntityHash,
     pub cep85_test_contract_key: Key,
