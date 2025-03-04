@@ -16,7 +16,7 @@ use crate::constants::{
 };
 use alloc::{boxed::Box, vec};
 use casper_types::{
-    bytesrepr::Bytes, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointPayment,
+    bytesrepr::Bytes, CLType, CLTyped, EntityEntryPoint as EntryPoint, EntryPointAccess, EntryPointPayment,
     EntryPointType, EntryPoints, Parameter,
 };
 
