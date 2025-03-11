@@ -99,6 +99,7 @@ pub enum Cep85Error {
     FailedToInsertToSecurityList = 86,
     FailedToGetKey = 87,
     InvalidKeyType = 88,
+    FailedToConvertToJson = 89,
 }
 
 impl From<Cep85Error> for ApiError {

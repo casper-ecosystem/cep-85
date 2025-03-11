@@ -7,7 +7,11 @@ use crate::utility::{
 };
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
 use casper_event_standard::{Schemas, EVENTS_DICT, EVENTS_SCHEMA};
-use casper_types::{contract_messages::Message, runtime_args, EntityAddr, Key, U256};
+use casper_types::{
+    bytesrepr::Bytes,
+    contract_messages::{Message, MessagePayload},
+    runtime_args, EntityAddr, Key, U256,
+};
 use cep85::{
     constants::{ARG_EVENTS_MODE, EVENTS},
     events::{
@@ -17,6 +21,7 @@ use cep85::{
     },
     modalities::EventsMode,
 };
+use serde_json::json;
 
 #[test]
 fn should_have_events_schema_in_events_mode() {
@@ -286,7 +291,7 @@ fn should_record_events_in_native_events_mode() {
 }
 
 #[test]
-fn should_record_events_in_native_and_ces_events_mode() {
+fn should_record_events_in_native_bytes_events_mode() {
     let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
     let (
@@ -297,7 +302,7 @@ fn should_record_events_in_native_and_ces_events_mode() {
             ..
         },
     ) = setup_with_args(runtime_args! {
-        ARG_EVENTS_MODE => EventsMode::NativeNCES as u8,
+        ARG_EVENTS_MODE => EventsMode::NativeBytes as u8,
     });
 
     let entity_addr = EntityAddr::SmartContract(cep85_contract_hash.value());
@@ -357,21 +362,35 @@ fn should_record_events_in_native_and_ces_events_mode() {
     // Native events
     let exec_result = builder.get_exec_result_owned(2).unwrap();
     let messages = exec_result.messages();
-    let mint_message = &format!("Mint(Mint {{ id: 1, recipient: Key::AddressableEntity(account-{account_user_1_account_hash}), amount: 1 }})");
+    let mint_message_json = json!({
+        "id": "1",
+        "recipient": format!("entity-account-{account_user_1_account_hash}"),
+        "amount": "1"
+    })
+    .to_string();
+
+    let payload = MessagePayload::Bytes(Bytes::from(mint_message_json.as_bytes()));
+
     let entity_addr = EntityAddr::SmartContract(cep85_contract_hash.value());
     let mint_message = Message::new(
         entity_addr,
-        mint_message.into(),
+        payload,
         EVENTS.to_string(),
         *message_topic_hash,
         0,
         0,
     );
 
-    let uri_message = &format!("Uri(Uri {{ value: \"{TOKEN_URI}\", id: Some({id}) }})");
+    let uri_message_json = json!({
+        "value": TOKEN_URI,
+        "id": "1"
+    })
+    .to_string();
+
+    let payload = MessagePayload::Bytes(Bytes::from(uri_message_json.as_bytes()));
     let uri_message = Message::new(
         entity_addr,
-        uri_message.into(),
+        payload,
         EVENTS.to_string(),
         *message_topic_hash,
         1,
@@ -379,15 +398,4 @@ fn should_record_events_in_native_and_ces_events_mode() {
     );
 
     assert_eq!(messages, &vec![mint_message, uri_message]);
-
-    // CES events
-    // Expect Mint event
-    let expected_event = Mint::new(id, minting_recipient, mint_amount);
-    let actual_event: Mint = get_event(&mut builder, &cep85_contract_hash, 0);
-    assert_eq!(actual_event, expected_event, "Expected Mint event.");
-
-    // Expect Uri event
-    let expected_event = Uri::new(TOKEN_URI.to_string(), Some(id));
-    let actual_event: Uri = get_event(&mut builder, &cep85_contract_hash, 1);
-    assert_eq!(actual_event, expected_event, "Expected Uri event.");
 }

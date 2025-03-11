@@ -11,3 +11,4 @@ cep85-test-contract = { path = "../contracts/test-contract" }
 casper-engine-test-support = { git = "https://github.com/casper-network/casper-node.git", default-features = false }
 casper-execution-engine = { git = "https://github.com/casper-network/casper-node.git", default-features = false }
 casper-storage = { git = "https://github.com/casper-network/casper-node.git", default-features = false }
+serde_json = { version = "*", default-features = false }

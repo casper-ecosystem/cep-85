@@ -14,7 +14,7 @@ pub enum EventsMode {
     NoEvents = 0,
     CES = 1,
     Native = 2,
-    NativeNCES = 3,
+    NativeBytes = 3,
 }
 
 impl TryFrom<u8> for EventsMode {
@@ -25,7 +25,7 @@ impl TryFrom<u8> for EventsMode {
             0 => Ok(EventsMode::NoEvents),
             1 => Ok(EventsMode::CES),
             2 => Ok(EventsMode::Native),
-            3 => Ok(EventsMode::NativeNCES),
+            3 => Ok(EventsMode::NativeBytes),
             _ => Err(Cep85Error::InvalidEventsMode),
         }
     }

@@ -9,6 +9,7 @@ use casper_types::{
     bytesrepr::{self, FromBytes, ToBytes},
     CLTyped,
 };
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "contract-support")]
 use crate::{
@@ -18,7 +19,7 @@ use crate::{
 };
 
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum SecurityBadge {
     Admin = 0,
     Minter = 1,

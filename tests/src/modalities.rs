@@ -290,3 +290,27 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
         "Expected ChangeEnableBurnMode event."
     );
 }
+
+#[test]
+fn should_set_modalities_events_mode_native_to_native_bytes() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
+        },
+    ) = setup_with_args(runtime_args! {
+        ARG_EVENTS_MODE => EventsMode::Native as u8,
+    });
+
+    let owner = *DEFAULT_ACCOUNT_ADDR;
+
+    let set_modalities_call = cep85_set_modalities(
+        &mut builder,
+        &cep85_contract_hash,
+        &owner,
+        None,
+        Some(EventsMode::NativeBytes),
+    );
+    set_modalities_call.expect_success().commit();
+}

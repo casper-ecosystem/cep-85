@@ -20,8 +20,10 @@ use casper_event_standard::Event;
 use casper_types::{bytesrepr::Bytes, Key, U256};
 #[cfg(feature = "contract-support")]
 use contract_support::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
 pub enum Event {
     Mint(Mint),
     MintBatch(MintBatch),
@@ -40,8 +42,19 @@ pub enum Event {
     ChangeEventsMode(ChangeEventsMode),
 }
 
+impl Event {
+    #[cfg(feature = "contract-support")]
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(self)
+            .map_err(|_| Cep85Error::FailedToConvertToJson)
+            .unwrap_or_revert()
+    }
+}
+
 #[cfg(feature = "contract-support")]
 pub fn record_event_dictionary(event: Event) {
+    use casper_types::contract_messages::MessagePayload;
+
     let events_mode: EventsMode = EventsMode::try_from(get_stored_value::<u8>(ARG_EVENTS_MODE))
         .unwrap_or_revert_with(Cep85Error::InvalidEventsMode);
 
@@ -50,15 +63,14 @@ pub fn record_event_dictionary(event: Event) {
         EventsMode::CES => ces(event),
         EventsMode::Native => emit_message(EVENTS, &format!("{event:?}").into())
             .unwrap_or_revert_with(Cep85Error::InvalidEventsMode),
-        EventsMode::NativeNCES => {
-            emit_message(EVENTS, &format!("{event:?}").into())
-                .unwrap_or_revert_with(Cep85Error::InvalidEventsMode);
-            ces(event);
+        EventsMode::NativeBytes => {
+            let payload = MessagePayload::Bytes(Bytes::from(event.to_json().as_bytes()));
+            emit_message(EVENTS, &payload).unwrap_or_revert()
         }
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct Mint {
     pub id: U256,
     pub recipient: Key,
@@ -75,7 +87,7 @@ impl Mint {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct MintBatch {
     pub ids: Vec<U256>,
     pub recipient: Key,
@@ -92,7 +104,7 @@ impl MintBatch {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct Burn {
     pub id: U256,
     pub owner: Key,
@@ -105,7 +117,7 @@ impl Burn {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct BurnBatch {
     pub ids: Vec<U256>,
     pub owner: Key,
@@ -122,7 +134,7 @@ impl BurnBatch {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct ApprovalForAll {
     pub owner: Key,
     pub operator: Key,
@@ -139,7 +151,7 @@ impl ApprovalForAll {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct Transfer {
     pub operator: Key,
     pub from: Key,
@@ -169,7 +181,7 @@ impl Transfer {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct TransferBatch {
     pub operator: Key,
     pub from: Key,
@@ -199,7 +211,7 @@ impl TransferBatch {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct Uri {
     pub value: String,
     pub id: Option<U256>,
@@ -211,7 +223,7 @@ impl Uri {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct UriBatch {
     pub value: String,
     pub ids: Vec<U256>,
@@ -223,7 +235,7 @@ impl UriBatch {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct SetTotalSupply {
     pub id: U256,
     pub total_supply: U256,
@@ -235,7 +247,7 @@ impl SetTotalSupply {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct ChangeSecurity {
     pub admin: Key,
     pub sec_change_map: BTreeMap<Key, SecurityBadge>,
@@ -250,7 +262,7 @@ impl ChangeSecurity {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq, Default)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct SetModalities {}
 
 impl SetModalities {
@@ -259,7 +271,7 @@ impl SetModalities {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq, Default)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct Upgrade {}
 
 impl Upgrade {
@@ -268,7 +280,7 @@ impl Upgrade {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct ChangeEnableBurnMode {
     pub enable_burn: bool,
 }
@@ -279,7 +291,7 @@ impl ChangeEnableBurnMode {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct ChangeEventsMode {
     pub events_mode: u8,
 }
@@ -316,7 +328,7 @@ pub fn init_events() {
     let events_mode = EventsMode::try_from(get_stored_value::<u8>(ARG_EVENTS_MODE))
         .unwrap_or_revert_with(Cep85Error::InvalidEventsMode);
 
-    if [EventsMode::CES, EventsMode::NativeNCES].contains(&events_mode)
+    if [EventsMode::CES].contains(&events_mode)
         && get_key(casper_event_standard::EVENTS_DICT).is_none()
     {
         let schemas = Schemas::new()

@@ -1029,11 +1029,7 @@ pub extern "C" fn set_modalities() {
         {
             EventsMode::NoEvents => {}
             EventsMode::CES => init_events(),
-            EventsMode::Native => {
-                let _ = manage_message_topic(EVENTS, MessageTopicOperation::Add);
-            }
-            EventsMode::NativeNCES => {
-                init_events();
+            EventsMode::Native | EventsMode::NativeBytes => {
                 let _ = manage_message_topic(EVENTS, MessageTopicOperation::Add);
             }
         };
@@ -1114,7 +1110,7 @@ fn install_contract() {
 
     let package_key_name = format!("{PREFIX_CONTRACT_PACKAGE_NAME}_{name}");
     let mut message_topics = BTreeMap::new();
-    let message_topics = if [EventsMode::Native, EventsMode::NativeNCES]
+    let message_topics = if [EventsMode::Native, EventsMode::NativeBytes]
         .contains(&events_mode.try_into().unwrap_or_default())
     {
         message_topics.insert(EVENTS.to_string(), MessageTopicOperation::Add);
