@@ -204,9 +204,8 @@ fn should_record_events_in_native_events_mode() {
         ARG_EVENTS_MODE => EventsMode::Native as u8,
     });
 
-    let binding = builder
-        .message_topics(None, cep85_contract_hash.value())
-        .unwrap();
+    let entity_addr = EntityAddr::SmartContract(cep85_contract_hash.value());
+    let binding = builder.message_topics(None, entity_addr).unwrap();
 
     let (topic_name, message_topic_hash) = binding
         .iter()
@@ -243,10 +242,11 @@ fn should_record_events_in_native_events_mode() {
 
     assert_eq!(actual_balance, expected_balance);
 
+    let entity_addr = EntityAddr::SmartContract(cep85_contract_hash.value());
     let binding = builder
         .query(
             None,
-            Key::message_topic(cep85_contract_hash.value(), *message_topic_hash),
+            Key::message_topic(entity_addr, *message_topic_hash),
             &[],
         )
         .unwrap();
@@ -262,8 +262,9 @@ fn should_record_events_in_native_events_mode() {
     let messages = exec_result.messages();
 
     let mint_message = &format!("Mint(Mint {{ id: 1, recipient: Key::AddressableEntity(account-{account_user_1_account_hash}), amount: 1 }})");
+    let entity_addr = EntityAddr::SmartContract(cep85_contract_hash.value());
     let mint_message = Message::new(
-        cep85_contract_hash.value(),
+        entity_addr,
         mint_message.into(),
         EVENTS.to_string(),
         *message_topic_hash,
@@ -273,7 +274,7 @@ fn should_record_events_in_native_events_mode() {
 
     let uri_message = &format!("Uri(Uri {{ value: \"{TOKEN_URI}\", id: Some({id}) }})");
     let uri_message = Message::new(
-        cep85_contract_hash.value(),
+        entity_addr,
         uri_message.into(),
         EVENTS.to_string(),
         *message_topic_hash,
@@ -299,9 +300,8 @@ fn should_record_events_in_native_and_ces_events_mode() {
         ARG_EVENTS_MODE => EventsMode::NativeNCES as u8,
     });
 
-    let binding = builder
-        .message_topics(None, cep85_contract_hash.value())
-        .unwrap();
+    let entity_addr = EntityAddr::SmartContract(cep85_contract_hash.value());
+    let binding = builder.message_topics(None, entity_addr).unwrap();
 
     let (topic_name, message_topic_hash) = binding
         .iter()
@@ -338,10 +338,11 @@ fn should_record_events_in_native_and_ces_events_mode() {
 
     assert_eq!(actual_balance, expected_balance);
 
+    let entity_addr = EntityAddr::SmartContract(cep85_contract_hash.value());
     let binding = builder
         .query(
             None,
-            Key::message_topic(cep85_contract_hash.value(), *message_topic_hash),
+            Key::message_topic(entity_addr, *message_topic_hash),
             &[],
         )
         .unwrap();
@@ -357,8 +358,9 @@ fn should_record_events_in_native_and_ces_events_mode() {
     let exec_result = builder.get_exec_result_owned(2).unwrap();
     let messages = exec_result.messages();
     let mint_message = &format!("Mint(Mint {{ id: 1, recipient: Key::AddressableEntity(account-{account_user_1_account_hash}), amount: 1 }})");
+    let entity_addr = EntityAddr::SmartContract(cep85_contract_hash.value());
     let mint_message = Message::new(
-        cep85_contract_hash.value(),
+        entity_addr,
         mint_message.into(),
         EVENTS.to_string(),
         *message_topic_hash,
@@ -368,7 +370,7 @@ fn should_record_events_in_native_and_ces_events_mode() {
 
     let uri_message = &format!("Uri(Uri {{ value: \"{TOKEN_URI}\", id: Some({id}) }})");
     let uri_message = Message::new(
-        cep85_contract_hash.value(),
+        entity_addr,
         uri_message.into(),
         EVENTS.to_string(),
         *message_topic_hash,
