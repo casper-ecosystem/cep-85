@@ -9,7 +9,6 @@ import {
 } from 'casper-js-sdk';
 import fs from 'fs';
 import { SECRET_KEY_ALGO, SECRET_KEY_NAME } from '../config';
-import { Entity } from 'dist';
 
 export const getAccountInfo = async (
   rpcUrl: string,

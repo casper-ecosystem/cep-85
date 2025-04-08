@@ -40,7 +40,6 @@ const name = 'TEST_CEP85',
   waitForTransactionProcessed = true;
 
 let id: string;
-let ids = [];
 const mintAmount = '20';
 const transferAmount = '10';
 const burnAmount = '1';

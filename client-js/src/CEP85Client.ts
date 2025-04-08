@@ -148,7 +148,6 @@ export default class CEP85Client extends Client {
    * Additional customization can be achieved through event modes and transfer filtering logic.
    * Ensure that all required arguments are provided and that the contract wasm file is valid.
    */
-
   public async install(params: InstallParams): Promise<TransactionResult> {
     const {
       params: { wasm, paymentAmount, sender, chainName, signingKeys },
@@ -310,7 +309,6 @@ export default class CEP85Client extends Client {
    * Ensure the provided wasm file is valid and represents a compatible upgrade for the existing contract.
    * If `waitForTransactionProcessed` is `true`, the function waits for the contract execution result before resolving.
    */
-
   public async upgrade(params: UpgradeParams): Promise<TransactionResult> {
     const {
       params: { wasm, paymentAmount, sender, chainName, signingKeys },
@@ -361,55 +359,6 @@ export default class CEP85Client extends Client {
     } catch (error) {
       throw new Error(`Error during upgrade runtime.\n${error}`);
     }
-  }
-
-  /**
-   * Retrieves the name of the collection from the smart contract.
-   * @returns A Promise that resolves to the collection name.
-   */
-  public async collectionName() {
-    try {
-      return (await this.queryContractData(['name'])) as string;
-    } catch (error) {
-      // console.error(error);
-      console.warn('Contract collection name is empty');
-      return '';
-    }
-  }
-
-  /**
-   * Retrieves the URI of the collection from the smart contract.
-   * @returns A Promise that resolves to the collection URI.
-   */
-  public async collectionUri() {
-    try {
-      return (await this.queryContractData(['uri'])) as string;
-    } catch (error) {
-      // console.error(error);
-      console.warn('Contract collection uri is empty');
-      return '';
-    }
-  }
-
-  /**
-   * Constructs a dictionary item key by concatenating and hashing the bytes of the provided CLKey and CLValue.
-   * @param key The CLValue for the dictionary item.
-   * @param value The CLValue for the dictionary item.
-   * @returns The resulting dictionary item key as a hexadecimal string.
-   */
-  public static makeDictionaryItemKey(key: CLValue, value: CLValue): string {
-    const keyBytes = key.bytes();
-    const valueBytes = value.bytes();
-
-    const concatenatedBytes = new Uint8Array(
-      keyBytes.length + valueBytes.length
-    );
-    concatenatedBytes.set(keyBytes);
-    concatenatedBytes.set(valueBytes, keyBytes.length);
-
-    const hashedBytes = blake2b(concatenatedBytes, { dkLen: 32 });
-
-    return bytesToHex(hashedBytes);
   }
 
   /**
@@ -835,20 +784,22 @@ export default class CEP85Client extends Client {
    * This method uses the contract's `balances` dictionary to fetch the balance.
    */
   private async queryBalance(account: Entity, id: string): Promise<string> {
+    const entity = CEP85Client.getPrefixedString(account);
     const dictionaryItemKey = CEP85Client.makeDictionaryItemKey(
       CLValue.newCLKey(CEP85Client.getPrefixedString(account)),
       CLValue.newCLUInt256(id)
     );
+    let balance = '0';
     try {
-      const result = await this.queryContractDictionary(
-        'balances',
-        dictionaryItemKey
-      );
-      return result as string;
+      balance =
+        (await this.queryContractDictionary('balances', dictionaryItemKey)) ||
+        balance;
     } catch (error) {
-      // console.error(error);
-      return '0';
+      if (error instanceof Error && error.toString().includes('Query failed')) {
+        console.warn(`No balance found for ${entity.toPrefixedString()}`);
+      } else throw error;
     }
+    return balance;
   }
 
   /**
@@ -1146,7 +1097,7 @@ export default class CEP85Client extends Client {
           CLValue.newCLKey(CEP85Client.getPrefixedString(spender))
         )
       );
-      return result as unknown as boolean;
+      return result === 'true';
     } catch {
       return false;
     }
@@ -1261,6 +1212,55 @@ export default class CEP85Client extends Client {
       chainName,
       waitForTransactionProcessed
     );
+  }
+
+  /**
+   * Constructs a dictionary item key by concatenating and hashing the bytes of the provided CLKey and CLValue.
+   * @param key The CLValue for the dictionary item.
+   * @param value The CLValue for the dictionary item.
+   * @returns The resulting dictionary item key as a hexadecimal string.
+   */
+  public static makeDictionaryItemKey(key: CLValue, value: CLValue): string {
+    const keyBytes = key.bytes();
+    const valueBytes = value.bytes();
+
+    const concatenatedBytes = new Uint8Array(
+      keyBytes.length + valueBytes.length
+    );
+    concatenatedBytes.set(keyBytes);
+    concatenatedBytes.set(valueBytes, keyBytes.length);
+
+    const hashedBytes = blake2b(concatenatedBytes, { dkLen: 32 });
+
+    return bytesToHex(hashedBytes);
+  }
+
+  /**
+   * Retrieves the name of the collection from the smart contract.
+   * @returns A Promise that resolves to the collection name.
+   */
+  public async collectionName() {
+    try {
+      return (await this.queryContractData(['name'])) as string;
+    } catch (error) {
+      // console.error(error);
+      console.warn('Contract collection name is empty');
+      return '';
+    }
+  }
+
+  /**
+   * Retrieves the URI of the collection from the smart contract.
+   * @returns A Promise that resolves to the collection URI.
+   */
+  public async collectionUri() {
+    try {
+      return (await this.queryContractData(['uri'])) as string;
+    } catch (error) {
+      // console.error(error);
+      console.warn('Contract collection uri is empty');
+      return '';
+    }
   }
 
   /**
