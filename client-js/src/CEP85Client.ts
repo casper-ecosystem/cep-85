@@ -116,6 +116,39 @@ export default class CEP85Client extends Client {
     return super.stopEventStream() as unknown as CEP85Client;
   }
 
+  /**
+   * Installs the CEP-85 contract on the Casper network.
+   *
+   * @param params - The installation parameters, including:
+   *   - `wasm`: (Optional) The compiled contract in `Uint8Array` format. If not provided, a default wasm will be used.
+   *   - `paymentAmount`: The amount of payment required for contract installation.
+   *   - `sender`: The public key of the account deploying the contract.
+   *   - `chainName`: (Optional) The name of the network where the contract will be deployed.
+   *   - `signingKeys`: (Optional) An array of private keys used for signing the transaction.
+   *   - `args`: Contract-specific arguments, including:
+   *     - `name`: The name of the token or contract.
+   *     - `uri`: A base URI for metadata association.
+   *     - `eventsMode`: (Optional) The mode in which contract events are emitted (`NoEvents`, `CES`, `Native`, or `NativeBytes`).
+   *     - `enableBurn`: (Optional) A boolean flag to enable or disable burning functionality.
+   *     - `adminList`: (Optional) A list of entities with administrative privileges.
+   *     - `minterList`: (Optional) A list of entities allowed to mint tokens.
+   *     - `burnerList`: (Optional) A list of entities allowed to burn tokens.
+   *     - `metaList`: (Optional) A list of entities with metadata modification rights.
+   *     - `noneList`: (Optional) A list of entities with no assigned roles.
+   *     - `transferFilterContract`: (Optional) A contract hash for filtering token transfers.
+   *     - `transferFilterMethod`: (Optional) The method name on the filter contract used during transfer operations.
+   *   - `waitForTransactionProcessed`: (Optional) If `true`, waits for the transaction to be processed and returns the execution result.
+   *
+   * @returns A `Promise` resolving to `TransactionResult`, containing the transaction details and optional execution result.
+   *
+   * @throws Will throw an error if the Wasm file is missing or if an error occurs during contract installation.
+   *
+   * @remarks
+   * This method installs a new CEP-85 contract on the Casper network. It supports advanced role configurations including admin, minter, burner, metadata, and none roles.
+   * Additional customization can be achieved through event modes and transfer filtering logic.
+   * Ensure that all required arguments are provided and that the contract wasm file is valid.
+   */
+
   public async install(params: InstallParams): Promise<TransactionResult> {
     const {
       params: { wasm, paymentAmount, sender, chainName, signingKeys },
@@ -255,6 +288,29 @@ export default class CEP85Client extends Client {
     }
   }
 
+  /**
+   * Upgrades an existing CEP-85 contract to a new version on the Casper network.
+   *
+   * @param params - Parameters for upgrading the contract, including:
+   *   - `wasm`: (Optional) The compiled contract in `Uint8Array` format representing the new version. If not provided, a default wasm will be used.
+   *   - `paymentAmount`: The amount of payment required for the upgrade.
+   *   - `sender`: The public key of the account performing the upgrade.
+   *   - `chainName`: (Optional) The name of the Casper network where the contract resides.
+   *   - `signingKeys`: (Optional) An array of private keys used to sign the transaction.
+   *   - `args`: Upgrade-specific arguments, including:
+   *     - `name`: The name for the upgraded contract.
+   *   - `waitForTransactionProcessed`: (Optional) If `true`, waits for the transaction to be processed and returns the execution result.
+   *
+   * @returns A `Promise` resolving to `TransactionResult`, which contains the transaction information and optionally the execution result.
+   *
+   * @throws Will throw an error if the Wasm file is missing or if an error occurs during the upgrade process.
+   *
+   * @remarks
+   * This method facilitates upgrading a CEP-85 contract to a newer version. It injects the provided `name` and a `true` `upgrade` flag into the runtime arguments.
+   * Ensure the provided wasm file is valid and represents a compatible upgrade for the existing contract.
+   * If `waitForTransactionProcessed` is `true`, the function waits for the contract execution result before resolving.
+   */
+
   public async upgrade(params: UpgradeParams): Promise<TransactionResult> {
     const {
       params: { wasm, paymentAmount, sender, chainName, signingKeys },
@@ -337,7 +393,7 @@ export default class CEP85Client extends Client {
 
   /**
    * Constructs a dictionary item key by concatenating and hashing the bytes of the provided CLKey and CLValue.
-   * @param key The CLKey for the dictionary item.
+   * @param key The CLValue for the dictionary item.
    * @param value The CLValue for the dictionary item.
    * @returns The resulting dictionary item key as a hexadecimal string.
    */
@@ -404,6 +460,36 @@ export default class CEP85Client extends Client {
     return result;
   }
 
+  /**
+   * Internal helper method to invoke the minting entrypoint on the CEP-85 contract.
+   *
+   * @param params - The minting parameters, supporting both single and batch minting operations:
+   *   - `paymentAmount`: The amount of payment required for the minting operation.
+   *   - `sender`: The public key of the account initiating the mint.
+   *   - `chainName`: (Optional) The name of the Casper network.
+   *   - `signingKeys`: (Optional) An array of private keys used to sign the transaction.
+   *   - `waitForTransactionProcessed`: (Optional) If `true`, waits for the transaction to be processed and returns the execution result.
+   *   - `args`: Mint-specific arguments, either:
+   *     - For single mint:
+   *       - `recipient`: The target entity receiving the minted token.
+   *       - `id`: The identifier of the token to be minted.
+   *       - `amount`: The amount of tokens to mint.
+   *       - `uri`: (Optional) Metadata URI associated with the token.
+   *     - For batch mint:
+   *       - `recipient`: The target entity receiving the tokens.
+   *       - `ids`: An array of token IDs to mint.
+   *       - `amounts`: An array of corresponding amounts for each token ID.
+   *       - `uri`: (Optional) Metadata URI applied to all minted tokens.
+   *
+   * @param entrypoint - The name of the entrypoint to invoke (e.g., `'mint'` or `'mint_batch'`).
+   *
+   * @returns A `Promise` resolving to `TransactionResult`, containing the transaction and optionally the execution result.
+   *
+   * @remarks
+   * This method dynamically constructs the runtime arguments based on whether the minting is single or batch.
+   * It then calls the provided contract entrypoint using these arguments.
+   * Designed for internal use by public `mint` or `batchMint` methods.
+   */
   private queryMint(params: MintParams | BatchMintParams, entrypoint: string) {
     const {
       params: { paymentAmount, sender, chainName, signingKeys },
@@ -450,14 +536,79 @@ export default class CEP85Client extends Client {
     );
   }
 
+  /**
+   * Mints a new token to a specified recipient.
+   *
+   * @param params - Parameters for minting a token, including:
+   *   - `paymentAmount`: The amount of payment required for minting.
+   *   - `sender`: The public key of the account initiating the mint.
+   *   - `chainName`: (Optional) The name of the Casper network.
+   *   - `signingKeys`: (Optional) An array of private keys used to sign the transaction.
+   *   - `args`: Arguments specific to minting:
+   *     - `recipient`: The target entity receiving the minted token.
+   *     - `id`: The token ID to be minted.
+   *     - `amount`: The amount of the token to mint.
+   *     - `uri`: (Optional) Metadata URI associated with the token.
+   *   - `waitForTransactionProcessed`: (Optional) Whether to wait for the transaction to be processed.
+   *
+   * @returns A `Promise` resolving to `TransactionResult`, including transaction and optional execution result.
+   *
+   * @remarks
+   * This is a public method that wraps the internal `queryMint` helper to mint a single token.
+   */
   public mint(params: MintParams) {
     return this.queryMint(params, 'mint');
   }
 
+  /**
+   * Mints multiple tokens to a specified recipient in a single transaction.
+   *
+   * @param params - Parameters for batch minting, including:
+   *   - `paymentAmount`: The amount of payment required for minting.
+   *   - `sender`: The public key of the account initiating the mint.
+   *   - `chainName`: (Optional) The name of the Casper network.
+   *   - `signingKeys`: (Optional) An array of private keys used to sign the transaction.
+   *   - `args`: Arguments specific to batch minting:
+   *     - `recipient`: The target entity receiving the minted tokens.
+   *     - `ids`: Array of token IDs to be minted.
+   *     - `amounts`: Array of amounts for each token ID.
+   *     - `uri`: (Optional) Metadata URI applied to all minted tokens.
+   *   - `waitForTransactionProcessed`: (Optional) Whether to wait for the transaction to be processed.
+   *
+   * @returns A `Promise` resolving to `TransactionResult`, including transaction and optional execution result.
+   *
+   * @remarks
+   * This is a public method that wraps the internal `queryMint` helper to perform batch minting of multiple tokens.
+   */
   public batchMint(params: BatchMintParams) {
     return this.queryMint(params, 'batch_mint');
   }
 
+  /**
+   * Handles internal logic for both single and batch token transfers.
+   *
+   * @param params - Transfer parameters, supporting both single and batch modes:
+   *   - `paymentAmount`: The payment amount for the transaction.
+   *   - `sender`: The public key of the account initiating the transfer.
+   *   - `chainName`: (Optional) The name of the Casper network.
+   *   - `signingKeys`: (Optional) An array of private keys used to sign the transaction.
+   *   - `args`: Transfer-specific arguments:
+   *     - `from`: The address of the token sender.
+   *     - `to`: The address of the token recipient.
+   *     - `id`: (For single transfer) The ID of the token to transfer.
+   *     - `amount`: (For single transfer) The amount of the token to transfer.
+   *     - `ids`: (For batch transfer) Array of token IDs to transfer.
+   *     - `amounts`: (For batch transfer) Array of amounts corresponding to each token ID.
+   *     - `data`: (Optional) Additional binary data as a `Uint8Array`.
+   *   - `waitForTransactionProcessed`: (Optional) Whether to wait for transaction finalization.
+   * @param entrypoint - The name of the contract entrypoint to invoke (`"transfer"` or `"batch_transfer"`).
+   *
+   * @returns A `Promise` resolving to a `TransactionResult` containing transaction info and optional execution result.
+   *
+   * @remarks
+   * This internal method builds the appropriate runtime arguments and calls the contract's entrypoint.
+   * It supports both single and batch token transfer operations and can handle optional data payloads.
+   */
   private queryTransfer(
     params: TransferParams | BatchTransferParams,
     entrypoint: string
@@ -508,14 +659,81 @@ export default class CEP85Client extends Client {
     );
   }
 
+  /**
+   * Transfers a specific token amount from one account to another.
+   *
+   * @param params - Parameters for the token transfer, including:
+   *   - `paymentAmount`: The payment amount for the transaction.
+   *   - `sender`: The public key of the account initiating the transfer.
+   *   - `chainName`: (Optional) The name of the Casper network.
+   *   - `signingKeys`: (Optional) An array of private keys used to sign the transaction.
+   *   - `args`: Transfer-specific arguments:
+   *     - `from`: The address sending the token.
+   *     - `to`: The address receiving the token.
+   *     - `id`: The ID of the token to transfer.
+   *     - `amount`: The amount of the token to transfer.
+   *     - `data`: (Optional) Additional binary data as a `Uint8Array`.
+   *   - `waitForTransactionProcessed`: (Optional) Whether to wait for the transaction to be finalized.
+   *
+   * @returns A `Promise` resolving to `TransactionResult`, containing transaction info and execution result (if available).
+   *
+   * @remarks
+   * This method wraps the internal `queryTransfer` logic and calls the `"transfer_from"` entrypoint
+   * to move a specific token amount from one address to another.
+   */
   public transfer(params: TransferParams) {
     return this.queryTransfer(params, 'transfer_from');
   }
 
+  /**
+   * Transfers multiple token types and amounts in a single batch transaction.
+   *
+   * @param params - Parameters for batch token transfer, including:
+   *   - `paymentAmount`: The payment amount for the transaction.
+   *   - `sender`: The public key of the account initiating the transfer.
+   *   - `chainName`: (Optional) The name of the Casper network.
+   *   - `signingKeys`: (Optional) An array of private keys used to sign the transaction.
+   *   - `args`: Batch transfer-specific arguments:
+   *     - `from`: The address sending the tokens.
+   *     - `to`: The address receiving the tokens.
+   *     - `ids`: Array of token IDs to transfer.
+   *     - `amounts`: Array of token amounts corresponding to each ID.
+   *     - `data`: (Optional) Additional binary data as a `Uint8Array`.
+   *   - `waitForTransactionProcessed`: (Optional) Whether to wait for the transaction to be finalized.
+   *
+   * @returns A `Promise` resolving to `TransactionResult`, including transaction info and execution result (if available).
+   *
+   * @remarks
+   * This method wraps the internal `queryTransfer` logic and calls the `"batch_transfer_from"` entrypoint
+   * to perform a batch transfer of multiple token types and quantities between two addresses.
+   */
   public batchTransfer(params: BatchTransferParams) {
     return this.queryTransfer(params, 'batch_transfer_from');
   }
 
+  /**
+   * Constructs and executes a burn or batch burn transaction on the Casper network.
+   *
+   * @param params - Parameters for the burn operation, including:
+   *   - `paymentAmount`: The payment amount for the transaction.
+   *   - `sender`: The public key of the account initiating the burn.
+   *   - `chainName`: (Optional) The name of the Casper network.
+   *   - `signingKeys`: (Optional) An array of private keys used to sign the transaction.
+   *   - `args`: Arguments for the burn operation:
+   *     - `owner`: The address that owns the tokens being burned.
+   *     - `id`: (For single burn) The ID of the token to burn.
+   *     - `amount`: (For single burn) The amount of the token to burn.
+   *     - `ids`: (For batch burn) An array of token IDs to burn.
+   *     - `amounts`: (For batch burn) An array of token amounts corresponding to each ID.
+   *   - `waitForTransactionProcessed`: (Optional) Whether to wait for the transaction to be finalized.
+   * @param entrypoint - The name of the contract entrypoint to call (`"burn"` or `"batch_burn"`).
+   *
+   * @returns A `Promise` resolving to `TransactionResult`, which includes the transaction info and execution result (if available).
+   *
+   * @remarks
+   * This method dynamically builds and executes a burn or batch burn operation using the specified contract entrypoint.
+   * It supports both single and batch token burns by inspecting the provided `args`.
+   */
   private queryBurn(params: BurnParams | BatchBurnParams, entrypoint: string) {
     const {
       params: { paymentAmount, sender, chainName, signingKeys },
@@ -557,14 +775,65 @@ export default class CEP85Client extends Client {
     );
   }
 
+  /**
+   * Burns a specific amount of a single token from an owner's account.
+   *
+   * @param params - Parameters for the burn operation, including:
+   *   - `paymentAmount`: The payment amount required for the transaction.
+   *   - `sender`: The public key of the account initiating the burn.
+   *   - `chainName`: (Optional) The name of the Casper network.
+   *   - `signingKeys`: (Optional) An array of private keys used to sign the transaction.
+   *   - `args.owner`: The address that owns the token to be burned.
+   *   - `args.id`: The ID of the token to be burned.
+   *   - `args.amount`: The amount of the token to be burned.
+   *   - `waitForTransactionProcessed`: (Optional) Whether to wait for transaction processing.
+   *
+   * @returns A `Promise` resolving to `TransactionResult`, containing transaction details and execution result (if available).
+   *
+   * @throws Will throw an error if the transaction fails or the WASM is not found.
+   *
+   * @remarks
+   * This method initiates a burn operation for a single token by calling the contract's `burn` entrypoint.
+   */
   public burn(params: BurnParams) {
     return this.queryBurn(params, 'burn');
   }
 
+  /**
+   * Burns multiple token types or multiple amounts from an owner's account in a single transaction.
+   *
+   * @param params - Parameters for the batch burn operation, including:
+   *   - `paymentAmount`: The payment amount required for the transaction.
+   *   - `sender`: The public key of the account initiating the burn.
+   *   - `chainName`: (Optional) The name of the Casper network.
+   *   - `signingKeys`: (Optional) An array of private keys used to sign the transaction.
+   *   - `args.owner`: The address that owns the tokens to be burned.
+   *   - `args.ids`: An array of token IDs to be burned.
+   *   - `args.amounts`: An array of amounts corresponding to each token ID.
+   *   - `waitForTransactionProcessed`: (Optional) Whether to wait for transaction processing.
+   *
+   * @returns A `Promise` resolving to `TransactionResult`, containing transaction details and execution result (if available).
+   *
+   * @throws Will throw an error if the transaction fails or the WASM is not found.
+   *
+   * @remarks
+   * This method initiates a batch burn operation by calling the contract's `batch_burn` entrypoint.
+   */
   public batchBurn(params: BatchBurnParams) {
     return this.queryBurn(params, 'batch_burn');
   }
 
+  /**
+   * Queries the on-chain balance of a specific token for a given account.
+   *
+   * @private
+   * @param account - The account to query the balance for. Can be a public key or account hash.
+   * @param id - The ID of the token to check balance for.
+   * @returns A `Promise` resolving to the balance as a string. Returns `'0'` if the query fails.
+   *
+   * @remarks
+   * This method uses the contract's `balances` dictionary to fetch the balance.
+   */
   private async queryBalance(account: Entity, id: string): Promise<string> {
     const dictionaryItemKey = CEP85Client.makeDictionaryItemKey(
       CLValue.newCLKey(CEP85Client.getPrefixedString(account)),
@@ -582,10 +851,30 @@ export default class CEP85Client extends Client {
     }
   }
 
+  /**
+   * Retrieves the balance of a specific token for a given account.
+   *
+   * @param account - The account to query the balance for.
+   * @param id - The token ID to check.
+   * @returns A `Promise` resolving to the token balance as a string.
+   *
+   * @remarks
+   * This is a public wrapper around the internal `queryBalance` method.
+   */
   public async balanceOf(account: Entity, id: string): Promise<string> {
     return this.queryBalance(account, id);
   }
 
+  /**
+   * Retrieves the balances of multiple token IDs for a single account.
+   *
+   * @param account - The account to query the balances for.
+   * @param ids - An array of token IDs to check.
+   * @returns A `Promise` resolving to an array of token balances as strings, in the same order as the IDs provided.
+   *
+   * @remarks
+   * If a balance lookup fails for a given ID, it will default to `'0'`.
+   */
   public async balanceOfBatch(
     account: Entity,
     ids: string[]
@@ -683,13 +972,20 @@ export default class CEP85Client extends Client {
   }
 
   /**
-   * Queries the data for setting the total supply, either for a single token or a batch of tokens.
-   * @param args Arguments for setting the total supply. It can be of type {@link TotalSupplyOfArgs} or {@link TotalSupplyOfArgsBatch}.
-   * @param entrypoint The entry point for setting the total supply.
-   * @param paymentAmount Payment amount required for installing the contract.
-   * @param deploySender Deploy sender's public key.
-   * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
-   * @returns Deploy object which can be sent to the node.
+   * Queries the contract to set the total supply of a token or multiple tokens.
+   *
+   * @private
+   * @param params - The parameters for setting the total supply, which includes:
+   *   - `id`: The ID of the token for which the total supply is being set.
+   *   - `totalSupply`: The total supply to set for the token.
+   *   - `ids`: (Optional) An array of token IDs for batch updates.
+   *   - `totalSupplies`: (Optional) An array of total supplies for batch updates.
+   * @param entrypoint - The entrypoint to call in the contract (either `set_total_supply_of` or `set_total_supply_of_batch`).
+   * @returns A `Promise` that resolves to the transaction result.
+   *
+   * @remarks
+   * This method is used to set the total supply of one or more tokens. If both `id` and `totalSupply` are provided, the total supply of the specified token is updated.
+   * For batch updates, arrays of `ids` and `totalSupplies` are required.
    */
   private querySetTotalSupplyOf(
     params: TotalSupplyOfParams | TotalSupplyOfBatchParams,
@@ -737,10 +1033,28 @@ export default class CEP85Client extends Client {
     );
   }
 
+  /**
+   * Sets the total supply of a single token.
+   *
+   * @param params - Parameters containing the token ID and the new total supply.
+   * @returns A `Promise` resolving to the transaction result.
+   *
+   * @remarks
+   * This is a public wrapper for the `querySetTotalSupplyOf` method, which sets the total supply for a single token.
+   */
   public setTotalSupplyOf(params: TotalSupplyOfParams) {
     return this.querySetTotalSupplyOf(params, 'set_total_supply_of');
   }
 
+  /**
+   * Sets the total supply of multiple tokens in a single batch.
+   *
+   * @param params - Parameters containing an array of token IDs and their respective total supplies.
+   * @returns A `Promise` resolving to the transaction result.
+   *
+   * @remarks
+   * This is a public wrapper for the `querySetTotalSupplyOf` method, which allows updating the total supply of multiple tokens in one transaction.
+   */
   public setTotalSupplyOfBatch(params: TotalSupplyOfBatchParams) {
     return this.querySetTotalSupplyOf(params, 'set_total_supply_of_batch');
   }
@@ -838,6 +1152,35 @@ export default class CEP85Client extends Client {
     }
   }
 
+  /**
+   * Changes the security settings of the contract by modifying role-based access control (RBAC) lists.
+   *
+   * @param params - The parameters for changing the security, which include:
+   *   - `args.adminList` - (Optional) A list of addresses to be added to the admin role.
+   *   - `args.minterList` - (Optional) A list of addresses to be added to the minter role.
+   *   - `args.burnerList` - (Optional) A list of addresses to be added to the burner role.
+   *   - `args.metaList` - (Optional) A list of addresses to be added to the meta role.
+   *   - `args.noneList` - (Optional) A list of addresses to be added to a generic "none" role.
+   *   - `params.sender` - The account sending the transaction.
+   *   - `params.paymentAmount` - The payment amount for the transaction.
+   *   - `params.signingKeys` - An array of signing keys for signing the transaction.
+   *   - `params.chainName` - The name of the blockchain network.
+   *   - `params.waitForTransactionProcessed` - Whether to wait for the transaction to be processed before returning.
+   *
+   * @returns A `Promise` that resolves to a `TransactionResult` object, which contains details about the transaction.
+   *
+   * @throws Error if no arguments (such as lists) are provided, or if the transaction fails.
+   *
+   * @remarks
+   * This method allows the modification of various role-based access control lists for the contract, including:
+   *   - `adminList`: Addresses that can manage the contract.
+   *   - `minterList`: Addresses that can mint tokens.
+   *   - `burnerList`: Addresses that can burn tokens.
+   *   - `metaList`: Addresses with special meta permissions.
+   *   - `noneList`: Addresses that are not assigned to any specific role.
+   *
+   * At least one list must be provided in the `args` for the transaction to be valid. The transaction will fail if no lists are provided.
+   */
   public changeSecurity(
     params: ChangeSecurityParams
   ): Promise<TransactionResult> {
@@ -920,6 +1263,18 @@ export default class CEP85Client extends Client {
     );
   }
 
+  /**
+   * Retrieves the current events mode for the contract.
+   *
+   * @returns A `Promise` that resolves to a string value representing the current events mode.
+   *   The value will be one of the keys from the `EVENTS_MODE` enum.
+   *
+   * @throws Error if there is an issue retrieving the events mode from the contract.
+   *
+   * @remarks
+   * This method queries the contract for the current events mode, which determines the type of events
+   * that the contract is configured to generate. The returned value corresponds to a key from the `EVENTS_MODE` enum.
+   */
   public async eventsMode(): Promise<keyof typeof EVENTS_MODE> {
     const internalValue = (await this.queryContractData([
       'events_mode',
@@ -928,6 +1283,17 @@ export default class CEP85Client extends Client {
     return EVENTS_MODE[internalValue] as keyof typeof EVENTS_MODE;
   }
 
+  /**
+   * Checks whether the burn feature is enabled on the contract.
+   *
+   * @returns A `Promise` that resolves to a boolean indicating whether burning is enabled (`true`) or disabled (`false`).
+   *
+   * @throws Error if there is an issue retrieving the burn mode from the contract.
+   *
+   * @remarks
+   * This method queries the contract to determine whether the burn functionality is enabled. If the
+   * contract allows burning of tokens, it will return `true`; otherwise, it returns `false`.
+   */
   public async burnMode(): Promise<boolean> {
     const internalValue = await this.queryContractData(['enable_burn']);
     return internalValue === 'true';
