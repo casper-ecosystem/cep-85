@@ -1,544 +1,599 @@
-/* eslint-disable eslint-comments/disable-enable-pair */
-/* eslint-disable no-console */
-
-import {
-  CLPublicKey,
-  CLKey,
-  RuntimeArgs,
-  Keys,
-  CLValueBuilder,
-  CLValue,
-  encodeBase16,
-  CLU256,
-  CLValueParsers,
-  CLBool,
-  Contracts
-} from "casper-js-sdk";
-import { BigNumber } from "@ethersproject/bignumber";
 import { blake2b } from '@noble/hashes/blake2b';
-import ContractWASM from "../wasm/cep85.wasm";
+import { bytesToHex } from '@noble/hashes/utils';
 import {
-  InstallArgs,
-  MintArgs,
-  BurnArgs,
-  SetApprovallForAllArgs,
-  TransferArgs,
-  SetUriArgs,
-  TotalSupplyOfArgs,
-  EventsMode,
-  ChangeSecurityArgs,
-  BatchMintArgs,
-  BatchBurnArgs,
-  TotalSupplyOfArgsBatch,
-  BatchTransferArgs,
-  SetModalitiesArgs,
-  UpgradeArgs,
-} from "./types";
-import TypedContract from './TypedContract';
+  Args as RuntimeArgs,
+  CLTypeKey,
+  CLValue,
+  ContractHash,
+  ContractPackageHash,
+  Key,
+  PublicKey,
+  SessionBuilder,
+  AddressableEntityHash,
+  CLTypeUInt256,
+  CLTypeUInt8,
+} from 'casper-js-sdk';
+import Client from './client';
+import {
+  EVENTS_MODE,
+  type InstallParams,
+  type TransactionResult,
+  type ChangeSecurityParams,
+  type UpgradeParams,
+  type BatchMintParams,
+  type MintParams,
+  type SetUriParams,
+  Entity,
+  type BatchBurnParams,
+  type BurnParams,
+  type BatchTransferParams,
+  type TransferParams,
+  type SetModalitiesParams,
+  type SetApprovallForAllParams,
+  type TotalSupplyOfBatchParams,
+  type TotalSupplyOfParams,
+} from './types';
+import ContractWASM from './wasm/cep85';
 
 /**
- * Converts a hash string to a Buffer.
- * @param hashStr The input hash string to be converted.
- * @returns A Buffer containing the hexadecimal representation of the input hash string.
+ * CEP85Client extends the base `Client` class to provide specific functionality
+ * for interacting with CEP-85 token contracts on the Casper blockchain.
  */
-const convertHashStringToBuffer = (hashStr: string): Buffer => {
-  const hashHex = hashStr.startsWith("hash-") ? hashStr.slice(5) : hashStr;
-  return Buffer.from(hashHex, "hex");
-};
-
-export class CEP85Client extends TypedContract {
-  public contractClient: Contracts.Contract;
-
-  public contractHashKey: CLKey;
-
+export default class CEP85Client extends Client {
+  contractClient: any;
   /**
- * Constructs a new instance of the SmartContractService.
- * @param nodeAddress The address of the Casper node to connect to.
- * @param networkName The name of the network (e.g., 'mainnet', 'testnet').
- */
-  constructor(public nodeAddress: string, public networkName: string) {
-    super(nodeAddress, networkName);
+   * Initializes a new CEP85Client instance.
+   *
+   * @param rpcUrl - The RPC URL of the Casper network.
+   * @param ssUrl - (Optional) The SSE URL for event streaming.
+   * @param chainName - (Optional) The name of the blockchain network.
+   */
+  constructor(rpcUrl: string, ssUrl?: string, chainName?: string) {
+    super(rpcUrl, ssUrl, chainName);
   }
 
   /**
- * Install a smart contract.
- * @param args Arguments for installing the smart contract. See {@link InstallArgs}.
- * @param paymentAmount Payment amount required for installing the contract.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- * @param wasm (Optional) Wasm code for the smart contract.
- */
-  public install(
-    args: InstallArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
-    wasm?: Uint8Array
-  ) {
-    const wasmToInstall = wasm || ContractWASM;
+   * Sets the contract hash and optionally the contract package hash.
+   *
+   * This method removes prefixes from the provided contract hash and package hash
+   * before converting them into the appropriate `ContractHash` and `ContractPackageHash` objects.
+   *
+   * @param contractHash - The contract hash as a string or `ContractHash` instance.
+   * @param contractPackageHash - (Optional) The contract package hash as a string or `ContractPackageHash` instance.
+   * @returns The updated `CEP85Client` instance.
+   * @throws `Error` if the contract hash is not provided or invalid.
+   */
+  public setContractHash(
+    contractHash: string | ContractHash,
+    contractPackageHash?: string | ContractPackageHash
+  ): CEP85Client {
+    const removePrefix = (str: string | undefined) =>
+      str ? str.replace(/^.*-/, '') : '';
+
+    const hexContractHash =
+        typeof contractHash === 'string' ? removePrefix(contractHash) : '',
+      hexContractPackageHash =
+        typeof contractPackageHash === 'string'
+          ? removePrefix(contractPackageHash)
+          : '',
+      newContractHash = hexContractHash
+        ? ContractHash.newContract(hexContractHash)
+        : undefined,
+      newContractPackageHash = hexContractPackageHash
+        ? ContractPackageHash.newContractPackage(hexContractPackageHash)
+        : undefined;
+
+    if (!newContractHash) {
+      throw new Error('Contract hash must be provided.');
+    }
+    return super.setContractHash(
+      newContractHash,
+      newContractPackageHash
+    ) as unknown as CEP85Client;
+  }
+
+  /**
+   * Starts the SSE event stream to listen for contract-related events.
+   *
+   * This method enables real-time event listening for the contract by calling
+   * the parent `startEventStream` method.
+   *
+   * @param sseUrl - (Optional) The SSE endpoint URL. If not provided, the previously set URL is used.
+   * @returns The updated `CEP85Client` instance.
+   */
+  public startEventStream(sseUrl?: string): CEP85Client {
+    return super.startEventStream(sseUrl) as unknown as CEP85Client;
+  }
+
+  /**
+   * Stops the SSE event stream, preventing further event processing.
+   *
+   * This method ensures that the event stream is properly stopped and unsubscribed.
+   *
+   * @returns The updated `CEP85Client` instance.
+   */
+  public stopEventStream(): CEP85Client {
+    return super.stopEventStream() as unknown as CEP85Client;
+  }
+
+  public async install(params: InstallParams): Promise<TransactionResult> {
+    const {
+      params: { wasm, paymentAmount, sender, chainName, signingKeys },
+      args: {
+        name,
+        uri,
+        eventsMode,
+        enableBurn,
+        adminList,
+        minterList,
+        burnerList,
+        metaList,
+        noneList,
+        transferFilterContract,
+        transferFilterMethod,
+      },
+    } = params;
 
     const runtimeArgs = RuntimeArgs.fromMap({
-      name: CLValueBuilder.string(args.name),
-      uri: CLValueBuilder.string(args.uri),
-      events_mode: CLValueBuilder.u8(args.events_mode),
-      enable_burn: CLValueBuilder.bool(args.enable_burn),
+      name: CLValue.newCLString(name),
+      uri: CLValue.newCLString(uri),
     });
 
-    if (args.admin_list) {
+    if (eventsMode !== undefined) {
+      runtimeArgs.insert('events_mode', CLValue.newCLUint8(eventsMode));
+    }
+
+    if (enableBurn !== undefined) {
+      runtimeArgs.insert('enable_burn', CLValue.newCLValueBool(enableBurn));
+    }
+
+    if (adminList) {
       runtimeArgs.insert(
         'admin_list',
-        CLValueBuilder.list(args.admin_list.map(CLValueBuilder.key))
+        CLValue.newCLList(
+          CLTypeKey,
+          adminList.map((key) =>
+            CLValue.newCLKey(CEP85Client.getPrefixedString(key))
+          )
+        )
       );
     }
-    if (args.minter_list) {
+    if (minterList) {
       runtimeArgs.insert(
         'minter_list',
-        CLValueBuilder.list(args.minter_list.map(CLValueBuilder.key))
+        CLValue.newCLList(
+          CLTypeKey,
+          minterList.map((key) =>
+            CLValue.newCLKey(CEP85Client.getPrefixedString(key))
+          )
+        )
       );
     }
-    if (args.burner_list) {
+    if (burnerList) {
       runtimeArgs.insert(
         'burner_list',
-        CLValueBuilder.list(args.burner_list.map(CLValueBuilder.key))
+        CLValue.newCLList(
+          CLTypeKey,
+          burnerList.map((key) =>
+            CLValue.newCLKey(CEP85Client.getPrefixedString(key))
+          )
+        )
       );
     }
-    if (args.none_list) {
+    if (metaList) {
+      runtimeArgs.insert(
+        'meta_list',
+        CLValue.newCLList(
+          CLTypeKey,
+          metaList.map((key) =>
+            CLValue.newCLKey(CEP85Client.getPrefixedString(key))
+          )
+        )
+      );
+    }
+    if (noneList) {
       runtimeArgs.insert(
         'none_list',
-        CLValueBuilder.list(args.none_list.map(CLValueBuilder.key))
+        CLValue.newCLList(
+          CLTypeKey,
+          noneList.map((key) =>
+            CLValue.newCLKey(CEP85Client.getPrefixedString(key))
+          )
+        )
       );
     }
 
-    if (args.transfer_filter_contract && args.transfer_filter_method) {
+    if (transferFilterContract && transferFilterMethod) {
       runtimeArgs.insert(
         'transfer_filter_contract',
-        CLValueBuilder.key(
-          CLValueBuilder.byteArray(convertHashStringToBuffer(args.transfer_filter_contract))
-        )
+        CLValue.newCLKey(CEP85Client.getPrefixedString(transferFilterContract))
       );
       runtimeArgs.insert(
         'transfer_filter_method',
-        CLValueBuilder.string(args.transfer_filter_method)
+        CLValue.newCLString(transferFilterMethod)
       );
     }
 
-    return this.contractClient.install(
-      wasmToInstall,
-      runtimeArgs,
-      paymentAmount,
-      deploySender,
-      this.networkName,
-      keys || []
-    );
+    const wasmBytes = wasm || ContractWASM;
+
+    if (!wasmBytes) {
+      throw new Error('Wasm file is missing.');
+    }
+
+    const transaction = new SessionBuilder()
+      .installOrUpgrade()
+      .wasm(wasmBytes)
+      .runtimeArgs(runtimeArgs)
+      .payment(Number(paymentAmount))
+      .from(sender)
+      .chainName(chainName ? chainName : this.chainName || '')
+      .build();
+
+    if (signingKeys) {
+      signingKeys.forEach((key) => transaction.sign(key));
+    }
+    try {
+      const transactionInfo = await this.rpcClient.putTransaction(transaction);
+      if (
+        params.waitForTransactionProcessed &&
+        transactionInfo.transactionHash
+      ) {
+        const transactionProcessedEvent =
+          await this.waitForTransactionProcessed(
+            transactionInfo.transactionHash.toString()
+          );
+        const executionResult =
+          transactionProcessedEvent.transactionProcessedPayload.executionResult;
+        if (executionResult?.errorMessage) {
+          this.handleExecutionError(executionResult.errorMessage);
+        }
+        return { transactionInfo, executionResult };
+      }
+      return { transactionInfo };
+    } catch (error) {
+      throw new Error(`Error during installation runtime.\n${error}`);
+    }
+  }
+
+  public async upgrade(params: UpgradeParams): Promise<TransactionResult> {
+    const {
+      params: { wasm, paymentAmount, sender, chainName, signingKeys },
+      args: { name },
+    } = params;
+
+    const runtimeArgs = RuntimeArgs.fromMap({
+      name: CLValue.newCLString(name),
+      upgrade: CLValue.newCLValueBool(true),
+    });
+
+    const wasmBytes = wasm || ContractWASM;
+
+    if (!wasmBytes) {
+      throw new Error('Wasm file is missing.');
+    }
+
+    const transaction = new SessionBuilder()
+      .installOrUpgrade()
+      .wasm(wasmBytes)
+      .runtimeArgs(runtimeArgs)
+      .payment(Number(paymentAmount))
+      .from(sender)
+      .chainName(chainName ? chainName : this.chainName || '')
+      .build();
+
+    if (signingKeys) {
+      signingKeys.forEach((key) => transaction.sign(key));
+    }
+    try {
+      const transactionInfo = await this.rpcClient.putTransaction(transaction);
+      if (
+        params.waitForTransactionProcessed &&
+        transactionInfo.transactionHash
+      ) {
+        const transactionProcessedEvent =
+          await this.waitForTransactionProcessed(
+            transactionInfo.transactionHash.toString()
+          );
+        const executionResult =
+          transactionProcessedEvent.transactionProcessedPayload.executionResult;
+        if (executionResult?.errorMessage) {
+          this.handleExecutionError(executionResult.errorMessage);
+        }
+        return { transactionInfo, executionResult };
+      }
+      return { transactionInfo };
+    } catch (error) {
+      throw new Error(`Error during upgrade runtime.\n${error}`);
+    }
   }
 
   /**
- * Sets the contract hash and contract package hash for the SmartContractService.
- * @param contractHash The hash of the smart contract.
- * @param PackageHash (Optional) The hash of the contract package if applicable.
- */
-  public setContractHash(contractHash: string, PackageHash?: string) {
-    this.contractClient.setContractHash(contractHash, PackageHash);
-    this.contractHashKey = CLValueBuilder.key(
-      CLValueBuilder.byteArray(convertHashStringToBuffer(contractHash))
-    );
-  }
-
-  /**
- * Retrieves the name of the collection from the smart contract.
- * @returns A Promise that resolves to the collection name.
- */
+   * Retrieves the name of the collection from the smart contract.
+   * @returns A Promise that resolves to the collection name.
+   */
   public async collectionName() {
     try {
-      return await this.contractClient.queryContractData(["name"]) as string;
+      return (await this.queryContractData(['name'])) as string;
     } catch (error) {
       // console.error(error);
-      console.info('Contract collection name is empty');
+      console.warn('Contract collection name is empty');
       return '';
     }
   }
 
   /**
- * Retrieves the URI of the collection from the smart contract.
- * @returns A Promise that resolves to the collection URI.
- */
+   * Retrieves the URI of the collection from the smart contract.
+   * @returns A Promise that resolves to the collection URI.
+   */
   public async collectionUri() {
     try {
-      return await this.contractClient.queryContractData(["uri"]) as string;
+      return (await this.queryContractData(['uri'])) as string;
     } catch (error) {
       // console.error(error);
-      console.info('Contract collection uri is empty');
+      console.warn('Contract collection uri is empty');
       return '';
     }
   }
 
   /**
- * Constructs a dictionary item key by concatenating and hashing the bytes of the provided CLKey and CLValue.
- * @param key The CLKey for the dictionary item.
- * @param value The CLValue for the dictionary item.
- * @returns The resulting dictionary item key as a hexadecimal string.
- */
-  public static makeDictionaryItemKey(key: CLKey, value: CLValue): string {
-    const bytesA = new Uint8Array(CLValueParsers.toBytes(key));
-    const bytesB = new Uint8Array(CLValueParsers.toBytes(value));
+   * Constructs a dictionary item key by concatenating and hashing the bytes of the provided CLKey and CLValue.
+   * @param key The CLKey for the dictionary item.
+   * @param value The CLValue for the dictionary item.
+   * @returns The resulting dictionary item key as a hexadecimal string.
+   */
+  public static makeDictionaryItemKey(key: CLValue, value: CLValue): string {
+    const keyBytes = key.bytes();
+    const valueBytes = value.bytes();
 
-    const concatenatedBytes: Uint8Array = new Uint8Array(bytesA.length + bytesB.length);
-    concatenatedBytes.set(bytesA);
-    concatenatedBytes.set(bytesB, bytesA.length);
+    const concatenatedBytes = new Uint8Array(
+      keyBytes.length + valueBytes.length
+    );
+    concatenatedBytes.set(keyBytes);
+    concatenatedBytes.set(valueBytes, keyBytes.length);
 
-    const hashedBytes: Uint8Array = blake2b(concatenatedBytes, {
-      dkLen: 32
+    const hashedBytes = blake2b(concatenatedBytes, { dkLen: 32 });
+
+    return bytesToHex(hashedBytes);
+  }
+
+  /**
+   * Setting the URI for tokens.
+   * @param args Arguments for setting URI. See {@link SetUriParams}.
+   */
+  public setUri(params: SetUriParams) {
+    const {
+      params: { paymentAmount, sender, chainName, signingKeys },
+      waitForTransactionProcessed,
+      args: { id, uri },
+    } = params;
+
+    const runtimeArgs = RuntimeArgs.fromMap({
+      uri: CLValue.newCLString(uri),
     });
-    const result: string = encodeBase16(hashedBytes);
+
+    if (id) {
+      runtimeArgs.insert('id', CLValue.newCLUInt256(id));
+    }
+
+    return this.callEntrypoint(
+      'set_uri',
+      runtimeArgs,
+      paymentAmount,
+      sender,
+      signingKeys,
+      chainName,
+      waitForTransactionProcessed
+    );
+  }
+
+  /**
+   * Retrieves the URI associated with a specific token ID or the default URI if no ID is provided.
+   * @param id The optional token ID for which to retrieve the URI.
+   * @returns The URI as a string
+   */
+  public async getURI(id?: string) {
+    let result: string;
+    if (id) {
+      result =
+        (await this.queryContractDictionary('token_uri', id)) ||
+        (await this.collectionUri());
+      result = result.replace('{id}', id!);
+    } else {
+      result = await this.collectionUri();
+    }
     return result;
   }
 
-  /**
- * Setting the URI for tokens.
- * @param args Arguments for setting URI. See {@link SetUriArgs}.
- * @param paymentAmount Payment amount required for setting the URI.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- */
-  public setUri(
-    args: SetUriArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
-  ) {
+  private queryMint(params: MintParams | BatchMintParams, entrypoint: string) {
+    const {
+      params: { paymentAmount, sender, chainName, signingKeys },
+      waitForTransactionProcessed,
+      args,
+    } = params;
 
     const runtimeArgs = RuntimeArgs.fromMap({
-      uri: CLValueBuilder.string(args.uri),
+      recipient: CLValue.newCLKey(
+        CEP85Client.getPrefixedString(args.recipient)
+      ),
     });
 
     if ('id' in args) {
-      runtimeArgs.insert('id', CLValueBuilder.u256(args.id));
-    }
-
-    const preparedDeploy = this.contractClient.callEntrypoint(
-      "set_uri",
-      runtimeArgs,
-      deploySender,
-      this.networkName,
-      paymentAmount,
-      keys
-    );
-
-    return preparedDeploy;
-  }
-
-  /**
- * Retrieves the URI associated with a specific token ID or the default URI if no ID is provided.
- * @param id The optional token ID for which to retrieve the URI.
- * @returns The URI as a string
- */
-  public async getURI(id?: string) {
-    try {
-      let result: string;
-      if (id) {
-        const res = await this.contractClient.queryContractDictionary(
-          'token_uri',
-          id
-        );
-        result = res.toJSON() as string;
-      }
-      else {
-        result = await this.collectionUri();
-      }
-      return result && result.replace('{id}', id);
-    } catch {
-      const result = await this.collectionUri();
-      return result && result.replace('{id}', id);
-    }
-  }
-
-  /**
- * Querying minting of tokens.
- * @param args Arguments for minting. See {@link MintArgs} or {@link BatchMintArgs}.
- * @param entrypoint Entrypoint for querying minting.
- * @param paymentAmount Payment amount required for the query.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- */
-  private queryMint(
-    args: MintArgs | BatchMintArgs,
-    entrypoint: string,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
-  ) {
-    const commonArgs = {
-      recipient: CLValueBuilder.key(args.recipient),
-    };
-
-    const runtimeArgs = RuntimeArgs.fromMap(commonArgs);
-
-    if ('id' in args) {
-      runtimeArgs.insert('id', CLValueBuilder.u256(args.id));
+      runtimeArgs.insert('id', CLValue.newCLUInt256(args.id));
     }
     if ('amount' in args) {
-      runtimeArgs.insert('amount', CLValueBuilder.u256(args.amount));
+      runtimeArgs.insert('amount', CLValue.newCLUInt256(args.amount));
     }
     if ('ids' in args) {
-      runtimeArgs.insert('ids', CLValueBuilder.list(args.ids.map(CLValueBuilder.u256)));
+      runtimeArgs.insert(
+        'ids',
+        CLValue.newCLList(CLTypeUInt256, args.ids.map(CLValue.newCLUInt256))
+      );
     }
     if ('amounts' in args) {
-      runtimeArgs.insert('amounts', CLValueBuilder.list(args.amounts.map(CLValueBuilder.u256)));
+      runtimeArgs.insert(
+        'amounts',
+        CLValue.newCLList(CLTypeUInt256, args.amounts.map(CLValue.newCLUInt256))
+      );
+    }
+    if ('uri' in args && args.uri) {
+      runtimeArgs.insert('uri', CLValue.newCLString(args.uri));
     }
 
-    const preparedDeploy = this.contractClient.callEntrypoint(
+    return this.callEntrypoint(
       entrypoint,
       runtimeArgs,
-      deploySender,
-      this.networkName,
       paymentAmount,
-      keys
+      sender,
+      signingKeys,
+      chainName,
+      waitForTransactionProcessed
     );
-
-    return preparedDeploy;
   }
 
-  /**
- * Minting of tokens.
- * @param args Arguments for minting. See {@link MintArgs}.
- * @param paymentAmount Payment amount required for minting the tokens.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- */
-  public mint(
-    args: MintArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
-  ) {
-    return this.queryMint(args, "mint", paymentAmount, deploySender, keys);
+  public mint(params: MintParams) {
+    return this.queryMint(params, 'mint');
   }
 
-  /**
- * Batch minting of tokens.
- * @param args Arguments for the batch minting. See {@link BatchMintArgs}.
- * @param paymentAmount Payment amount required for minting the tokens.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- */
-  public batchMint(
-    args: BatchMintArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
-  ) {
-    return this.queryMint(args, "batch_mint", paymentAmount, deploySender, keys);
+  public batchMint(params: BatchMintParams) {
+    return this.queryMint(params, 'batch_mint');
   }
 
-  /**
- * Query transfer of tokens.
- * @param args Arguments for the transfer. See {@link TransferArgs} or {@link BatchTransferArgs}.
- * @param entrypoint Entrypoint for the transfer query.
- * @param paymentAmount Payment amount required for querying the transfer.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- */
   private queryTransfer(
-    args: TransferArgs | BatchTransferArgs,
-    entrypoint: string,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
+    params: TransferParams | BatchTransferParams,
+    entrypoint: string
   ) {
-    const commonArgs = {
-      from: CLValueBuilder.key(args.from),
-      to: CLValueBuilder.key(args.to),
-    };
+    const {
+      params: { paymentAmount, sender, chainName, signingKeys },
+      waitForTransactionProcessed,
+      args,
+    } = params;
 
-    const runtimeArgs = RuntimeArgs.fromMap(commonArgs);
+    const runtimeArgs = RuntimeArgs.fromMap({
+      from: CLValue.newCLKey(CEP85Client.getPrefixedString(args.from)),
+      to: CLValue.newCLKey(CEP85Client.getPrefixedString(args.to)),
+    });
 
     if ('id' in args) {
-      runtimeArgs.insert('id', CLValueBuilder.u256(args.id));
+      runtimeArgs.insert('id', CLValue.newCLUInt256(args.id));
     }
     if ('amount' in args) {
-      runtimeArgs.insert('amount', CLValueBuilder.u256(args.amount));
+      runtimeArgs.insert('amount', CLValue.newCLUInt256(args.amount));
     }
     if ('ids' in args) {
-      runtimeArgs.insert('ids', CLValueBuilder.list(args.ids.map(CLValueBuilder.u256)));
+      runtimeArgs.insert(
+        'ids',
+        CLValue.newCLList(CLTypeUInt256, args.ids.map(CLValue.newCLUInt256))
+      );
     }
     if ('amounts' in args) {
-      runtimeArgs.insert('amounts', CLValueBuilder.list(args.amounts.map(CLValueBuilder.u256)));
+      runtimeArgs.insert(
+        'amounts',
+        CLValue.newCLList(CLTypeUInt256, args.amounts.map(CLValue.newCLUInt256))
+      );
     }
 
     if ('data' in args && args.data !== undefined) {
-      const clValues = Array.from(args.data).map(CLValueBuilder.u8);
-      runtimeArgs.insert('data', CLValueBuilder.list(clValues));
+      const clValues = Array.from(args.data).map(CLValue.newCLUint8);
+      runtimeArgs.insert('data', CLValue.newCLList(CLTypeUInt8, clValues));
     }
 
-    const preparedDeploy = this.contractClient.callEntrypoint(
+    return this.callEntrypoint(
       entrypoint,
       runtimeArgs,
-      deploySender,
-      this.networkName,
       paymentAmount,
-      keys
+      sender,
+      signingKeys,
+      chainName,
+      waitForTransactionProcessed
     );
-
-    return preparedDeploy;
   }
 
-  /**
- * Perform a transfer of tokens.
- * @param args Arguments for the transfer. See {@link TransferArgs}.
- * @param paymentAmount Payment amount required for performing the transfer.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- */
-  public transfer(
-    args: TransferArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
-  ) {
-    return this.queryTransfer(args, "transfer_from", paymentAmount, deploySender, keys);
+  public transfer(params: TransferParams) {
+    return this.queryTransfer(params, 'transfer_from');
   }
 
-  /**
- * Perform a batch transfer of tokens.
- * @param args Arguments for the batch transfer. See {@link BatchTransferArgs}.
- * @param paymentAmount Payment amount required for performing the batch transfer.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- */
-  public batchTransfer(
-    args: BatchTransferArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
-  ) {
-    return this.queryTransfer(args, "batch_transfer_from", paymentAmount, deploySender, keys);
+  public batchTransfer(params: BatchTransferParams) {
+    return this.queryTransfer(params, 'batch_transfer_from');
   }
 
-  /**
- * Query the burning of tokens.
- * @param args Arguments for burning. See {@link BurnArgs} or {@link BatchBurnArgs}.
- * @param entrypoint Entrypoint for the query.
- * @param paymentAmount Payment amount required for the query.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- * @returns Result of the query.
- */
-  private queryBurn(
-    args: BurnArgs | BatchBurnArgs,
-    entrypoint: string,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[]
-  ) {
-    const commonArgs = {
-      owner: CLValueBuilder.key(args.owner),
-    };
+  private queryBurn(params: BurnParams | BatchBurnParams, entrypoint: string) {
+    const {
+      params: { paymentAmount, sender, chainName, signingKeys },
+      waitForTransactionProcessed,
+      args,
+    } = params;
 
-    const runtimeArgs = RuntimeArgs.fromMap(commonArgs);
+    const runtimeArgs = RuntimeArgs.fromMap({
+      owner: CLValue.newCLKey(CEP85Client.getPrefixedString(args.owner)),
+    });
 
     if ('id' in args) {
-      runtimeArgs.insert('id', CLValueBuilder.u256(args.id));
+      runtimeArgs.insert('id', CLValue.newCLUInt256(args.id));
     }
     if ('amount' in args) {
-      runtimeArgs.insert('amount', CLValueBuilder.u256(args.amount));
+      runtimeArgs.insert('amount', CLValue.newCLUInt256(args.amount));
     }
     if ('ids' in args) {
-      runtimeArgs.insert('ids', CLValueBuilder.list(args.ids.map(CLValueBuilder.u256)));
+      runtimeArgs.insert(
+        'ids',
+        CLValue.newCLList(CLTypeUInt256, args.ids.map(CLValue.newCLUInt256))
+      );
     }
     if ('amounts' in args) {
-      runtimeArgs.insert('amounts', CLValueBuilder.list(args.amounts.map(CLValueBuilder.u256)));
+      runtimeArgs.insert(
+        'amounts',
+        CLValue.newCLList(CLTypeUInt256, args.amounts.map(CLValue.newCLUInt256))
+      );
     }
 
-    const preparedDeploy = this.contractClient.callEntrypoint(
+    return this.callEntrypoint(
       entrypoint,
       runtimeArgs,
-      deploySender,
-      this.networkName,
       paymentAmount,
-      keys
+      sender,
+      signingKeys,
+      chainName,
+      waitForTransactionProcessed
     );
-
-    return preparedDeploy;
   }
 
-  /**
- * Perform burning of tokens.
- * @param args Arguments for burning. See {@link BurnArgs}.
- * @param paymentAmount Payment amount required for installing the contract.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- * @returns Deploy object which can be sent to the node.
- */
-  public burn(
-    args: BurnArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[]
-  ) {
-    return this.queryBurn(args, "burn", paymentAmount, deploySender, keys);
+  public burn(params: BurnParams) {
+    return this.queryBurn(params, 'burn');
   }
 
-  /**
- * Perform batch burning of tokens.
- * @param args Arguments for batch burning. See {@link BatchBurnArgs}.
- * @param paymentAmount Payment amount required for installing the contract.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- * @returns Deploy object which can be sent to the node.
- */
-  public batchBurn(
-    args: BatchBurnArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[]
-  ) {
-    return this.queryBurn(args, "batch_burn", paymentAmount, deploySender, keys);
+  public batchBurn(params: BatchBurnParams) {
+    return this.queryBurn(params, 'batch_burn');
   }
 
-  /**
- * Queries the contract dictionary to retrieve the balance associated with a specific account and token ID.
- * @param account The public key of the account for which to query the balance.
- * @param id The token ID for which to retrieve the balance.
- * @returns The balance as a string, or "0" if an error occurs or the balance is not found.
- */
-  private async queryBalance(account: CLPublicKey, id: string): Promise<string> {
+  private async queryBalance(account: Entity, id: string): Promise<string> {
     const dictionaryItemKey = CEP85Client.makeDictionaryItemKey(
-      CLValueBuilder.key(account),
-      new CLU256(id)
+      CLValue.newCLKey(CEP85Client.getPrefixedString(account)),
+      CLValue.newCLUInt256(id)
     );
     try {
-      const result = await this.contractClient.queryContractDictionary(
-        "balances",
+      const result = await this.queryContractDictionary(
+        'balances',
         dictionaryItemKey
       );
-      return (result as CLU256).toJSON();
+      return result as string;
     } catch (error) {
       // console.error(error);
-      return "0";
+      return '0';
     }
   }
 
-  /**
- * Retrieves the balance of a specific token for a given account.
- * @param account The public key of the account for which to retrieve the balance.
- * @param id The token ID for which to retrieve the balance.
- * @returns A promise that resolves to the balance as a string. If an error occurs, "0" is returned.
- */
-  public async getBalanceOf(account: CLPublicKey, id: string): Promise<string> {
+  public async balanceOf(account: Entity, id: string): Promise<string> {
     return this.queryBalance(account, id);
   }
 
-  /**
- * Retrieves the balances of multiple tokens for a given account.
- * @param account The public key of the account for which to retrieve the balances.
- * @param ids An array of token IDs for which to retrieve the balances.
- * @returns A promise that resolves to an array of balances as strings. If an error occurs, an empty array is returned.
- */
-  public async getBalanceOfBatch(account: CLPublicKey, ids: string[]): Promise<string[]> {
+  public async balanceOfBatch(
+    account: Entity,
+    ids: string[]
+  ): Promise<string[]> {
     const result: string[] = [];
     try {
       const supplyPromises = ids.map(async (id) => {
-        const resultSupply = await this.getBalanceOf(account, id);
+        const resultSupply = await this.balanceOf(account, id);
         return resultSupply;
       });
       const supplyResults = await Promise.all(supplyPromises);
@@ -550,37 +605,34 @@ export class CEP85Client extends TypedContract {
   }
 
   /**
- * Queries the circulating supply of a specific token.
- * @param id The token ID for which to retrieve the circulating supply.
- * @returns A promise that resolves to the circulating supply as a string. If an error occurs, "0" is returned.
- */
+   * Queries the circulating supply of a specific token.
+   * @param id The token ID for which to retrieve the circulating supply.
+   * @returns A promise that resolves to the circulating supply as a string. If an error occurs, "0" is returned.
+   */
   private async querySupply(id: string): Promise<string> {
     try {
-      const result = await this.contractClient.queryContractDictionary(
-        "supply",
-        id
-      );
-      return (result as CLU256).toJSON();
+      const result = await this.queryContractDictionary('supply', id);
+      return result as string;
     } catch (error) {
       // console.error(error);
-      return "0";
+      return '0';
     }
   }
 
   /**
- * Retrieves the circulating supply of a specific token.
- * @param id The token ID for which to retrieve the circulating supply.
- * @returns A promise that resolves to the circulating supply as a string. If an error occurs, "0" is returned.
- */
+   * Retrieves the circulating supply of a specific token.
+   * @param id The token ID for which to retrieve the circulating supply.
+   * @returns A promise that resolves to the circulating supply as a string. If an error occurs, "0" is returned.
+   */
   public async getSupplyOf(id: string): Promise<string> {
     return this.querySupply(id);
   }
 
   /**
- * Retrieves the circulating supply of multiple tokens in batch.
- * @param ids An array of token IDs for which to retrieve the circulating supply.
- * @returns A promise that resolves to an array of circulating supplies as strings. If an error occurs, an empty array is returned.
- */
+   * Retrieves the circulating supply of multiple tokens in batch.
+   * @param ids An array of token IDs for which to retrieve the circulating supply.
+   * @returns A promise that resolves to an array of circulating supplies as strings. If an error occurs, an empty array is returned.
+   */
   public async getSupplyOfBatch(ids: string[]): Promise<string[]> {
     const supplyPromises = ids.map((id) => this.getSupplyOf(id));
     try {
@@ -592,37 +644,34 @@ export class CEP85Client extends TypedContract {
   }
 
   /**
- * Queries the total supply of a specific token from the contract's dictionary.
- * @param id The token ID for which to retrieve the total supply.
- * @returns A promise that resolves to the total supply as a string. If an error occurs, "0" is returned.
- */
+   * Queries the total supply of a specific token from the contract's dictionary.
+   * @param id The token ID for which to retrieve the total supply.
+   * @returns A promise that resolves to the total supply as a string. If an error occurs, "0" is returned.
+   */
   private async queryTotalSupply(id: string): Promise<string> {
     try {
-      const result = await this.contractClient.queryContractDictionary(
-        "total_supply",
-        id
-      );
-      return (result as CLU256).toJSON();
+      const result = await this.queryContractDictionary('total_supply', id);
+      return result as string;
     } catch (error) {
       // console.error(error);
-      return "0";
+      return '0';
     }
   }
 
   /**
- * Retrieves the total supply of a specific token by querying the contract's dictionary.
- * @param id The token ID for which to retrieve the total supply.
- * @returns A promise that resolves to the total supply as a string. If an error occurs, "0" is returned.
- */
+   * Retrieves the total supply of a specific token by querying the contract's dictionary.
+   * @param id The token ID for which to retrieve the total supply.
+   * @returns A promise that resolves to the total supply as a string. If an error occurs, "0" is returned.
+   */
   public async getTotalSupplyOf(id: string): Promise<string> {
     return this.queryTotalSupply(id);
   }
 
   /**
- * Retrieves the total supply of multiple tokens in batch by querying the contract's dictionary.
- * @param ids An array of token IDs for which to retrieve the total supplies.
- * @returns A promise that resolves to an array of total supplies as strings. If an error occurs, an empty array is returned.
- */
+   * Retrieves the total supply of multiple tokens in batch by querying the contract's dictionary.
+   * @param ids An array of token IDs for which to retrieve the total supplies.
+   * @returns A promise that resolves to an array of total supplies as strings. If an error occurs, an empty array is returned.
+   */
   public async getTotalSupplyOfBatch(ids: string[]): Promise<string[]> {
     const supplyPromises = ids.map((id) => this.getTotalSupplyOf(id));
     try {
@@ -634,93 +683,77 @@ export class CEP85Client extends TypedContract {
   }
 
   /**
- * Queries the data for setting the total supply, either for a single token or a batch of tokens.
- * @param args Arguments for setting the total supply. It can be of type {@link TotalSupplyOfArgs} or {@link TotalSupplyOfArgsBatch}.
- * @param entrypoint The entry point for setting the total supply.
- * @param paymentAmount Payment amount required for installing the contract.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- * @returns Deploy object which can be sent to the node.
- */
+   * Queries the data for setting the total supply, either for a single token or a batch of tokens.
+   * @param args Arguments for setting the total supply. It can be of type {@link TotalSupplyOfArgs} or {@link TotalSupplyOfArgsBatch}.
+   * @param entrypoint The entry point for setting the total supply.
+   * @param paymentAmount Payment amount required for installing the contract.
+   * @param deploySender Deploy sender's public key.
+   * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
+   * @returns Deploy object which can be sent to the node.
+   */
   private querySetTotalSupplyOf(
-    args: TotalSupplyOfArgs | TotalSupplyOfArgsBatch,
-    entrypoint: string,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
+    params: TotalSupplyOfParams | TotalSupplyOfBatchParams,
+    entrypoint: string
   ) {
+    const {
+      params: { paymentAmount, sender, chainName, signingKeys },
+      waitForTransactionProcessed,
+      args,
+    } = params;
     const runtimeArgs = RuntimeArgs.fromMap({});
     if ('id' in args) {
-      runtimeArgs.insert('id', CLValueBuilder.u256(args.id));
+      runtimeArgs.insert('id', CLValue.newCLUInt256(args.id));
     }
-    if ('total_supply' in args) {
-      runtimeArgs.insert('total_supply', CLValueBuilder.u256(args.total_supply));
+    if ('totalSupply' in args) {
+      runtimeArgs.insert(
+        'total_supply',
+        CLValue.newCLUInt256(args.totalSupply)
+      );
     }
     if ('ids' in args) {
-      runtimeArgs.insert('ids', CLValueBuilder.list(args.ids.map(CLValueBuilder.u256)));
+      runtimeArgs.insert(
+        'ids',
+        CLValue.newCLList(CLTypeUInt256, args.ids.map(CLValue.newCLUInt256))
+      );
     }
-    if ('total_supplies' in args) {
-      runtimeArgs.insert('total_supplies', CLValueBuilder.list(args.total_supplies.map(CLValueBuilder.u256)));
+    if ('totalSupplies' in args) {
+      runtimeArgs.insert(
+        'total_supplies',
+        CLValue.newCLList(
+          CLTypeUInt256,
+          args.totalSupplies.map(CLValue.newCLUInt256)
+        )
+      );
     }
 
-    const preparedDeploy = this.contractClient.callEntrypoint(
+    return this.callEntrypoint(
       entrypoint,
       runtimeArgs,
-      deploySender,
-      this.networkName,
       paymentAmount,
-      keys
+      sender,
+      signingKeys,
+      chainName,
+      waitForTransactionProcessed
     );
+  }
 
-    return preparedDeploy;
+  public setTotalSupplyOf(params: TotalSupplyOfParams) {
+    return this.querySetTotalSupplyOf(params, 'set_total_supply_of');
+  }
+
+  public setTotalSupplyOfBatch(params: TotalSupplyOfBatchParams) {
+    return this.querySetTotalSupplyOf(params, 'set_total_supply_of_batch');
   }
 
   /**
- * Set the total supply for a specific token.
- * @param args @see {@link TotalSupplyOfArgs}
- * @param paymentAmount Payment amount required for installing the contract.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- * @returns Deploy object which can be sent to the node.
- */
-  public setTotalSupplyOf(
-    args: TotalSupplyOfArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
-  ) {
-    return this.querySetTotalSupplyOf(args, "set_total_supply_of", paymentAmount, deploySender, keys);
-  }
-
-  /**
- * Set the total supply for a batch of tokens.
- * @param args @see {@link TotalSupplyOfArgsBatch}
- * @param paymentAmount Payment amount required for installing the contract.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- * @returns Deploy object which can be sent to the node.
- */
-  public setTotalSupplyOfBatch(
-    args: TotalSupplyOfArgsBatch,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
-  ) {
-    return this.querySetTotalSupplyOf(args, "set_total_supply_of_batch", paymentAmount, deploySender, keys);
-  }
-
-  /**
- * Checks whether a token with the specified ID is non-fungible by querying the contract's dictionary.
- * @param id The ID of the token to check for non-fungibility.
- * @returns A promise that resolves to a boolean indicating whether the token is non-fungible. If an error occurs, false is returned.
- */
+   * Checks whether a token with the specified ID is non-fungible by querying the contract's dictionary.
+   * @param id The ID of the token to check for non-fungibility.
+   * @returns A promise that resolves to a boolean indicating whether the token is non-fungible. If an error occurs, false is returned.
+   */
   public async getIsNonFungible(id: string): Promise<boolean> {
     try {
-      const result = await this.contractClient.queryContractDictionary(
-        "total_supply",
-        id
-      );
-      return (result as CLU256).toJSON() === '1';
+      const result = await this.queryContractDictionary('total_supply', id);
+      return (result as string) === '1';
     } catch (error) {
       // console.error(error);
       return false;
@@ -728,24 +761,21 @@ export class CEP85Client extends TypedContract {
   }
 
   /**
- * Retrieves the total fungible supply of a token by querying the contract's dictionaries.
- * @param id The ID of the token to get the total fungible supply for.
- * @returns A promise that resolves to the total fungible supply of the token. If an error occurs, 0 is returned.
- */
+   * Retrieves the total fungible supply of a token by querying the contract's dictionaries.
+   * @param id The ID of the token to get the total fungible supply for.
+   * @returns A promise that resolves to the total fungible supply of the token. If an error occurs, 0 is returned.
+   */
   public async getTotalFungibleSupply(id: string) {
     try {
-      const resultSupply = await this.contractClient.queryContractDictionary(
-        "supply",
+      const resultSupply = await this.queryContractDictionary('supply', id);
+      const currentSupply = BigInt(resultSupply as string);
+      const resultTotalSupply = await this.queryContractDictionary(
+        'total_supply',
         id
       );
-      const currentSupply = BigNumber.from((resultSupply as CLU256).toJSON());
-      const resultTotalSupply = await this.contractClient.queryContractDictionary(
-        "total_supply",
-        id
-      );
-      const totalSupply = BigNumber.from((resultTotalSupply as CLU256).toJSON());
+      const totalSupply = BigInt(resultTotalSupply as string);
 
-      return totalSupply.sub(currentSupply).toString();
+      return String(totalSupply - currentSupply);
     } catch (error) {
       // console.error(error);
       return '0';
@@ -753,93 +783,124 @@ export class CEP85Client extends TypedContract {
   }
 
   /**
- * Set approval for all tokens of the given owner.
- * @param args @see {@link SetApprovallForAllArgs}
- * @param paymentAmount Payment amount required for installing the contract.
- * @param deploySender Deploy sender's public key.
- * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
- * @returns Deploy object which can be sent to the node.
- */
-  public setApprovalForAll(
-    args: SetApprovallForAllArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[]
-  ) {
+   * Set approval for all tokens of the given owner.
+   * @param args @see {@link SetApprovallForAllArgs}
+   * @param paymentAmount Payment amount required for installing the contract.
+   * @param deploySender Deploy sender's public key.
+   * @param keys (Optional) Array of signing keys. Returns a signed deploy if keys are provided.
+   * @returns Deploy object which can be sent to the node.
+   */
+  public setApprovalForAll(params: SetApprovallForAllParams) {
+    const {
+      params: { paymentAmount, sender, chainName, signingKeys },
+      waitForTransactionProcessed,
+      args: { approved, operator },
+    } = params;
+
     const runtimeArgs = RuntimeArgs.fromMap({
-      approved: CLValueBuilder.bool(args.approved),
-      operator: CLValueBuilder.key(args.operator),
+      approved: CLValue.newCLValueBool(approved),
+      operator: CLValue.newCLKey(CEP85Client.getPrefixedString(operator)),
     });
 
-    const preparedDeploy = this.contractClient.callEntrypoint(
-      "set_approval_for_all",
+    return this.callEntrypoint(
+      'set_approval_for_all',
       runtimeArgs,
-      deploySender,
-      this.networkName,
       paymentAmount,
-      keys
+      sender,
+      signingKeys,
+      chainName,
+      waitForTransactionProcessed
     );
-
-    return preparedDeploy;
   }
 
   /**
- * Checks whether the specified spender is approved for all tokens of the owner by querying the contract's dictionary.
- * @param owner The CLPublicKey representing the owner of the tokens.
- * @param spender The CLPublicKey representing the spender for whom approval is checked.
- * @returns A promise that resolves to a boolean indicating whether the spender is approved for all tokens of the owner.
- * If an error occurs during the query, false is returned.
- */
-  public async getIsApprovedForAll(owner: CLPublicKey, spender: CLPublicKey): Promise<boolean> {
+   * Checks whether the specified spender is approved for all tokens of the owner by querying the contract's dictionary.
+   * @param owner The Entity representing the owner of the tokens.
+   * @param spender The Entity representing the spender for whom approval is checked.
+   * @returns A promise that resolves to a boolean indicating whether the spender is approved for all tokens of the owner.
+   * If an error occurs during the query, false is returned.
+   */
+  public async getIsApprovedForAll(
+    owner: Entity,
+    spender: Entity
+  ): Promise<boolean> {
     try {
-      const result = await this.contractClient.queryContractDictionary(
-        "operators",
-        CEP85Client.makeDictionaryItemKey(CLValueBuilder.key(owner), CLValueBuilder.key(spender))
+      const result = await this.queryContractDictionary(
+        'operators',
+        CEP85Client.makeDictionaryItemKey(
+          CLValue.newCLKey(CEP85Client.getPrefixedString(owner)),
+          CLValue.newCLKey(CEP85Client.getPrefixedString(spender))
+        )
       );
-      return (result as CLBool).toJSON() as boolean;
+      return result as unknown as boolean;
     } catch {
       return false;
     }
   }
 
-  /**
-   * Change token security
-   * @param args @see {@link ChangeSecurityArgs}
-   * @param paymentAmount payment amount required for installing the contract
-   * @param sender deploy sender
-   * @param keys array of signing keys optional, returns signed deploy if keys are provided
-   * @returns Deploy object which can be send to the node.
-   */
   public changeSecurity(
-    args: ChangeSecurityArgs,
-    paymentAmount: string,
-    sender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[]
-  ) {
+    params: ChangeSecurityParams
+  ): Promise<TransactionResult> {
+    const {
+      args: { adminList, minterList, burnerList, metaList, noneList },
+      params: { sender, paymentAmount, signingKeys, chainName },
+      waitForTransactionProcessed,
+    } = params;
     const runtimeArgs = RuntimeArgs.fromMap({});
-
-    if (args.admin_list) {
+    // Add optional args
+    if (adminList) {
       runtimeArgs.insert(
         'admin_list',
-        CLValueBuilder.list(args.admin_list.map(CLValueBuilder.key))
+        CLValue.newCLList(
+          CLTypeKey,
+          adminList.map((key) =>
+            CLValue.newCLKey(CEP85Client.getPrefixedString(key))
+          )
+        )
       );
     }
-    if (args.minter_list) {
+    if (minterList) {
       runtimeArgs.insert(
         'minter_list',
-        CLValueBuilder.list(args.minter_list.map(CLValueBuilder.key))
+        CLValue.newCLList(
+          CLTypeKey,
+          minterList.map((key) =>
+            CLValue.newCLKey(CEP85Client.getPrefixedString(key))
+          )
+        )
       );
     }
-    if (args.burner_list) {
+    if (burnerList) {
       runtimeArgs.insert(
         'burner_list',
-        CLValueBuilder.list(args.burner_list.map(CLValueBuilder.key))
+        CLValue.newCLList(
+          CLTypeKey,
+          burnerList.map((key) =>
+            CLValue.newCLKey(CEP85Client.getPrefixedString(key))
+          )
+        )
       );
     }
-    if (args.none_list) {
+    if (metaList) {
+      runtimeArgs.insert(
+        'meta_list',
+        CLValue.newCLList(
+          CLTypeKey,
+          metaList.map((key) =>
+            CLValue.newCLKey(CEP85Client.getPrefixedString(key))
+          )
+        )
+      );
+    }
+    if (noneList) {
       runtimeArgs.insert(
         'none_list',
-        CLValueBuilder.list(args.none_list.map(CLValueBuilder.key))
+        CLValue.newCLList(
+          CLTypeKey,
+          noneList.map((key) =>
+            CLValue.newCLKey(CEP85Client.getPrefixedString(key))
+          )
+        )
       );
     }
 
@@ -848,104 +909,91 @@ export class CEP85Client extends TypedContract {
       throw new Error('Should provide at least one arg');
     }
 
-    return this.contractClient.callEntrypoint(
+    return this.callEntrypoint(
       'change_security',
       runtimeArgs,
+      paymentAmount,
       sender,
-      this.networkName,
-      paymentAmount,
-      keys
+      signingKeys,
+      chainName,
+      waitForTransactionProcessed
     );
   }
 
-  /**
- * Retrieves the events mode from the contract by querying the contract's data.
- * @returns A promise that resolves to a string representing the events mode.
- * The events mode is converted from its internal numerical representation to its corresponding string value.
- */
-  public async getEventsMode(): Promise<keyof typeof EventsMode> {
-    try {
-      const internalValue = (await this.contractClient.queryContractData([
-        'events_mode'
-      ])) as BigNumber;
-      const u8res = internalValue.toNumber();
-      return EventsMode[u8res] as keyof typeof EventsMode;
-    } catch (error) {
-      // console.error(error);
-      return EventsMode[EventsMode.NoEvents] as keyof typeof EventsMode;
-    }
+  public async eventsMode(): Promise<keyof typeof EVENTS_MODE> {
+    const internalValue = (await this.queryContractData([
+      'events_mode',
+    ])) as string;
+
+    return EVENTS_MODE[internalValue] as keyof typeof EVENTS_MODE;
+  }
+
+  public async burnMode(): Promise<boolean> {
+    const internalValue = await this.queryContractData(['enable_burn']);
+    return internalValue === 'true';
   }
 
   /**
- * Sets modalities by calling the "set_modalities" entrypoint on the contract.
- * @param args - The arguments for setting modalities. @see {@link SetModalitiesArgs}
- * @param paymentAmount - The payment amount in string format.
- * @param deploySender - The deploy sender's public key.
- * @param keys - Optional asymmetric keys for the deployment.
- * @returns The prepared deploy for setting modalities.
- */
-  public setModalities(
-    args: SetModalitiesArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[]
-  ) {
+   * Returns the number of minted tokens.
+   *
+   * @returns A `Promise` that resolves to the number of minted tokens.
+   *
+   * @remarks This method queries the `number_of_minted_tokens` field from the contract.
+   */
+  public async numOfMintedTokens() {
+    return this.queryContractData(['number_of_minted_tokens']);
+  }
+
+  /**
+   * Sets modalities by calling the "set_modalities" entrypoint on the contract.
+   * @param args - The arguments for setting modalities. @see {@link SetModalitiesArgs}
+   * @param paymentAmount - The payment amount in string format.
+   * @param deploySender - The deploy sender's public key.
+   * @param keys - Optional asymmetric keys for the deployment.
+   * @returns The prepared deploy for setting modalities.
+   */
+  public setModalities(params: SetModalitiesParams) {
+    const {
+      params: { paymentAmount, sender, chainName, signingKeys },
+      waitForTransactionProcessed,
+      args: { enableBurn, eventsMode },
+    } = params;
+
     const runtimeArgs = RuntimeArgs.fromMap({});
-    if (args.enable_burn !== undefined) {
-      runtimeArgs.insert(
-        'enable_burn',
-        CLValueBuilder.bool(args.enable_burn)
-      );
+    if (enableBurn !== undefined) {
+      runtimeArgs.insert('enable_burn', CLValue.newCLValueBool(enableBurn));
     }
-    if (args.events_mode !== undefined) {
-      runtimeArgs.insert(
-        'events_mode',
-        CLValueBuilder.u8(args.events_mode)
-      );
+    if (eventsMode !== undefined) {
+      runtimeArgs.insert('events_mode', CLValue.newCLUint8(eventsMode));
     }
-    const preparedDeploy = this.contractClient.callEntrypoint(
-      "set_modalities",
+    return this.callEntrypoint(
+      'set_modalities',
       runtimeArgs,
-      deploySender,
-      this.networkName,
       paymentAmount,
-      keys
+      sender,
+      signingKeys,
+      chainName,
+      waitForTransactionProcessed
     );
-    return preparedDeploy;
   }
 
-  /**
- * Upgrades the contract by installing a new version with the provided arguments.
- * @param args - The arguments for the contract upgrade. @see {@link UpgradeArgs}
- * @param paymentAmount - The payment amount in string format.
- * @param deploySender - The deploy sender's public key.
- * @param keys - Optional asymmetric keys for the deployment.
- * @param wasm - Optional WebAssembly binary for the contract. If not provided, the default ContractWASM is used.
- * @returns The prepared deploy for the contract upgrade.
- */
-  public upgrade(
-    args: UpgradeArgs,
-    paymentAmount: string,
-    deploySender: CLPublicKey,
-    keys?: Keys.AsymmetricKey[],
-    wasm?: Uint8Array
-  ) {
-    const wasmToInstall = wasm || ContractWASM;
-    if (!args.name) {
-      console.error('Missing collection name for upgrade');
+  // ! TODO toPrefixedString() ?
+  // Error: prefix is not found, source: contract-0x, see Key.newKey()
+  private static getPrefixedString(entity: Entity): Key {
+    if (entity instanceof PublicKey) {
+      return Key.newKey(
+        entity
+          .accountHash()
+          .toPrefixedString()
+          .replace('account-hash-', 'entity-account-')
+      );
     }
-    const runtimeArgs = RuntimeArgs.fromMap({
-      upgrade: CLValueBuilder.bool(true),
-      name: CLValueBuilder.string(args.name)
-    });
-
-    return this.contractClient.install(
-      wasmToInstall,
-      runtimeArgs,
-      paymentAmount,
-      deploySender,
-      this.networkName,
-      keys
-    );
+    if (
+      entity instanceof ContractHash ||
+      entity instanceof ContractPackageHash
+    ) {
+      return Key.newKey(`entity-contract-${entity.hash.toHex()}`);
+    }
+    return Key.newKey((entity as AddressableEntityHash).toPrefixedString());
   }
 }

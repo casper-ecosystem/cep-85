@@ -269,19 +269,19 @@ pub fn replace_token_id_in_uri(raw_uri: &str, id: &U256) -> String {
 }
 
 #[cfg(feature = "contract-support")]
+pub fn get_uref_with_user_errors(name: &str, missing: Cep85Error, invalid: Cep85Error) -> URef {
+    let key = get_key_with_user_errors(name, missing, invalid);
+    key.into_uref()
+        .unwrap_or_revert_with(Cep85Error::UnexpectedKeyVariant)
+}
+
+#[cfg(feature = "contract-support")]
 fn get_uref(name: &str) -> URef {
     let key = get_key(name)
         .ok_or(ApiError::MissingKey)
         .unwrap_or_revert_with(Cep85Error::FailedToGetKey);
     key.try_into()
         .unwrap_or_revert_with(Cep85Error::InvalidKeyType)
-}
-
-#[cfg(feature = "contract-support")]
-fn get_uref_with_user_errors(name: &str, missing: Cep85Error, invalid: Cep85Error) -> URef {
-    let key = get_key_with_user_errors(name, missing, invalid);
-    key.into_uref()
-        .unwrap_or_revert_with(Cep85Error::UnexpectedKeyVariant)
 }
 
 #[cfg(feature = "contract-support")]

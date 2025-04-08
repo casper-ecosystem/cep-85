@@ -68,8 +68,8 @@ pub fn sec_check(allowed_badge_list: Vec<SecurityBadge>) {
 
     if let Some(badge) = caller_badge.or(package_badge) {
         if allowed_badge_list.contains(&badge)
-            || (allowed_badge_list.contains(&SecurityBadge::Burner)
-                && badge == SecurityBadge::Burner)
+        // || (allowed_badge_list.contains(&SecurityBadge::Burner)
+        //     && badge == SecurityBadge::Burner)
         {
             return;
         }

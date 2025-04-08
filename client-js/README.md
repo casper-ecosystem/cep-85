@@ -37,7 +37,7 @@ Users can treat this package as a deploy builder for all of these possible inter
 
 Run the following command to copy the CEP-85 contract Wasm file to the `/wasm/` folder:
 
-`npm run wasms:convert`
+`npm run generate:wasm`
 
 ## Examples
 
@@ -63,7 +63,7 @@ After generating the Wasm file, install the node modules and the Wasm will be au
 
 ```bash
 cd client-js
-npm install && npm run wasms:convert
+npm install && npm run generate:wasm
 ```
 
 ## Testing

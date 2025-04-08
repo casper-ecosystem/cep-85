@@ -244,3 +244,6 @@ The expected behavior of the multi-token contract implementation is asserted by 
 | 86   | FailedToInsertToSecurityList  |
 | 87   | FailedToGetKey                |
 | 88   | InvalidKeyType                |
+| 89   | FailedToConvertToJson         |
+| 90   | MissingNumberOfMintedTokens   |
+| 91   | InvalidNumberOfMintedTokens   |
