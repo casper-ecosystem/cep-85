@@ -33,6 +33,8 @@ Users can treat this package as a deploy builder for all of these possible inter
 
 > NOTE: Since version `1.3`, both `casper-js-sdk` and `@make-software/ces-js-parser` are peer dependencies. If you use npm version `<7`, you may need to install both dependencies manually.
 
+> **IMPORTANT:** The class Client in client.ts is duplicated in every CEP JS client. Any modifications made to this class must be reflected across all instances of CEP clients to ensure consistency. Be sure to update all relevant CEP JS clients whenever changes are made to this class.
+
 ## Prepare
 
 Run the following command to copy the CEP-85 contract Wasm file to the `/wasm/` folder:
