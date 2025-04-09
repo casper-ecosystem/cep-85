@@ -470,6 +470,13 @@ export default class CEP85Client extends Client {
         CLValue.newCLList(CLTypeUInt256, args.amounts.map(CLValue.newCLUInt256))
       );
     }
+
+    if ('ids' in args && 'amounts' in args) {
+      if (args.ids.length !== args.amounts.length) {
+        throw new Error('Length of "ids" and "amounts" must be the same.');
+      }
+    }
+
     if ('uri' in args && args.uri) {
       runtimeArgs.insert('uri', CLValue.newCLString(args.uri));
     }
@@ -590,6 +597,12 @@ export default class CEP85Client extends Client {
         'amounts',
         CLValue.newCLList(CLTypeUInt256, args.amounts.map(CLValue.newCLUInt256))
       );
+    }
+
+    if ('ids' in args && 'amounts' in args) {
+      if (args.ids.length !== args.amounts.length) {
+        throw new Error('Length of "ids" and "amounts" must be the same.');
+      }
     }
 
     if ('data' in args && args.data !== undefined) {
@@ -713,6 +726,12 @@ export default class CEP85Client extends Client {
       );
     }
 
+    if ('ids' in args && 'amounts' in args) {
+      if (args.ids.length !== args.amounts.length) {
+        throw new Error('Length of "ids" and "amounts" must be the same.');
+      }
+    }
+
     return this.callEntrypoint(
       entrypoint,
       runtimeArgs,
@@ -831,16 +850,21 @@ export default class CEP85Client extends Client {
     ids: string[]
   ): Promise<string[]> {
     const result: string[] = [];
-    try {
-      const supplyPromises = ids.map(async (id) => {
+
+    // Map over the token IDs and handle each balance query individually
+    const supplyPromises = ids.map(async (id) => {
+      try {
         const resultSupply = await this.balanceOf(account, id);
-        return resultSupply;
-      });
-      const supplyResults = await Promise.all(supplyPromises);
-      result.push(...supplyResults);
-    } catch (error) {
-      console.error(error);
-    }
+        return resultSupply || '0';
+      } catch (error) {
+        console.warn(`Failed to query balance for token ID: ${id}`, error);
+        return '0'; // Default to '0' if an error occurs
+      }
+    });
+
+    const supplyResults = await Promise.all(supplyPromises);
+    result.push(...supplyResults);
+
     return result;
   }
 
@@ -852,9 +876,9 @@ export default class CEP85Client extends Client {
   private async querySupply(id: string): Promise<string> {
     try {
       const result = await this.queryContractDictionary('supply', id);
-      return result as string;
+      // Handle undefined, null, or invalid results by returning '0'
+      return result ? (result as string) : '0';
     } catch (error) {
-      // console.error(error);
       return '0';
     }
   }
@@ -865,22 +889,33 @@ export default class CEP85Client extends Client {
    * @returns A promise that resolves to the circulating supply as a string. If an error occurs, "0" is returned.
    */
   public async getSupplyOf(id: string): Promise<string> {
-    return this.querySupply(id);
+    try {
+      return (await this.querySupply(id)) || '0';
+    } catch (error) {
+      // Handle any unexpected errors in getSupplyOf
+      return '0';
+    }
   }
 
   /**
    * Retrieves the circulating supply of multiple tokens in batch.
    * @param ids An array of token IDs for which to retrieve the circulating supply.
-   * @returns A promise that resolves to an array of circulating supplies as strings. If an error occurs, an empty array is returned.
+   * @returns A promise that resolves to an array of circulating supplies as strings. If an error occurs, it defaults to '0' for the failed token ID.
    */
   public async getSupplyOfBatch(ids: string[]): Promise<string[]> {
-    const supplyPromises = ids.map((id) => this.getSupplyOf(id));
-    try {
-      return await Promise.all(supplyPromises);
-    } catch (error) {
-      // console.error(error);
-      return [];
-    }
+    const supplyPromises = ids.map(async (id) => {
+      try {
+        const resultSupply = await this.getSupplyOf(id);
+        return resultSupply || '0'; // Default to '0' if supply is empty
+      } catch (error) {
+        console.warn(`Failed to query supply for token ID: ${id}`, error);
+        return '0'; // Default to '0' if an error occurs
+      }
+    });
+
+    // Wait for all supply promises to resolve
+    const supplyResults = await Promise.all(supplyPromises);
+    return supplyResults;
   }
 
   /**
@@ -891,9 +926,9 @@ export default class CEP85Client extends Client {
   private async queryTotalSupply(id: string): Promise<string> {
     try {
       const result = await this.queryContractDictionary('total_supply', id);
-      return result as string;
+      // Handle undefined, null, or invalid results by returning '0'
+      return result ? (result as string) : '0';
     } catch (error) {
-      // console.error(error);
       return '0';
     }
   }
@@ -904,22 +939,33 @@ export default class CEP85Client extends Client {
    * @returns A promise that resolves to the total supply as a string. If an error occurs, "0" is returned.
    */
   public async getTotalSupplyOf(id: string): Promise<string> {
-    return this.queryTotalSupply(id);
+    try {
+      return (await this.queryTotalSupply(id)) || '0';
+    } catch (error) {
+      // Handle any unexpected errors in getTotalSupplyOf
+      return '0';
+    }
   }
 
   /**
    * Retrieves the total supply of multiple tokens in batch by querying the contract's dictionary.
    * @param ids An array of token IDs for which to retrieve the total supplies.
-   * @returns A promise that resolves to an array of total supplies as strings. If an error occurs, an empty array is returned.
+   * @returns A promise that resolves to an array of total supplies as strings. If an error occurs, it defaults to '0' for the failed token ID.
    */
   public async getTotalSupplyOfBatch(ids: string[]): Promise<string[]> {
-    const supplyPromises = ids.map((id) => this.getTotalSupplyOf(id));
-    try {
-      return await Promise.all(supplyPromises);
-    } catch (error) {
-      // console.error(error);
-      return [];
-    }
+    const supplyPromises = ids.map(async (id) => {
+      try {
+        const resultSupply = await this.getTotalSupplyOf(id);
+        return resultSupply || '0'; // Default to '0' if supply is empty
+      } catch (error) {
+        console.warn(`Failed to query total supply for token ID: ${id}`, error);
+        return '0'; // Default to '0' if an error occurs
+      }
+    });
+
+    // Wait for all supply promises to resolve
+    const supplyResults = await Promise.all(supplyPromises);
+    return supplyResults;
   }
 
   /**
@@ -971,6 +1017,14 @@ export default class CEP85Client extends Client {
           args.totalSupplies.map(CLValue.newCLUInt256)
         )
       );
+    }
+
+    if ('ids' in args && 'totalSupplies' in args) {
+      if (args.ids.length !== args.totalSupplies.length) {
+        throw new Error(
+          'Length of "ids" and "totalSupplies" must be the same.'
+        );
+      }
     }
 
     return this.callEntrypoint(
