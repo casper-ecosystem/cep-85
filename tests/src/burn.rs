@@ -50,6 +50,8 @@ fn should_burn_by_owner() {
 
     let burning_account = minting_account;
     // owner is now last recipient account_user_1
+    dbg!(minting_recipient.to_string());
+
     let owner: Key = minting_recipient;
     let burn_amount = U256::one();
 

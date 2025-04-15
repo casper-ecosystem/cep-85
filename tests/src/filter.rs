@@ -7,7 +7,7 @@ use casper_types::{
     bytesrepr::Bytes,
     runtime_args,
     system::mint::{ARG_ID, ARG_TO},
-    AddressableEntityHash, EntityAddr, Key, PackageHash, U256,
+    AddressableEntityHash, EntityAddr, Key, U256,
 };
 use cep85::{
     constants::{
@@ -72,7 +72,6 @@ fn check_transfers_with_transfer_filter_contract() {
         .named_keys()
         .get(CEP85_TEST_CONTRACT_NAME)
         .and_then(|key| key.into_entity_hash())
-        .map(AddressableEntityHash::from)
         .expect("should have contract hash");
 
     let transfer_filter_contract_key = Key::contract_entity_key(transfer_filter_contract_hash);
@@ -102,14 +101,12 @@ fn check_transfers_with_transfer_filter_contract() {
         .named_keys()
         .get(CEP85_TEST_TOKEN_CONTRACT_NAME)
         .and_then(|key| key.into_entity_hash())
-        .map(AddressableEntityHash::from)
         .expect("should have contract hash");
 
     let cep85_test_contract_package = account
         .named_keys()
         .get(CEP85_TEST_PACKAGE_NAME)
         .and_then(|key| key.into_package_hash())
-        .map(PackageHash::from)
         .expect("should have contract package hash");
 
     let contract_entity_addr = EntityAddr::new_smart_contract(cep85_contract_hash.value());
@@ -366,7 +363,6 @@ fn should_revert_with_invalid_filter_contract_method() {
         .named_keys()
         .get(CEP85_TEST_CONTRACT_NAME)
         .and_then(|key| key.into_entity_hash())
-        .map(AddressableEntityHash::from)
         .expect("should have contract hash");
 
     let addressable_entity_key = Key::contract_entity_key(transfer_filter_contract);

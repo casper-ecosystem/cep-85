@@ -1,13 +1,141 @@
-import { CLType, CLValue, CLKeyParameters } from "casper-js-sdk";
+import {
+  AccountHash,
+  AddressableEntityHash,
+  ContractHash,
+  ContractPackageHash,
+  ExecutionResult,
+  PrivateKey,
+  PublicKey,
+  PutTransactionResult,
+} from 'casper-js-sdk';
 
-export interface CallConfig {
-  useSessionCode: boolean;
-}
-
-export enum EventsMode {
+export enum EVENTS_MODE {
   NoEvents = 0,
   CES = 1,
+  Native = 2,
+  NativeBytes = 3,
 }
+
+export type Entity =
+  | PublicKey
+  | AccountHash
+  | ContractHash
+  | ContractPackageHash
+  | AddressableEntityHash;
+
+export type ConfigurableVariables = {
+  eventsMode?: EVENTS_MODE;
+  enableBurn?: boolean;
+  adminList?: Entity[];
+  minterList?: Entity[];
+  burnerList?: Entity[];
+  metaList?: Entity[];
+  noneList?: Entity[];
+  transferFilterContract?: ContractHash;
+  transferFilterMethod?: string;
+};
+
+export type InstallArgs = {
+  name: string;
+  uri: string;
+} & ConfigurableVariables;
+
+export type UpgradeArgs = {
+  name: string;
+};
+
+export interface MintArgs {
+  recipient: Entity;
+  id: string;
+  amount: string;
+  uri?: string;
+}
+
+export interface BatchMintArgs {
+  recipient: Entity;
+  ids: string[];
+  amounts: string[];
+  uri?: string;
+}
+
+export type TransferArgs = {
+  from: Entity;
+  to: Entity;
+  id: string;
+  amount: string;
+  data?: Uint8Array;
+};
+
+export type BatchTransferArgs = {
+  from: Entity;
+  to: Entity;
+  ids: string[];
+  amounts: string[];
+  data?: Uint8Array;
+};
+
+export type BurnArgs = {
+  owner: Entity;
+  id: string;
+  amount: string;
+};
+
+export type BatchBurnArgs = {
+  owner: Entity;
+  ids: string[];
+  amounts: string[];
+};
+
+export type BalanceOfArgs = {
+  account: Entity;
+  id: string;
+};
+
+export type SetUriArgs = {
+  id?: string;
+  uri: string;
+};
+
+export type ChangeSecurityArgs = {
+  adminList?: Entity[];
+  minterList?: Entity[];
+  burnerList?: Entity[];
+  metaList?: Entity[];
+  noneList?: Entity[];
+};
+
+export type TotalSupplyOfArgs = {
+  id: string;
+  totalSupply: string;
+};
+
+export type TotalSupplyOfBatchArgs = {
+  ids: string[];
+  totalSupplies: string[];
+};
+
+export type SetApprovallForAllArgs = {
+  operator: Entity;
+  approved: boolean;
+};
+
+export type SetModalitiesArgs = {
+  eventsMode?: EVENTS_MODE;
+  enableBurn?: boolean;
+};
+
+export type TransactionParams = {
+  sender: PublicKey;
+  paymentAmount: string;
+  wasm?: Uint8Array;
+  signingKeys?: PrivateKey[];
+  chainName?: string;
+};
+
+export type TransactionResult = {
+  transactionInfo: PutTransactionResult;
+  executionResult?: ExecutionResult;
+};
 
 export interface JSONSchemaEntry {
   name: string;
@@ -19,159 +147,67 @@ export interface JSONSchemaObject {
   properties: Record<string, JSONSchemaEntry>;
 }
 
-export type ConfigurableVariables = {
-  events_mode?: EventsMode;
-  enable_burn?: boolean;
-  admin_list?: CLKeyParameters[];
-  minter_list?: CLKeyParameters[];
-  burner_list?: CLKeyParameters[];
-  meta_list?: CLKeyParameters[];
-  none_list?: CLKeyParameters[];
-  transfer_filter_contract?: string;
-  transfer_filter_method?: string;
-};
-
-export type InstallArgs = {
-  name: string;
-  uri: string;
-} & ConfigurableVariables;
-
-export interface MintArgs {
-  recipient: CLKeyParameters;
-  id: string;
-  amount: string;
+interface BaseParams {
+  params: TransactionParams;
+  waitForTransactionProcessed?: boolean;
 }
 
-export interface BatchMintArgs {
-  recipient: CLKeyParameters;
-  ids: string[];
-  amounts: string[];
+export interface InstallParams extends BaseParams {
+  args: InstallArgs;
 }
 
-export type TransferArgs = {
-  from: CLKeyParameters;
-  to: CLKeyParameters;
-  id: string;
-  amount: string;
-  data?: Uint8Array;
-};
-
-export type BatchTransferArgs = {
-  from: CLKeyParameters;
-  to: CLKeyParameters;
-  ids: string[];
-  amounts: string[];
-  data?: Uint8Array;
-};
-
-export type BurnArgs = {
-  owner: CLKeyParameters;
-  id: string;
-  amount: string;
-};
-
-export type BatchBurnArgs = {
-  owner: CLKeyParameters;
-  ids: string[];
-  amounts: string[];
-};
-
-export type BalanceOfArgs = {
-  account: CLKeyParameters;
-  id: string;
-};
-
-export type SetUriArgs = {
-  id?: string;
-  uri: string;
-};
-
-export type ChangeSecurityArgs = {
-  admin_list?: CLKeyParameters[];
-  minter_list?: CLKeyParameters[];
-  burner_list?: CLKeyParameters[];
-  meta_list?: CLKeyParameters[];
-  none_list?: CLKeyParameters[];
-};
-
-export type TotalSupplyOfArgs = {
-  id: string;
-  total_supply: string;
-};
-
-export type TotalSupplyOfArgsBatch = {
-  ids: string[];
-  total_supplies: string[];
-};
-
-export type SetApprovallForAllArgs = {
-  operator: CLKeyParameters;
-  approved: boolean;
-};
-
-export type SetModalitiesArgs = {
-  events_mode?: EventsMode;
-  enable_burn?: boolean;
-};
-
-export type UpgradeArgs = {
-  name: string;
-};
-
-type WriteCLValue = {
-  cl_type: string;
-  bytes: string;
-  parsed: string;
-};
-
-// TODO: Most of this types can be moved to casper-js-sdk in feature release
-// https://github.com/casper-ecosystem/casper-js-sdk/issues/268
-
-type TransformValue = {
-  WriteCLValue?: WriteCLValue;
-};
-
-export interface Transform {
-  key: string;
-  transform: TransformValue;
+export interface UpgradeParams extends BaseParams {
+  args: UpgradeArgs;
 }
 
-interface Effect {
-  transforms: Transform[];
+export interface MintParams extends BaseParams {
+  args: MintArgs;
 }
 
-interface ExecutionResultBody {
-  cost: number;
-  error_message?: string | null;
-  transfers: string[];
-  effect: Effect;
+export interface BatchMintParams extends BaseParams {
+  args: BatchMintArgs;
 }
 
-export interface ExecutionResult {
-  Success?: ExecutionResultBody;
-  Failure?: ExecutionResultBody;
+export interface TransferParams extends BaseParams {
+  args: TransferArgs;
 }
 
-export interface WithRemainder<T> {
-  data: T;
-  remainder: Uint8Array;
+export interface BatchTransferParams extends BaseParams {
+  args: BatchTransferArgs;
 }
 
-export interface RawCLValue {
-  clType: CLType;
-  bytes: Uint8Array;
+export interface BurnParams extends BaseParams {
+  args: BurnArgs;
 }
 
-export interface EventItem {
-  id: number;
-  body: {
-    DeployProcessed: {
-      execution_result: ExecutionResult;
-    };
-  };
+export interface BatchBurnParams extends BaseParams {
+  args: BatchBurnArgs;
 }
 
-export interface EventParsed {
-  name: string;
-  clValue: CLValue;
+export interface BalanceOfParams extends BaseParams {
+  args: BalanceOfArgs;
+}
+
+export interface SetUriParams extends BaseParams {
+  args: SetUriArgs;
+}
+
+export interface ChangeSecurityParams extends BaseParams {
+  args: ChangeSecurityArgs;
+}
+
+export interface SetModalitiesParams extends BaseParams {
+  args: SetModalitiesArgs;
+}
+
+export interface SetApprovallForAllParams extends BaseParams {
+  args: SetApprovallForAllArgs;
+}
+
+export interface TotalSupplyOfParams extends BaseParams {
+  args: TotalSupplyOfArgs;
+}
+
+export interface TotalSupplyOfBatchParams extends BaseParams {
+  args: TotalSupplyOfBatchArgs;
 }

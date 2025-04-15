@@ -100,6 +100,8 @@ pub enum Cep85Error {
     FailedToGetKey = 87,
     InvalidKeyType = 88,
     FailedToConvertToJson = 89,
+    MissingNumberOfMintedTokens = 90,
+    InvalidNumberOfMintedTokens = 91,
 }
 
 impl From<Cep85Error> for ApiError {

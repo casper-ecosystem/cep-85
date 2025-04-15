@@ -1,17 +1,10 @@
-import {
-  CHAIN_NAME,
-  PRIVATE_KEY_FAUCET,
-  PRIVATE_KEY_USER_1,
-  RPC_URL,
-  SSE_URL,
-} from '../config';
+import { CHAIN_NAME, PRIVATE_KEY_FAUCET, RPC_URL, SSE_URL } from '../config';
 import {
   CEP85Client,
   ContractWASM as wasm,
-  EVENTS_MODE,
-  type InstallArgs,
   type TransactionParams,
   type TransactionResult,
+  type UpgradeArgs,
 } from '../dist';
 import {
   findKeyFromAccountNamedKeys,
@@ -23,42 +16,27 @@ if (!PRIVATE_KEY_FAUCET) {
   throw new Error('FAUCET_SECRET_KEY environment variable is not set.');
 }
 
-if (!PRIVATE_KEY_USER_1) {
-  throw new Error('PRIVATE_KEY_USER_1 environment variable is not set.');
-}
-
 const name = 'TEST_CEP85',
-  uri = 'https://test-cdn-domain/{id}.json',
-  eventsMode = EVENTS_MODE.CES,
-  enableBurn = true,
   waitForTransactionProcessed = true,
   sender = getSigningKey(PRIVATE_KEY_FAUCET),
-  ali = getSigningKey(PRIVATE_KEY_USER_1),
   paymentAmount = String(550_000_000_000);
 
-const install = async () => {
-  const cep85 = new CEP85Client(RPC_URL, SSE_URL, CHAIN_NAME);
-
-  const params: TransactionParams = {
-    wasm,
-    sender: sender.publicKey,
-    paymentAmount,
-    signingKeys: [sender],
-  };
-
-  const args: InstallArgs = {
-    name,
-    uri,
-    eventsMode,
-    enableBurn,
-    burnerList: [ali.publicKey],
-  };
-
-  const transactionResult: TransactionResult = await cep85.install({
-    params,
-    args,
-    waitForTransactionProcessed,
-  });
+const upgrade = async () => {
+  const cep85 = new CEP85Client(RPC_URL, SSE_URL, CHAIN_NAME),
+    params: TransactionParams = {
+      wasm,
+      sender: sender.publicKey,
+      paymentAmount,
+      signingKeys: [sender],
+    },
+    args: UpgradeArgs = {
+      name,
+    },
+    transactionResult: TransactionResult = await cep85.upgrade({
+      params,
+      args,
+      waitForTransactionProcessed,
+    });
 
   if (!transactionResult.transactionInfo.transactionHash) {
     throw Error('Invalid transaction hash');
@@ -66,21 +44,21 @@ const install = async () => {
   return transactionResult;
 };
 
-install()
+upgrade()
   .then(async (transactionResult) => {
     const { transactionInfo, executionResult } = transactionResult;
     console.info(
-      `Contract installation transaction hash: ${transactionInfo.transactionHash}`
+      `Contract upgrade transaction hash: ${transactionInfo.transactionHash}`
     );
 
     if (executionResult) {
       if (executionResult?.errorMessage) {
         throw new Error(
-          `Error during installation.\n${executionResult?.errorMessage.toString()}`
+          `Error during upgrade.\n${executionResult?.errorMessage.toString()}`
         );
       } else {
         console.info(
-          `Contract installation cost consumed: ${executionResult?.consumed}`
+          `Contract upgrade cost consumed: ${executionResult?.consumed}`
         );
       }
     }

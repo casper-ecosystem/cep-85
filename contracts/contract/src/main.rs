@@ -39,8 +39,9 @@ use cep85::{
         ARG_TRANSFER_FILTER_CONTRACT, ARG_TRANSFER_FILTER_METHOD, ARG_UPGRADE_FLAG, ARG_URI,
         BURNER_LIST, DEFAULT_DICT_ITEM_KEY_NAME, DICT_BALANCES, DICT_OPERATORS,
         DICT_SECURITY_BADGES, DICT_SUPPLY, DICT_TOKEN_URI, DICT_TOTAL_SUPPLY, ENTRY_POINT_INIT,
-        ENTRY_POINT_UPGRADE, EVENTS, META_LIST, MINTER_LIST, NONE_LIST, PREFIX_ACCESS_KEY_NAME,
-        PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME, PREFIX_CONTRACT_VERSION,
+        ENTRY_POINT_UPGRADE, EVENTS, META_LIST, MINTER_LIST, NONE_LIST, NUMBER_OF_MINTED_TOKENS,
+        PREFIX_ACCESS_KEY_NAME, PREFIX_CONTRACT_NAME, PREFIX_CONTRACT_PACKAGE_NAME,
+        PREFIX_CONTRACT_VERSION,
     },
     entry_points::generate_entry_points,
     error::Cep85Error,
@@ -57,7 +58,7 @@ use cep85::{
     utils::{
         get_contract_version_key, get_immediate_caller, get_named_arg_with_user_errors,
         get_optional_named_arg_with_user_errors, get_stored_value_with_user_errors,
-        get_transfer_filter_contract, get_transfer_filter_method,
+        get_transfer_filter_contract, get_transfer_filter_method, get_uref_with_user_errors,
         make_dictionary_item_key as utils_make_dictionary_item_key,
     },
 };
@@ -183,6 +184,8 @@ pub extern "C" fn init() {
             badge_map.insert(account_key, SecurityBadge::None);
         }
     }
+
+    runtime::put_key(NUMBER_OF_MINTED_TOKENS, storage::new_uref(0u64).into());
 
     change_sec_badge(&badge_map);
 }
@@ -491,6 +494,17 @@ pub extern "C" fn mint() {
         }
     } else {
         write_total_supply_of(&id, &new_supply);
+        let minted_tokens_count = get_stored_value_with_user_errors::<u64>(
+            NUMBER_OF_MINTED_TOKENS,
+            Cep85Error::MissingNumberOfMintedTokens,
+            Cep85Error::InvalidNumberOfMintedTokens,
+        );
+        let number_of_minted_tokens_uref = get_uref_with_user_errors(
+            NUMBER_OF_MINTED_TOKENS,
+            Cep85Error::MissingNumberOfMintedTokens,
+            Cep85Error::InvalidNumberOfMintedTokens,
+        );
+        storage::write(number_of_minted_tokens_uref, minted_tokens_count + 1u64);
     }
 
     write_supply_of(&id, &new_supply);
@@ -562,6 +576,18 @@ pub extern "C" fn batch_mint() {
             }
         } else {
             write_total_supply_of(&id, &new_supply);
+            write_total_supply_of(&id, &new_supply);
+            let minted_tokens_count = get_stored_value_with_user_errors::<u64>(
+                NUMBER_OF_MINTED_TOKENS,
+                Cep85Error::MissingNumberOfMintedTokens,
+                Cep85Error::InvalidNumberOfMintedTokens,
+            );
+            let number_of_minted_tokens_uref = get_uref_with_user_errors(
+                NUMBER_OF_MINTED_TOKENS,
+                Cep85Error::MissingNumberOfMintedTokens,
+                Cep85Error::MissingNumberOfMintedTokens,
+            );
+            storage::write(number_of_minted_tokens_uref, minted_tokens_count + 1u64);
         }
 
         write_supply_of(&id, &new_supply);

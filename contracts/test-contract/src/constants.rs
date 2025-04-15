@@ -1,5 +1,5 @@
 pub const CEP85_TEST_CONTRACT_NAME: &str = "cep85_test_contract_hash";
-pub const CEP85_TEST_PACKAGE_NAME: &str = "cep85_test_contract_package_hash";
+pub const CEP85_TEST_PACKAGE_NAME: &str = "cep85_test_contract_package";
 pub const RESULT_KEY: &str = "result";
 
 pub const ARG_FILTER_CONTRACT_RETURN_VALUE: &str = "return_value";

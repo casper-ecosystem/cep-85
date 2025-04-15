@@ -7,8 +7,8 @@ use crate::utility::{
     support::{assert_expected_error, get_test_account},
 };
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{Key, U256};
-use cep85::error::Cep85Error;
+use casper_types::{EntityAddr, Key, U256};
+use cep85::{constants::NUMBER_OF_MINTED_TOKENS, error::Cep85Error};
 
 #[test]
 fn should_mint_nft() {
@@ -69,6 +69,13 @@ fn should_mint_fungible_token() {
         },
     ) = setup();
 
+    let contract_entity_addr = EntityAddr::new_smart_contract(cep85_contract_hash.value());
+
+    let number_of_minted_tokens: u64 =
+        builder.get_value(contract_entity_addr, NUMBER_OF_MINTED_TOKENS);
+
+    assert_eq!(number_of_minted_tokens, 0);
+
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let minting_recipient = account_user_1_key;
     let mint_amount = U256::from(2);
@@ -101,6 +108,11 @@ fn should_mint_fungible_token() {
     let actual_total_supply =
         cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id).unwrap();
     assert_eq!(actual_total_supply, expected_supply);
+
+    let number_of_minted_tokens: u64 =
+        builder.get_value(contract_entity_addr, NUMBER_OF_MINTED_TOKENS);
+
+    assert_eq!(number_of_minted_tokens, 1);
 }
 
 #[test]
@@ -114,6 +126,8 @@ fn should_batch_mint() {
             ..
         },
     ) = setup();
+
+    let contract_entity_addr = EntityAddr::new_smart_contract(cep85_contract_hash.value());
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
     let minting_recipient = account_user_1_key;
@@ -160,6 +174,11 @@ fn should_batch_mint() {
     assert_eq!(actual_total_supplies.len(), 2);
     assert_eq!(actual_total_supplies[0], Some(total_supplies[0]));
     assert_eq!(actual_total_supplies[1], Some(total_supplies[1]));
+
+    let number_of_minted_tokens: u64 =
+        builder.get_value(contract_entity_addr, NUMBER_OF_MINTED_TOKENS);
+
+    assert_eq!(number_of_minted_tokens, 2);
 }
 
 #[test]

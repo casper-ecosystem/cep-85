@@ -4,7 +4,7 @@ pub const PREFIX_ACCESS_KEY_NAME: &str = "cep85_contract_package_access";
 pub const PREFIX_CEP85: &str = "cep85";
 pub const PREFIX_CONTRACT_NAME: &str = "cep85_contract_hash";
 pub const PREFIX_CONTRACT_VERSION: &str = "cep85_contract_version";
-pub const PREFIX_CONTRACT_PACKAGE_NAME: &str = "cep85_contract_package_hash";
+pub const PREFIX_CONTRACT_PACKAGE_NAME: &str = "cep85_contract_package";
 pub const DEFAULT_DICT_ITEM_KEY_NAME: &str = "cep85_dictionary_item_key";
 
 pub const ENTRY_POINT_BALANCE_OF: &str = "balance_of";
@@ -73,3 +73,5 @@ pub const DICT_TOKEN_URI: &str = "token_uri";
 pub const DICT_TOTAL_SUPPLY: &str = "total_supply";
 
 pub const EVENTS: &str = "events";
+
+pub const NUMBER_OF_MINTED_TOKENS: &str = "number_of_minted_tokens";
