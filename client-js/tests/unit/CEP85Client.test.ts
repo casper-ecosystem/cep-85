@@ -1,3 +1,5 @@
+import { blake2b } from '@noble/hashes/blake2b';
+import { bytesToHex } from '@noble/hashes/utils';
 import {
   Args,
   CLTypeKey,
@@ -5,12 +7,10 @@ import {
   ContractHash,
   ContractPackageHash,
   ExecutionResult,
-  Key,
   KeyAlgorithm,
   PrivateKey,
   PutTransactionResult,
   RpcClient,
-  StateGetDictionaryResult,
   TransactionProcessedPayload,
 } from 'casper-js-sdk';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -31,8 +31,6 @@ import {
   SetApprovallForAllParams,
   SetModalitiesParams,
 } from '../../src';
-import { bytesToHex } from '@noble/hashes/utils';
-import { blake2b } from '@noble/hashes/blake2b';
 
 describe('CEP85Client Unit', () => {
   describe('CEP85Client - setContractHash', () => {

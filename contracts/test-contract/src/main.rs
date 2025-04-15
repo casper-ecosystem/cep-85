@@ -22,8 +22,8 @@ use casper_contract::{
 };
 use casper_types::{
     bytesrepr::Bytes, runtime_args, system::auction::ARG_AMOUNT, ApiError, CLType, CLTyped,
-    CLValue, EntityEntryPoint as EntryPoint, EntryPointAccess, EntryPointPayment, EntryPointType, EntryPoints, Key,
-    Parameter, U256,
+    CLValue, EntityEntryPoint as EntryPoint, EntryPointAccess, EntryPointPayment, EntryPointType,
+    EntryPoints, Key, Parameter, U256,
 };
 use cep85::{
     constants::{

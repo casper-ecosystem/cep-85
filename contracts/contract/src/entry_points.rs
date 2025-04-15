@@ -16,8 +16,8 @@ use crate::constants::{
 };
 use alloc::{boxed::Box, vec};
 use casper_types::{
-    bytesrepr::Bytes, CLType, CLTyped, EntityEntryPoint as EntryPoint, EntryPointAccess, EntryPointPayment,
-    EntryPointType, EntryPoints, Parameter,
+    bytesrepr::Bytes, CLType, CLTyped, EntityEntryPoint as EntryPoint, EntryPointAccess,
+    EntryPointPayment, EntryPointType, EntryPoints, Parameter,
 };
 
 pub fn init() -> EntryPoint {
@@ -44,7 +44,7 @@ pub fn init() -> EntryPoint {
 pub fn upgrade() -> EntryPoint {
     EntryPoint::new(
         ENTRY_POINT_UPGRADE,
-        vec![Parameter::new(ARG_PACKAGE_HASH, CLType::Key)],
+        vec![Parameter::new(ARG_CONTRACT_HASH, CLType::Key)],
         CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Called,

@@ -271,12 +271,24 @@ impl SetModalities {
     }
 }
 
+impl Default for SetModalities {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Serialize, Deserialize, Event, Debug, PartialEq, Eq)]
 pub struct Upgrade {}
 
 impl Upgrade {
     pub fn new() -> Self {
         Self {}
+    }
+}
+
+impl Default for Upgrade {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -98,7 +98,6 @@ const usage = async () => {
   const token_name = await cep85.collectionName(),
     uri = await cep85.collectionUri(),
     eventsMode = await cep85.eventsMode();
-  // totalSupply = await cep85();
 
   console.info('tokenInfo: ', {
     token_name,

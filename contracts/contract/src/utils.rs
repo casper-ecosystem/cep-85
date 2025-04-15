@@ -264,6 +264,7 @@ pub fn get_transfer_filter_method() -> Option<String> {
     )
 }
 
+#[allow(clippy::literal_string_with_formatting_args)]
 pub fn replace_token_id_in_uri(raw_uri: &str, id: &U256) -> String {
     raw_uri.replace("{id}", &format!("{}", id))
 }

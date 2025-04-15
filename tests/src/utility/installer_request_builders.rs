@@ -89,7 +89,6 @@ pub fn setup_with_args(install_args: RuntimeArgs) -> (LmdbWasmTestBuilder, TestC
         .named_keys()
         .get(CEP85_TEST_TOKEN_CONTRACT_NAME)
         .and_then(|key| key.into_entity_hash())
-        .map(AddressableEntityHash::from)
         .expect("should have contract hash");
 
     let cep85_contract_key = Key::contract_entity_key(cep85_contract_hash);
@@ -116,7 +115,6 @@ pub fn setup_with_args(install_args: RuntimeArgs) -> (LmdbWasmTestBuilder, TestC
         .named_keys()
         .get(CEP85_TEST_CONTRACT_NAME)
         .and_then(|key| key.into_entity_hash())
-        .map(AddressableEntityHash::from)
         .expect("should have contract hash");
 
     let cep85_test_contract_key = Key::contract_entity_key(cep85_test_contract_hash);
@@ -125,7 +123,6 @@ pub fn setup_with_args(install_args: RuntimeArgs) -> (LmdbWasmTestBuilder, TestC
         .named_keys()
         .get(CEP85_TEST_PACKAGE_NAME)
         .and_then(|key| key.into_package_hash())
-        .map(PackageHash::from)
         .expect("should have contract package hash");
 
     let test_context = TestContext {
