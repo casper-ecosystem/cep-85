@@ -106,7 +106,7 @@ jobs:
 
       - name: Generate WASMS
         working-directory: client-js
-        run: npm run generate:wasm
+        run: npm run wasms:convert
 
       - name: Build Project
         working-directory: client-js
