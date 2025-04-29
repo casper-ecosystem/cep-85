@@ -30,17 +30,17 @@ test: setup-test
 	cd tests && cargo test
 
 clippy:
-	cd contracts && cargo +$(PINNED_TOOLCHAIN) clippy --bins --target wasm32-unknown-unknown -- -D warnings
-	cd contracts && cargo +$(PINNED_TOOLCHAIN) clippy --lib --target wasm32-unknown-unknown -- -D warnings
-	cd contracts && cargo +$(PINNED_TOOLCHAIN) clippy --lib --target wasm32-unknown-unknown --no-default-features -- -D warnings
+	cd contracts && cargo clippy --bins --target wasm32-unknown-unknown -- -D warnings
+	cd contracts && cargo clippy --lib --target wasm32-unknown-unknown -- -D warnings
+	cd contracts && cargo clippy --lib --target wasm32-unknown-unknown --no-default-features -- -D warnings
 	cd tests && cargo +stable clippy --all-targets -- -D warnings
 
 check-lint: clippy
-	cd contracts && cargo +$(PINNED_TOOLCHAIN) fmt -- --check
+	cd contracts && cargo fmt -- --check
 	cd tests && cargo +stable fmt -p tests -- --check
 
 format:
-	cd contracts && cargo +$(PINNED_TOOLCHAIN) fmt
+	cd contracts && cargo fmt
 	cd tests && cargo +stable fmt -p tests
 
 clean:
