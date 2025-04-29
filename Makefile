@@ -1,4 +1,4 @@
-PINNED_TOOLCHAIN := $(shell cat contracts/rust-toolchain)
+PINNED_TOOLCHAIN := $(shell cat rust-toolchain)
 WASM_TARGET_DIR := ./target/wasm32-unknown-unknown/release
 WASM_OUTPUT_DIR := tests/wasm
 WASM_FILES := cep85.wasm cep85_test_contract.wasm cep85_make_dictionary_item_key.wasm
