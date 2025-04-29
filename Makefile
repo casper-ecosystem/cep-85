@@ -1,6 +1,6 @@
 ALL_CONTRACTS = cep85 cep85-test-contract
 CONTRACT_TARGET_DIR = contracts/target/wasm32-unknown-unknown/release
-PINNED_TOOLCHAIN := $(shell cat contracts/rust-toolchain)
+PINNED_TOOLCHAIN := $(shell cat rust-toolchain)
 RUSTFLAGS := -C target-cpu=mvp
 CARGO_BUILD_FLAGS := -Z build-std=std,panic_abort
 WASM_OUTPUT_DIR := tests/wasm

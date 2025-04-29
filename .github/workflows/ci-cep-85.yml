@@ -25,8 +25,8 @@ jobs:
           toolchain: stable
           profile: minimal
           components: rustfmt, clippy
-      - name: Install cargo-audit version 0.20.1
-        run: cargo install cargo-audit --version 0.20.1
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
       - run: sudo apt update && sudo apt install -y build-essential wabt
       - uses: Swatinem/rust-cache@v2
       - run: make prepare
