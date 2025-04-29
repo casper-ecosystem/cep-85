@@ -26,11 +26,12 @@ jobs:
 
       - run: rustup default stable
 
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install cargo-audit
-        run: cargo install cargo-audit
       - run: sudo apt update && sudo apt install -y build-essential wabt
       - uses: Swatinem/rust-cache@v2
       - run: make prepare
