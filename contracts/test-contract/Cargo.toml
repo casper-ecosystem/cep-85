@@ -8,7 +8,7 @@ readme.workspace = true
 repository.workspace = true
 
 [dependencies]
-cep85 = { path = "../contract" }
+cep85 = { path = "../contract", default-features = false }
 casper-types.workspace = true
 casper-contract = { workspace = true }
 
