@@ -1,6 +1,9 @@
 ALL_CONTRACTS = cep85 cep85-test-contract
 CONTRACT_TARGET_DIR = contracts/target/wasm32-unknown-unknown/release
 PINNED_TOOLCHAIN := $(shell cat contracts/rust-toolchain)
+RUSTFLAGS := -C target-cpu=mvp
+CARGO_BUILD_FLAGS := -Z build-std=std,panic_abort
+WASM_OUTPUT_DIR := tests/wasm
 
 prepare:
 	rustup target add wasm32-unknown-unknown
@@ -9,12 +12,12 @@ prepare:
 
 .PHONY:	build-contract
 build-contract:
-	cd contracts/cep85 && cargo build --release
+	cd contracts/cep85 && RUSTFLAGS="$(RUSTFLAGS)" cargo +$(PINNED_TOOLCHAIN) build --release --target wasm32-unknown-unknown $(CARGO_BUILD_FLAGS)
 	wasm-strip $(CONTRACT_TARGET_DIR)/cep85.wasm
 
 .PHONY:	build-all-contracts
 build-all-contracts:
-	cd contracts && cargo build --release $(patsubst %,-p %, $(ALL_CONTRACTS))
+	cd contracts && RUSTFLAGS="$(RUSTFLAGS)" cargo +$(PINNED_TOOLCHAIN) build --release --target wasm32-unknown-unknown $(CARGO_BUILD_FLAGS)
 	$(foreach WASM, $(ALL_CONTRACTS), wasm-strip $(CONTRACT_TARGET_DIR)/$(subst -,_,$(WASM)).wasm ;)
 
 setup-test: build-all-contracts
@@ -26,20 +29,22 @@ test: setup-test
 	cd tests && cargo test
 
 clippy:
-	cd contracts && cargo clippy --bins --target wasm32-unknown-unknown -- -D warnings
-	cd contracts && cargo clippy --lib --target wasm32-unknown-unknown -- -D warnings
-	cd contracts && cargo clippy --lib --target wasm32-unknown-unknown --no-default-features -- -D warnings
-	cd tests && cargo clippy --all-targets -- -D warnings
+	cd contracts && cargo +$(PINNED_TOOLCHAIN) clippy --bins --target wasm32-unknown-unknown -- -D warnings
+	cd contracts && cargo +$(PINNED_TOOLCHAIN) clippy --lib --target wasm32-unknown-unknown -- -D warnings
+	cd contracts && cargo +$(PINNED_TOOLCHAIN) clippy --lib --target wasm32-unknown-unknown --no-default-features -- -D warnings
+	cd tests && cargo +stable clippy --all-targets -- -D warnings
 
 check-lint: clippy
-	cd contracts && cargo fmt -- --check
-	cd tests && cargo +$(PINNED_TOOLCHAIN) fmt -- --check
+	cd contracts && cargo +$(PINNED_TOOLCHAIN) fmt -- --check
+	cd tests && cargo +stable fmt -p tests -- --check
 
 format:
-	cd contracts && cargo fmt
-	cd tests && cargo +$(PINNED_TOOLCHAIN) fmt
+	cd contracts && cargo +$(PINNED_TOOLCHAIN) fmt
+	cd tests && cargo +stable fmt -p tests
 
 clean:
 	cd contracts && cargo clean
 	cd tests && cargo clean
 	rm -rf tests/wasm
+	rm -rf $(WASM_OUTPUT_DIR)
+	rm -rf ./Cargo.lock

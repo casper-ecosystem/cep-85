@@ -6,7 +6,6 @@ use crate::{
         get_dictionary_value_from_key, make_dictionary_item_key, set_dictionary_value_for_key,
     },
 };
-use alloc::vec::Vec;
 use casper_contract::{
     contract_api::runtime::{self, get_key},
     unwrap_or_revert::UnwrapOrRevert,
@@ -76,7 +75,7 @@ pub fn transfer_balance(sender: &Key, recipient: &Key, id: &U256, amount: &U256)
 /// Transfer multiple tokens from the `sender` to the `recipient`.
 ///
 /// This function performs the batch transfer logic by calling `transfer_balance` for each token.
-pub fn batch_transfer_balance(sender: &Key, recipient: &Key, ids: &Vec<U256>, amounts: &Vec<U256>) {
+pub fn batch_transfer_balance(sender: &Key, recipient: &Key, ids: &[U256], amounts: &[U256]) {
     if sender == recipient {
         runtime::revert(Cep85Error::SelfTransfer);
     }
