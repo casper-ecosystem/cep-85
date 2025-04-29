@@ -7,7 +7,7 @@ WASM_OUTPUT_DIR := tests/wasm
 
 prepare:
 	rustup install $(PINNED_TOOLCHAIN)
-	rustup target add wasm32-unknown-unknown
+	rustup target add wasm32-unknown-unknown --toolchain ${PINNED_TOOLCHAIN}
 	rustup component add clippy --toolchain ${PINNED_TOOLCHAIN}
 	rustup component add rustfmt --toolchain ${PINNED_TOOLCHAIN}
 	rustup component add rust-src --toolchain $(PINNED_TOOLCHAIN)
