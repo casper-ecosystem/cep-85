@@ -18,19 +18,18 @@ jobs:
         node-version: [22.x]
     runs-on: ${{ matrix.os }}
     steps:
+      - uses: actions/checkout@v4
+
+      - run: rustup override set stable
+
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           profile: minimal
           components: rustfmt, clippy
 
-      - run: rustup default stable
-
       - name: Install cargo-audit
         run: cargo install cargo-audit
-
-      - name: Checkout
-        uses: actions/checkout@v4
 
       - run: sudo apt update && sudo apt install -y build-essential wabt
       - uses: Swatinem/rust-cache@v2
