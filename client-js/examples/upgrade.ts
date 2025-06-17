@@ -48,7 +48,7 @@ upgrade()
   .then(async (transactionResult) => {
     const { transactionInfo, executionResult } = transactionResult;
     console.info(
-      `Contract upgrade transaction hash: ${transactionInfo.transactionHash}`
+      `Contract upgrade transaction hash: ${transactionInfo.transactionHash.toHex()}`
     );
 
     if (executionResult) {

@@ -1,4 +1,4 @@
-import { CLValue, Hash, Message } from 'casper-js-sdk';
+import { CLValue, Hash, Message, TransactionHash } from 'casper-js-sdk';
 
 export enum CEP85_EVENTS {
   Mint = 'Mint',
@@ -27,7 +27,7 @@ export type Event<E extends Record<string, CLValue>> = {
 };
 
 export interface TransactionInfo {
-  transactionHash: string;
+  transactionHash: TransactionHash;
   timestamp: string;
   messages: Message[];
 }

@@ -134,7 +134,7 @@ const usage = async () => {
     );
   } else {
     console.info(
-      `Token transfer transaction hash: ${transactionInfo.transactionHash}`
+      `Token transfer transaction hash: ${transactionInfo.transactionHash.toHex()}`
     );
     console.info(`Transfer cost consumed: ${executionResult?.consumed}`);
   }

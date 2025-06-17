@@ -134,14 +134,14 @@ const eventListener = async (
   eventResult: CEP85EventResult
 ) => {
   const { transactionInfo, executionResult } = await cep85
-    .getTransactionResult(eventResult.transactionInfo.transactionHash)
+    .getTransactionResult(eventResult.transactionInfo.transactionHash.toHex())
     .then((transactionResult: InfoGetTransactionResult) => ({
       transactionInfo: eventResult.transactionInfo,
       executionResult: transactionResult.executionInfo?.executionResult,
     }));
 
   console.info(
-    `Contract ${eventType} transaction hash: ${transactionInfo.transactionHash}`
+    `Contract ${eventType} transaction hash: ${transactionInfo.transactionHash.toHex()}`
   );
 
   if (executionResult) {

@@ -32,6 +32,8 @@ import {
   SetModalitiesParams,
 } from '../../src';
 
+const mockTransactionHash = { toHex: () => 'mockTransactionHash' };
+
 describe('CEP85Client Unit', () => {
   describe('CEP85Client - setContractHash', () => {
     let client: CEP85Client;
@@ -182,7 +184,7 @@ describe('CEP85Client Unit', () => {
     beforeEach(() => {
       client = new CEP85Client('http://mock-rpc-url');
       vi.spyOn(client['_rpcClient'], 'putTransaction').mockResolvedValue({
-        transactionHash: 'mockTransactionHash',
+        transactionHash: mockTransactionHash,
       } as unknown as PutTransactionResult);
       vi.spyOn(client, 'waitForTransactionProcessed').mockResolvedValue({
         transactionProcessedPayload: {
@@ -195,9 +197,9 @@ describe('CEP85Client Unit', () => {
       const result = await client.install(mockParams);
 
       expect(client['_rpcClient'].putTransaction).toHaveBeenCalled();
-      expect(result).toEqual({
-        transactionInfo: { transactionHash: 'mockTransactionHash' },
-      });
+      expect(result.transactionInfo.transactionHash.toHex()).toBe(
+        'mockTransactionHash'
+      );
     });
 
     it('should call waitForTransactionProcessed if waitForTransactionProcessed is true', async () => {
@@ -222,10 +224,10 @@ describe('CEP85Client Unit', () => {
 
       expect(client['_rpcClient'].putTransaction).toHaveBeenCalled();
 
-      expect(result).toEqual({
-        transactionInfo: { transactionHash: 'mockTransactionHash' },
-        executionResult: { errorMessage: '' },
-      });
+      expect(result.transactionInfo.transactionHash.toHex()).toBe(
+        'mockTransactionHash'
+      );
+      expect(result.executionResult?.errorMessage).toBe('');
     });
 
     it('should handle errors during transaction installation', async () => {
@@ -260,7 +262,7 @@ describe('CEP85Client Unit', () => {
     beforeEach(() => {
       client = new CEP85Client('http://mock-rpc-url');
       vi.spyOn(client['_rpcClient'], 'putTransaction').mockResolvedValue({
-        transactionHash: 'mockTransactionHash',
+        transactionHash: mockTransactionHash,
       } as unknown as PutTransactionResult);
       vi.spyOn(client, 'waitForTransactionProcessed').mockResolvedValue({
         transactionProcessedPayload: {
@@ -273,9 +275,9 @@ describe('CEP85Client Unit', () => {
       const result = await client.upgrade(mockParams);
 
       expect(client['_rpcClient'].putTransaction).toHaveBeenCalled();
-      expect(result).toEqual({
-        transactionInfo: { transactionHash: 'mockTransactionHash' },
-      });
+      expect(result.transactionInfo.transactionHash.toHex()).toBe(
+        'mockTransactionHash'
+      );
     });
 
     it('should call waitForTransactionProcessed if waitForTransactionProcessed is true', async () => {
@@ -301,8 +303,10 @@ describe('CEP85Client Unit', () => {
       expect(client['_rpcClient'].putTransaction).toHaveBeenCalled();
 
       expect(result).toEqual({
-        transactionInfo: { transactionHash: 'mockTransactionHash' },
-        executionResult: { errorMessage: '' },
+        transactionInfo: {
+          transactionHash: mockTransactionHash,
+        },
+        executionResult: { errorMessage: '' } as ExecutionResult,
       });
     });
 
@@ -721,7 +725,7 @@ describe('CEP85Client Unit', () => {
       };
 
       try {
-        await client.burn(invalidParams);
+        await client.batchBurn(invalidParams);
         throw new Error('Expected burn to throw, but it did not');
       } catch (err: any) {
         expect(err.message).toBe(
@@ -1134,18 +1138,21 @@ describe('CEP85Client Unit', () => {
   describe('CEP85Client - setTotalSupplyOf', () => {
     let client: CEP85Client;
 
+    const mockKey = PrivateKey.generate(KeyAlgorithm.ED25519);
+    const mockPublicKey = mockKey.publicKey;
+
     const mockParams: TotalSupplyOfParams = {
       params: {
         paymentAmount: '1000000000',
-        sender: 'account-hash-mock',
+        sender: mockPublicKey,
         chainName: 'casper-test',
-        signingKeys: ['mock-key'],
-        waitForTransactionProcessed: true,
+        signingKeys: [mockKey],
       },
       args: {
         id: '1',
         totalSupply: '5000',
       },
+      waitForTransactionProcessed: true,
     };
 
     beforeEach(() => {
@@ -1492,7 +1499,9 @@ describe('CEP85Client Unit', () => {
     beforeEach(() => {
       client = new CEP85Client('http://mock-rpc-url');
       vi.spyOn(client as any, 'callEntrypoint').mockResolvedValue({
-        transactionInfo: { transactionHash: 'mockTransactionHash' },
+        transactionInfo: {
+          transactionHash: mockTransactionHash,
+        },
       });
       vi.spyOn(client, 'waitForTransactionProcessed').mockResolvedValue({
         transactionProcessedPayload: {
@@ -1517,7 +1526,9 @@ describe('CEP85Client Unit', () => {
 
       // Validate result
       expect(result).toEqual({
-        transactionInfo: { transactionHash: 'mockTransactionHash' },
+        transactionInfo: {
+          transactionHash: mockTransactionHash,
+        },
       });
     });
 
@@ -1570,7 +1581,9 @@ describe('CEP85Client Unit', () => {
         waitForTransactionProcessed: true,
       };
       vi.spyOn(client as any, 'callEntrypoint').mockResolvedValue({
-        transactionInfo: { transactionHash: 'mockTransactionHash' },
+        transactionInfo: {
+          transactionHash: mockTransactionHash,
+        },
         executionResult: { errorMessage: '' } as ExecutionResult,
       });
 
@@ -1578,7 +1591,9 @@ describe('CEP85Client Unit', () => {
 
       // Validate result
       expect(result).toEqual({
-        transactionInfo: { transactionHash: 'mockTransactionHash' },
+        transactionInfo: {
+          transactionHash: mockTransactionHash,
+        },
         executionResult: { errorMessage: '' } as ExecutionResult,
       });
     });
@@ -1709,7 +1724,9 @@ describe('CEP85Client Unit', () => {
 
       // Mocking callEntrypoint method directly on client
       vi.spyOn(client as any, 'callEntrypoint').mockResolvedValue({
-        transactionInfo: { transactionHash: 'mockTransactionHash' },
+        transactionInfo: {
+          transactionHash: mockTransactionHash,
+        },
       });
     });
 

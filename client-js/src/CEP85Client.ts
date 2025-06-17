@@ -272,7 +272,7 @@ export default class CEP85Client extends Client {
       ) {
         const transactionProcessedEvent =
           await this.waitForTransactionProcessed(
-            transactionInfo.transactionHash.toString()
+            transactionInfo.transactionHash.toHex()
           );
         const executionResult =
           transactionProcessedEvent.transactionProcessedPayload.executionResult;
@@ -346,7 +346,7 @@ export default class CEP85Client extends Client {
       ) {
         const transactionProcessedEvent =
           await this.waitForTransactionProcessed(
-            transactionInfo.transactionHash.toString()
+            transactionInfo.transactionHash.toHex()
           );
         const executionResult =
           transactionProcessedEvent.transactionProcessedPayload.executionResult;
