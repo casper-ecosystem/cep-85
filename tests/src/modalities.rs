@@ -18,7 +18,7 @@ fn should_toggle_enable_burn() {
         .get_contract(cep85_token)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains_key(ARG_ENABLE_BURN), "{:?}", named_keys);
+    assert!(named_keys.contains_key(ARG_ENABLE_BURN), "{named_keys:?}");
 
     let enable_burn: bool = builder
         .query(None, cep85_token.into(), &[ARG_ENABLE_BURN.to_string()])
@@ -81,7 +81,7 @@ fn should_toggle_events_mode() {
         .get_contract(cep85_token)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains_key(ARG_EVENTS_MODE), "{:?}", named_keys);
+    assert!(named_keys.contains_key(ARG_EVENTS_MODE), "{named_keys:?}");
 
     let events_mode = builder
         .query(None, cep85_token.into(), &[ARG_EVENTS_MODE.to_string()])
@@ -187,7 +187,7 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
         .get_contract(cep85_token)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains_key(ARG_ENABLE_BURN), "{:?}", named_keys);
+    assert!(named_keys.contains_key(ARG_ENABLE_BURN), "{named_keys:?}");
 
     let enable_burn: bool = builder
         .query(None, cep85_token.into(), &[ARG_ENABLE_BURN.to_string()])
