@@ -24,7 +24,7 @@ fn should_toggle_enable_burn() {
         .get_entity_with_named_keys_by_entity_hash(cep85_contract_hash)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains(ARG_ENABLE_BURN), "{:?}", named_keys);
+    assert!(named_keys.contains(ARG_ENABLE_BURN), "{named_keys:?}");
 
     // TODO GR check why ContractHash in builder.query
     let cep85_contract_has_as_contract_hash: ContractHash = cep85_contract_hash.into();
@@ -118,7 +118,7 @@ fn should_toggle_events_mode() {
         .get_entity_with_named_keys_by_entity_hash(cep85_contract_hash)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains(ARG_EVENTS_MODE), "{:?}", named_keys);
+    assert!(named_keys.contains(ARG_EVENTS_MODE), "{named_keys:?}");
 
     // TODO GR check why ContractHash in builder.query
     let cep85_contract_has_as_contract_hash: ContractHash = cep85_contract_hash.into();
@@ -235,7 +235,7 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
         .get_entity_with_named_keys_by_entity_hash(cep85_contract_hash)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains(ARG_ENABLE_BURN), "{:?}", named_keys);
+    assert!(named_keys.contains(ARG_ENABLE_BURN), "{named_keys:?}");
 
     // TODO GR check why ContractHash in builder.query
     let cep85_contract_has_as_contract_hash: ContractHash = cep85_contract_hash.into();

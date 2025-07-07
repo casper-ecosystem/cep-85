@@ -78,7 +78,7 @@ pub fn get_test_account(ending_string_index: &str) -> (Key, AccountHash, PublicK
     match accounts {
         Some(account) => account,
         None => {
-            panic!("No account found for index {}", index);
+            panic!("No account found for index {index}");
         }
     }
 }

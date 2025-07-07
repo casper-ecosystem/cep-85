@@ -30,7 +30,7 @@ fn should_install_contract() {
         .get_entity_with_named_keys_by_entity_hash(cep85_contract_hash)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains(ARG_PACKAGE_HASH), "{:?}", named_keys);
+    assert!(named_keys.contains(ARG_PACKAGE_HASH), "{named_keys:?}");
 }
 
 #[test]
@@ -103,8 +103,8 @@ fn should_not_store_balances_or_allowances_under_account_after_install() {
         .expect("should have account");
 
     let named_keys = account.named_keys();
-    assert!(!named_keys.contains(DICT_BALANCES), "{:?}", named_keys);
-    assert!(!named_keys.contains(DICT_OPERATORS), "{:?}", named_keys);
+    assert!(!named_keys.contains(DICT_BALANCES), "{named_keys:?}");
+    assert!(!named_keys.contains(DICT_OPERATORS), "{named_keys:?}");
 }
 
 #[test]
