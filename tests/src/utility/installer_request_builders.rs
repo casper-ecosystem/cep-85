@@ -3,8 +3,8 @@ use super::constants::{
     CEP85_TEST_TOKEN_CONTRACT_NAME, TOKEN_NAME, TOKEN_URI,
 };
 use casper_engine_test_support::{
-    utils::create_run_genesis_request, ExecuteRequestBuilder, LmdbWasmTestBuilder, ARG_AMOUNT,
-    DEFAULT_ACCOUNTS, DEFAULT_ACCOUNT_ADDR,
+    utils::create_run_genesis_request_with_chainspec_config, ChainspecConfig,
+    ExecuteRequestBuilder, LmdbWasmTestBuilder, ARG_AMOUNT, DEFAULT_ACCOUNTS, DEFAULT_ACCOUNT_ADDR,
 };
 use casper_types::{
     account::AccountHash,
@@ -36,10 +36,13 @@ use cep85_test_contract::constants::{
     ENTRY_POINT_CHECK_URI, RESULT_KEY,
 };
 
+pub(crate) fn get_enable_addressable_entity() -> bool {
+    cfg!(feature = "test-enable-addressable-entity")
+}
+
 #[derive(Clone)]
 pub struct TestContext {
     pub cep85_contract_hash: AddressableEntityHash,
-    // TOOR GR check cep85_contract_key in query.builder
     #[allow(dead_code)]
     pub cep85_contract_key: Key,
     pub cep85_test_contract_hash: AddressableEntityHash,
@@ -63,10 +66,16 @@ pub fn setup() -> (LmdbWasmTestBuilder, TestContext) {
 }
 
 pub fn setup_with_args(install_args: RuntimeArgs) -> (LmdbWasmTestBuilder, TestContext) {
-    let mut builder = LmdbWasmTestBuilder::default();
+    let chainspec =
+        ChainspecConfig::default().with_enable_addressable_entity(get_enable_addressable_entity());
+
+    let mut builder = LmdbWasmTestBuilder::new_temporary_with_config(chainspec.clone());
 
     builder
-        .run_genesis(create_run_genesis_request(DEFAULT_ACCOUNTS.to_vec()))
+        .run_genesis(create_run_genesis_request_with_chainspec_config(
+            DEFAULT_ACCOUNTS.to_vec(),
+            chainspec,
+        ))
         .commit();
 
     let install_request_contract = ExecuteRequestBuilder::standard(

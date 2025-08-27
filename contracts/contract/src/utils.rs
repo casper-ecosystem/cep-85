@@ -46,7 +46,7 @@ pub fn get_immediate_caller() -> (Key, Option<Key>) {
 
     let caller_info = casper_get_immediate_caller().unwrap_or_revert();
 
-    match caller_info.kind() {
+    let (caller, package): (Key, Option<Key>) = match caller_info.kind() {
         ACCOUNT => {
             let account_hash = caller_info
                 .get_field_by_index(ACCOUNT)
@@ -59,42 +59,6 @@ pub fn get_immediate_caller() -> (Key, Option<Key>) {
                 None,
             )
         }
-        PACKAGE => {
-            let package_hash = caller_info
-                .get_field_by_index(PACKAGE)
-                .unwrap()
-                .to_t::<Option<PackageHash>>()
-                .unwrap_or_revert()
-                .unwrap_or_revert_with(Cep85Error::UnexpectedKeyVariant);
-            let contract_hash = caller_info
-                .get_field_by_index(CONTRACT)
-                .unwrap()
-                .to_t::<Option<ContractHash>>()
-                .unwrap_or_revert()
-                .unwrap_or_revert_with(Cep85Error::UnexpectedKeyVariant);
-            (
-                Key::contract_entity_key(contract_hash.into()),
-                Some(Key::SmartContract(package_hash.value())),
-            )
-        }
-        CONTRACT_PACKAGE => {
-            let contract_package_hash = caller_info
-                .get_field_by_index(CONTRACT_PACKAGE)
-                .unwrap()
-                .to_t::<Option<ContractPackageHash>>()
-                .unwrap_or_revert()
-                .unwrap_or_revert_with(Cep85Error::UnexpectedKeyVariant);
-            let contract_hash = caller_info
-                .get_field_by_index(CONTRACT)
-                .unwrap()
-                .to_t::<Option<ContractHash>>()
-                .unwrap_or_revert()
-                .unwrap_or_revert_with(Cep85Error::UnexpectedKeyVariant);
-            (
-                Key::contract_entity_key(contract_hash.into()),
-                Some(Key::SmartContract(contract_package_hash.value())),
-            )
-        }
         ENTITY => {
             let entity_addr = caller_info
                 .get_field_by_index(ENTITY)
@@ -102,7 +66,16 @@ pub fn get_immediate_caller() -> (Key, Option<Key>) {
                 .to_t::<Option<EntityAddr>>()
                 .unwrap_or_revert()
                 .unwrap_or_revert_with(Cep85Error::UnexpectedKeyVariant);
-            (Key::from(entity_addr), None)
+            let package_hash = caller_info
+                .get_field_by_index(PACKAGE)
+                .unwrap()
+                .to_t::<Option<PackageHash>>()
+                .unwrap_or_revert()
+                .unwrap_or_revert_with(Cep85Error::UnexpectedKeyVariant);
+            (
+                Key::AddressableEntity(entity_addr),
+                Some(Key::SmartContract(package_hash.value())),
+            )
         }
         CONTRACT => {
             let contract_hash = caller_info
@@ -123,7 +96,8 @@ pub fn get_immediate_caller() -> (Key, Option<Key>) {
             )
         }
         _ => revert(Cep85Error::UnexpectedKeyVariant),
-    }
+    };
+    (caller, package)
 }
 
 #[cfg(feature = "contract-support")]

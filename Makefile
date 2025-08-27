@@ -31,11 +31,9 @@ copy-wasm:
 	mkdir -p $(WASM_OUTPUT_DIR)
 	cp $(addprefix $(WASM_TARGET_DIR)/, $(WASM_FILES)) $(WASM_OUTPUT_DIR)
 
-native-test: setup-test
-	cargo test -p tests --lib should_transfer_account_to_account
-
 test: setup-test
-	cargo test -p tests --lib
+# 	cargo test -p tests --lib
+	cargo test -p tests --lib --features test-enable-addressable-entity
 
 clippy:
 	cargo +$(PINNED_TOOLCHAIN) clippy --release -p cep85 --bins --target wasm32-unknown-unknown $(CARGO_BUILD_FLAGS) -- -D warnings

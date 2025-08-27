@@ -16,6 +16,7 @@ fn should_toggle_enable_burn() {
         mut builder,
         TestContext {
             cep85_contract_hash,
+            cep85_contract_key,
             ..
         },
     ) = setup();
@@ -26,13 +27,16 @@ fn should_toggle_enable_burn() {
     let named_keys = contract.named_keys();
     assert!(named_keys.contains(ARG_ENABLE_BURN), "{named_keys:?}");
 
-    // TODO GR check why ContractHash in builder.query
     let cep85_contract_has_as_contract_hash: ContractHash = cep85_contract_hash.into();
 
     let enable_burn: bool = builder
         .query(
             None,
-            Key::from(cep85_contract_has_as_contract_hash),
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
             &[ARG_ENABLE_BURN.to_string()],
         )
         .unwrap()
@@ -51,7 +55,11 @@ fn should_toggle_enable_burn() {
     let enable_burn: bool = builder
         .query(
             None,
-            Key::from(cep85_contract_has_as_contract_hash),
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
             &[ARG_ENABLE_BURN.to_string()],
         )
         .unwrap()
@@ -69,7 +77,11 @@ fn should_toggle_enable_burn() {
     let enable_burn: bool = builder
         .query(
             None,
-            Key::from(cep85_contract_has_as_contract_hash),
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
             &[ARG_ENABLE_BURN.to_string()],
         )
         .unwrap()
@@ -92,7 +104,11 @@ fn should_toggle_enable_burn() {
     let enable_burn: bool = builder
         .query(
             None,
-            Key::from(cep85_contract_has_as_contract_hash),
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
             &[ARG_ENABLE_BURN.to_string()],
         )
         .unwrap()
@@ -110,6 +126,7 @@ fn should_toggle_events_mode() {
         mut builder,
         TestContext {
             cep85_contract_hash,
+            cep85_contract_key,
             ..
         },
     ) = setup();
@@ -126,7 +143,11 @@ fn should_toggle_events_mode() {
     let events_mode = builder
         .query(
             None,
-            Key::from(cep85_contract_has_as_contract_hash),
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
             &[ARG_EVENTS_MODE.to_string()],
         )
         .unwrap()
@@ -152,7 +173,11 @@ fn should_toggle_events_mode() {
     let events_mode = builder
         .query(
             None,
-            Key::from(cep85_contract_has_as_contract_hash),
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
             &[ARG_EVENTS_MODE.to_string()],
         )
         .unwrap()
@@ -192,7 +217,11 @@ fn should_toggle_events_mode() {
     let events_mode = builder
         .query(
             None,
-            Key::from(cep85_contract_has_as_contract_hash),
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
             &[ARG_EVENTS_MODE.to_string()],
         )
         .unwrap()
@@ -225,6 +254,7 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
         mut builder,
         TestContext {
             cep85_contract_hash,
+            cep85_contract_key,
             ..
         },
     ) = setup_with_args(runtime_args! {
@@ -235,15 +265,18 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
         .get_entity_with_named_keys_by_entity_hash(cep85_contract_hash)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains(ARG_ENABLE_BURN), "{named_keys:?}");
+    assert!(named_keys.get(ARG_ENABLE_BURN).is_some());
 
-    // TODO GR check why ContractHash in builder.query
     let cep85_contract_has_as_contract_hash: ContractHash = cep85_contract_hash.into();
 
     let enable_burn: bool = builder
         .query(
             None,
-            Key::from(cep85_contract_has_as_contract_hash),
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
             &[ARG_ENABLE_BURN.to_string()],
         )
         .unwrap()
@@ -263,7 +296,11 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
     let enable_burn: bool = builder
         .query(
             None,
-            Key::from(cep85_contract_has_as_contract_hash),
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
             &[ARG_ENABLE_BURN.to_string()],
         )
         .unwrap()
