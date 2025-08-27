@@ -3,25 +3,42 @@ use crate::utility::{
     support::get_event,
 };
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, RuntimeArgs};
+use casper_types::{contracts::ContractHash, runtime_args, Key};
 use cep85::{
     constants::{ARG_ENABLE_BURN, ARG_EVENTS_MODE},
-    events::SetModalities,
+    events::{ChangeEnableBurnMode, ChangeEventsMode, SetModalities},
     modalities::EventsMode,
 };
 
 #[test]
 fn should_toggle_enable_burn() {
-    let (mut builder, TestContext { cep85_token, .. }) = setup();
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            cep85_contract_key,
+            ..
+        },
+    ) = setup();
 
     let contract = builder
-        .get_contract(cep85_token)
+        .get_entity_with_named_keys_by_entity_hash(cep85_contract_hash)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains_key(ARG_ENABLE_BURN), "{named_keys:?}");
+    assert!(named_keys.contains(ARG_ENABLE_BURN), "{named_keys:?}");
+
+    let cep85_contract_has_as_contract_hash: ContractHash = cep85_contract_hash.into();
 
     let enable_burn: bool = builder
-        .query(None, cep85_token.into(), &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -31,11 +48,20 @@ fn should_toggle_enable_burn() {
     assert!(!enable_burn);
 
     let owner = *DEFAULT_ACCOUNT_ADDR;
-    let set_modalities_call = cep85_set_modalities(&mut builder, &cep85_token, &owner, None, None);
+    let set_modalities_call =
+        cep85_set_modalities(&mut builder, &cep85_contract_hash, &owner, None, None);
     set_modalities_call.expect_success().commit();
 
     let enable_burn: bool = builder
-        .query(None, cep85_token.into(), &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -45,11 +71,19 @@ fn should_toggle_enable_burn() {
     assert!(!enable_burn);
 
     let set_modalities_call =
-        cep85_set_modalities(&mut builder, &cep85_token, &owner, Some(true), None);
+        cep85_set_modalities(&mut builder, &cep85_contract_hash, &owner, Some(true), None);
     set_modalities_call.expect_success().commit();
 
     let enable_burn: bool = builder
-        .query(None, cep85_token.into(), &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -58,12 +92,25 @@ fn should_toggle_enable_burn() {
         .unwrap();
     assert!(enable_burn);
 
-    let set_modalities_call =
-        cep85_set_modalities(&mut builder, &cep85_token, &owner, Some(false), None);
+    let set_modalities_call = cep85_set_modalities(
+        &mut builder,
+        &cep85_contract_hash,
+        &owner,
+        Some(false),
+        None,
+    );
     set_modalities_call.expect_success().commit();
 
     let enable_burn: bool = builder
-        .query(None, cep85_token.into(), &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -75,16 +122,34 @@ fn should_toggle_enable_burn() {
 
 #[test]
 fn should_toggle_events_mode() {
-    let (mut builder, TestContext { cep85_token, .. }) = setup();
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            cep85_contract_key,
+            ..
+        },
+    ) = setup();
 
     let contract = builder
-        .get_contract(cep85_token)
+        .get_entity_with_named_keys_by_entity_hash(cep85_contract_hash)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains_key(ARG_EVENTS_MODE), "{named_keys:?}");
+    assert!(named_keys.contains(ARG_EVENTS_MODE), "{named_keys:?}");
+
+    // TODO GR check why ContractHash in builder.query
+    let cep85_contract_has_as_contract_hash: ContractHash = cep85_contract_hash.into();
 
     let events_mode = builder
-        .query(None, cep85_token.into(), &[ARG_EVENTS_MODE.to_string()])
+        .query(
+            None,
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
+            &[ARG_EVENTS_MODE.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -95,23 +160,10 @@ fn should_toggle_events_mode() {
     assert_eq!(events_mode, EventsMode::NoEvents as u8);
 
     let owner = *DEFAULT_ACCOUNT_ADDR;
-    let set_modalities_call = cep85_set_modalities(&mut builder, &cep85_token, &owner, None, None);
-    set_modalities_call.expect_success().commit();
-
-    let events_mode = builder
-        .query(None, cep85_token.into(), &[ARG_EVENTS_MODE.to_string()])
-        .unwrap()
-        .as_cl_value()
-        .unwrap()
-        .to_owned()
-        .into_t::<u8>()
-        .unwrap_or_default();
-
-    assert_eq!(events_mode, EventsMode::NoEvents as u8);
 
     let set_modalities_call = cep85_set_modalities(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &owner,
         None,
         Some(EventsMode::CES),
@@ -119,7 +171,15 @@ fn should_toggle_events_mode() {
     set_modalities_call.expect_success().commit();
 
     let events_mode = builder
-        .query(None, cep85_token.into(), &[ARG_EVENTS_MODE.to_string()])
+        .query(
+            None,
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
+            &[ARG_EVENTS_MODE.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -131,15 +191,23 @@ fn should_toggle_events_mode() {
 
     // Expect SetModalities event
     let expected_event = SetModalities::new();
-    let actual_event: SetModalities = get_event(&builder, &cep85_token.into(), 0);
+    let actual_event: SetModalities = get_event(&mut builder, &cep85_contract_hash, 0);
     assert_eq!(
         actual_event, expected_event,
         "Expected SetModalities event."
     );
 
+    // Expect ChangeEventsMode event
+    let expected_event = ChangeEventsMode::new(EventsMode::CES as u8);
+    let actual_event: ChangeEventsMode = get_event(&mut builder, &cep85_contract_hash, 1);
+    assert_eq!(
+        actual_event, expected_event,
+        "Expected ChangeEventsMode event."
+    );
+
     let set_modalities_call = cep85_set_modalities(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &owner,
         None,
         Some(EventsMode::NoEvents),
@@ -147,7 +215,15 @@ fn should_toggle_events_mode() {
     set_modalities_call.expect_success().commit();
 
     let events_mode = builder
-        .query(None, cep85_token.into(), &[ARG_EVENTS_MODE.to_string()])
+        .query(
+            None,
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
+            &[ARG_EVENTS_MODE.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -159,10 +235,8 @@ fn should_toggle_events_mode() {
 
     // Expect No SetModalities event after one SetModalities event
     let dictionary_seed_uref = *builder
-        .query(None, cep85_token.into(), &[])
+        .get_entity_with_named_keys_by_entity_hash(cep85_contract_hash)
         .expect("must have contract")
-        .as_contract()
-        .expect("must convert contract")
         .named_keys()
         .get(casper_event_standard::EVENTS_DICT)
         .expect("must have key")
@@ -170,27 +244,41 @@ fn should_toggle_events_mode() {
         .expect("must convert to dictionary seed uref");
 
     builder
-        .query_dictionary_item(None, dictionary_seed_uref, "1")
+        .query_dictionary_item(None, dictionary_seed_uref, "2")
         .expect_err("should not have dictionary value for a second SetModalities event");
 }
 
 #[test]
 fn should_emit_event_on_set_modalities_with_events_mode_ces() {
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_EVENTS_MODE => EventsMode::CES as u8,
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            cep85_contract_key,
+            ..
         },
-        None,
-    );
+    ) = setup_with_args(runtime_args! {
+        ARG_EVENTS_MODE => EventsMode::CES as u8,
+    });
 
     let contract = builder
-        .get_contract(cep85_token)
+        .get_entity_with_named_keys_by_entity_hash(cep85_contract_hash)
         .expect("should have contract");
     let named_keys = contract.named_keys();
-    assert!(named_keys.contains_key(ARG_ENABLE_BURN), "{named_keys:?}");
+    assert!(named_keys.get(ARG_ENABLE_BURN).is_some());
+
+    let cep85_contract_has_as_contract_hash: ContractHash = cep85_contract_hash.into();
 
     let enable_burn: bool = builder
-        .query(None, cep85_token.into(), &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -200,25 +288,21 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
     assert!(!enable_burn);
 
     let owner = *DEFAULT_ACCOUNT_ADDR;
-    let set_modalities_call = cep85_set_modalities(&mut builder, &cep85_token, &owner, None, None);
-    set_modalities_call.expect_success().commit();
-
-    let enable_burn: bool = builder
-        .query(None, cep85_token.into(), &[ARG_ENABLE_BURN.to_string()])
-        .unwrap()
-        .as_cl_value()
-        .unwrap()
-        .to_owned()
-        .into_t::<bool>()
-        .unwrap();
-    assert!(!enable_burn);
 
     let set_modalities_call =
-        cep85_set_modalities(&mut builder, &cep85_token, &owner, Some(true), None);
+        cep85_set_modalities(&mut builder, &cep85_contract_hash, &owner, Some(true), None);
     set_modalities_call.expect_success().commit();
 
     let enable_burn: bool = builder
-        .query(None, cep85_token.into(), &[ARG_ENABLE_BURN.to_string()])
+        .query(
+            None,
+            if builder.chainspec().core_config.enable_addressable_entity {
+                cep85_contract_key
+            } else {
+                Key::from(cep85_contract_has_as_contract_hash)
+            },
+            &[ARG_ENABLE_BURN.to_string()],
+        )
         .unwrap()
         .as_cl_value()
         .unwrap()
@@ -229,9 +313,41 @@ fn should_emit_event_on_set_modalities_with_events_mode_ces() {
 
     // Expect SetModalities event
     let expected_event = SetModalities::new();
-    let actual_event: SetModalities = get_event(&builder, &cep85_token.into(), 0);
+    let actual_event: SetModalities = get_event(&mut builder, &cep85_contract_hash, 0);
     assert_eq!(
         actual_event, expected_event,
         "Expected SetModalities event."
     );
+
+    // Expect ChangeEnableBurnMode event
+    let expected_event = ChangeEnableBurnMode::new(true);
+    let actual_event: ChangeEnableBurnMode = get_event(&mut builder, &cep85_contract_hash, 1);
+    assert_eq!(
+        actual_event, expected_event,
+        "Expected ChangeEnableBurnMode event."
+    );
+}
+
+#[test]
+fn should_set_modalities_events_mode_native_to_native_bytes() {
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
+        },
+    ) = setup_with_args(runtime_args! {
+        ARG_EVENTS_MODE => EventsMode::Native as u8,
+    });
+
+    let owner = *DEFAULT_ACCOUNT_ADDR;
+
+    let set_modalities_call = cep85_set_modalities(
+        &mut builder,
+        &cep85_contract_hash,
+        &owner,
+        None,
+        Some(EventsMode::NativeBytes),
+    );
+    set_modalities_call.expect_success().commit();
 }

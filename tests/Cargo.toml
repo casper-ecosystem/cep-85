@@ -1,17 +1,17 @@
 [package]
 name = "tests"
-version = "1.0.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
 
 [dev-dependencies]
-cep85 = { path = "../contracts/cep85", default-features = false }
-cep85-test-contract = { path = "../contracts/test", default-features = false }
-casper-engine-test-support = "7.0.1"
-casper-execution-engine = "7.0.1"
-casper-types = "4.0.2"
-casper-event-standard = { version = "0.5.0", default-features = false }
+casper-types = { workspace = true, features = ["std"] }
+casper-event-standard.workspace = true
+cep85 = { path = "../contracts/contract", default-features = false }
+cep85-test-contract = { path = "../contracts/test-contract", default-features = false }
+casper-engine-test-support = { version = "8.1.0", default-features = false }
+casper-execution-engine = { version = "8.1.0", default-features = false }
+casper-storage = { version = "2.0.0", default-features = false }
+serde_json = { version = "*", default-features = false }
 
-[lib]
-name = "tests"
-bench = false
-doctest = false
+[features]
+test-enable-addressable-entity = []

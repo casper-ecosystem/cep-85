@@ -1,5 +1,4 @@
 use crate::utility::{
-    constants::{ACCOUNT_USER_1, ACCOUNT_USER_2},
     installer_request_builders::{
         cep85_batch_burn, cep85_batch_mint, cep85_burn, cep85_change_security,
         cep85_check_balance_of, cep85_check_balance_of_batch, cep85_check_is_approved,
@@ -7,12 +6,11 @@ use crate::utility::{
         cep85_set_total_supply_of, cep85_set_total_supply_of_batch, setup_with_args, SecurityLists,
         TestContext,
     },
-    support::{assert_expected_error, create_dummy_key_pair, fund_account},
+    support::{assert_expected_error, get_test_account},
 };
-use std::collections::HashMap;
 
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
+use casper_types::{runtime_args, Key, U256};
 use cep85::{
     constants::{ARG_ENABLE_BURN, BURNER_LIST},
     error::Cep85Error,
@@ -20,30 +18,27 @@ use cep85::{
 
 #[test]
 fn should_burn_by_owner() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
         },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -55,12 +50,14 @@ fn should_burn_by_owner() {
 
     let burning_account = minting_account;
     // owner is now last recipient account_user_1
+    dbg!(minting_recipient.to_string());
+
     let owner: Key = minting_recipient;
     let burn_amount = U256::one();
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -76,11 +73,11 @@ fn should_burn_by_owner() {
         "only owner can burn its token",
     );
 
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -91,30 +88,28 @@ fn should_burn_by_owner() {
 
 #[test]
 fn should_batch_burn_by_owner() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
-        },
-        Some(test_accounts),
-    );
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
+        },
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -129,7 +124,7 @@ fn should_batch_burn_by_owner() {
 
     let failing_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids.clone(),
@@ -146,11 +141,11 @@ fn should_batch_burn_by_owner() {
         "only owner can burn its token",
     );
 
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
 
     let burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids,
@@ -162,30 +157,27 @@ fn should_batch_burn_by_owner() {
 
 #[test]
 fn should_not_burn_above_balance_with_default_supply() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
         },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -195,7 +187,7 @@ fn should_not_burn_above_balance_with_default_supply() {
 
     mint_call.expect_success().commit();
 
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
     // owner is now last recipient account_user_1
     let owner: Key = minting_recipient;
 
@@ -204,7 +196,7 @@ fn should_not_burn_above_balance_with_default_supply() {
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -224,7 +216,7 @@ fn should_not_burn_above_balance_with_default_supply() {
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -235,32 +227,28 @@ fn should_not_burn_above_balance_with_default_supply() {
 
 #[test]
 fn should_not_burn_above_balance_with_custom_supply() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let (_, public_key_account_user_2) = create_dummy_key_pair(ACCOUNT_USER_2);
-    let account_user_2 = public_key_account_user_2.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+    let (account_user_2_key, _, _) = get_test_account("ACCOUNT_USER_2");
 
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
         },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::from(10);
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -274,7 +262,7 @@ fn should_not_burn_above_balance_with_custom_supply() {
 
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -284,9 +272,9 @@ fn should_not_burn_above_balance_with_custom_supply() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
-        &Key::from(account_user_2),
+        &account_user_2_key,
         &id,
         &mint_amount,
         None,
@@ -294,7 +282,7 @@ fn should_not_burn_above_balance_with_custom_supply() {
 
     mint_call.expect_success().commit();
 
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
     // owner is now last recipient account_user_1
     let owner: Key = minting_recipient;
 
@@ -303,7 +291,7 @@ fn should_not_burn_above_balance_with_custom_supply() {
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -323,7 +311,7 @@ fn should_not_burn_above_balance_with_custom_supply() {
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -334,31 +322,28 @@ fn should_not_burn_above_balance_with_custom_supply() {
 
 #[test]
 fn should_not_batch_burn_above_balance_with_default_supply() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
         },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -368,7 +353,7 @@ fn should_not_batch_burn_above_balance_with_default_supply() {
 
     mint_call.expect_success().commit();
 
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
     let owner: Key = minting_recipient;
 
     // burn_amount > mint_amount, request should fail
@@ -376,7 +361,7 @@ fn should_not_batch_burn_above_balance_with_default_supply() {
 
     let failing_batch_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids.clone(),
@@ -397,7 +382,7 @@ fn should_not_batch_burn_above_balance_with_default_supply() {
 
     let batch_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids,
@@ -409,24 +394,21 @@ fn should_not_batch_burn_above_balance_with_default_supply() {
 
 #[test]
 fn should_not_batch_burn_above_balance_with_custom_supply() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
         },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
     let total_supplies: Vec<U256> = vec![U256::from(10), U256::from(20)];
@@ -434,7 +416,7 @@ fn should_not_batch_burn_above_balance_with_custom_supply() {
     // Set total supply to total supplies for the token to be minted
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies,
@@ -445,7 +427,7 @@ fn should_not_batch_burn_above_balance_with_custom_supply() {
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -455,7 +437,7 @@ fn should_not_batch_burn_above_balance_with_custom_supply() {
 
     mint_call.expect_success().commit();
 
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
     let owner: Key = minting_recipient;
 
     // burn_amount > mint_amount, request should fail
@@ -463,7 +445,7 @@ fn should_not_batch_burn_above_balance_with_custom_supply() {
 
     let failing_batch_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids.clone(),
@@ -484,7 +466,7 @@ fn should_not_batch_burn_above_balance_with_custom_supply() {
 
     let batch_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids,
@@ -496,30 +478,21 @@ fn should_not_batch_burn_above_balance_with_custom_supply() {
 
 #[test]
 fn should_reduce_supply_on_burn() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
-        },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let total_supply = U256::from(2);
     let mint_amount = U256::from(2);
     let id = U256::one();
@@ -527,7 +500,7 @@ fn should_reduce_supply_on_burn() {
     // Set total supply to 2 for the token to be minted
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -537,7 +510,7 @@ fn should_reduce_supply_on_burn() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -563,13 +536,13 @@ fn should_reduce_supply_on_burn() {
 
     assert_eq!(actual_balance, expected_balance);
 
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
     let owner: Key = minting_recipient;
     let burn_amount = U256::one();
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -591,31 +564,22 @@ fn should_reduce_supply_on_burn() {
 
 #[test]
 fn should_reduce_supply_on_batch_burn() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
-        },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let mint_amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
     let total_supplies: Vec<U256> = vec![U256::one(), U256::from(2)];
@@ -623,7 +587,7 @@ fn should_reduce_supply_on_batch_burn() {
     // Set total supply to total supplies for the token to be minted
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies,
@@ -634,7 +598,7 @@ fn should_reduce_supply_on_batch_burn() {
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -669,14 +633,14 @@ fn should_reduce_supply_on_batch_burn() {
             .collect::<Vec<Option<U256>>>()
     );
 
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
     let owner: Key = minting_recipient;
 
     let burn_amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     let batch_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids.clone(),
@@ -713,30 +677,27 @@ fn should_reduce_supply_on_batch_burn() {
 
 #[test]
 fn should_not_burn_previously_burnt_token() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
         },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -750,11 +711,11 @@ fn should_not_burn_previously_burnt_token() {
     let owner: Key = minting_recipient;
     let burn_amount = U256::one();
 
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -764,7 +725,7 @@ fn should_not_burn_previously_burnt_token() {
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -783,30 +744,28 @@ fn should_not_burn_previously_burnt_token() {
 
 #[test]
 fn should_not_batch_burn_previously_burnt_token() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
-        },
-        Some(test_accounts),
-    );
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
+        },
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -817,11 +776,11 @@ fn should_not_batch_burn_previously_burnt_token() {
     mint_call.expect_success().commit();
 
     let owner: Key = minting_recipient;
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
 
     let burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids.clone(),
@@ -832,7 +791,7 @@ fn should_not_batch_burn_previously_burnt_token() {
 
     let failing_batch_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids,
@@ -852,30 +811,27 @@ fn should_not_batch_burn_previously_burnt_token() {
 
 #[test]
 fn should_return_expected_error_when_burning_non_existing_token() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
         },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -888,13 +844,13 @@ fn should_return_expected_error_when_burning_non_existing_token() {
     // owner is now last recipient account_user_1
     let owner: Key = minting_recipient;
     let burn_amount = U256::one();
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
     // This id was not minted
     let id = U256::from(2);
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -913,30 +869,28 @@ fn should_return_expected_error_when_burning_non_existing_token() {
 
 #[test]
 fn should_return_expected_error_when_batch_burning_non_existing_token() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
-        },
-        Some(test_accounts),
-    );
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
+        },
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids,
@@ -947,13 +901,13 @@ fn should_return_expected_error_when_batch_burning_non_existing_token() {
     mint_call.expect_success().commit();
 
     let owner: Key = minting_recipient;
-    let burning_account = account_user_1;
+    let burning_account = account_user_1_account_hash;
 
     let ids: Vec<U256> = vec![U256::from(3), U256::from(4)];
 
     let failing_batch_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids,
@@ -973,30 +927,26 @@ fn should_return_expected_error_when_batch_burning_non_existing_token() {
 
 #[test]
 fn should_return_expected_error_burning_of_others_users_token() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
-
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
         },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1013,7 +963,7 @@ fn should_return_expected_error_burning_of_others_users_token() {
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -1032,30 +982,26 @@ fn should_return_expected_error_burning_of_others_users_token() {
 
 #[test]
 fn should_return_expected_error_batch_burning_of_others_users_token() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
-
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
         },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1072,7 +1018,7 @@ fn should_return_expected_error_batch_burning_of_others_users_token() {
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -1094,19 +1040,17 @@ fn should_allow_contract_to_burn_token() {
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
+            cep85_test_contract_key,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-        },
-        None,
-    );
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+    });
 
     let security_lists = SecurityLists {
-        burner_list: Some(vec![Key::from(cep85_test_contract)]),
+        burner_list: Some(vec![cep85_test_contract_key]),
         minter_list: None,
         meta_list: None,
         admin_list: None,
@@ -1115,7 +1059,7 @@ fn should_allow_contract_to_burn_token() {
 
     let change_security = cep85_change_security(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         security_lists,
     );
@@ -1124,13 +1068,13 @@ fn should_allow_contract_to_burn_token() {
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::Hash(cep85_test_contract.value());
+    let minting_recipient = cep85_test_contract_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1147,7 +1091,7 @@ fn should_allow_contract_to_burn_token() {
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_test_contract,
+        &cep85_test_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -1161,19 +1105,17 @@ fn should_allow_contract_to_batch_burn_token() {
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
+            cep85_test_contract_key,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-        },
-        None,
-    );
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+    });
 
     let security_lists = SecurityLists {
-        burner_list: Some(vec![Key::from(cep85_test_contract)]),
+        burner_list: Some(vec![cep85_test_contract_key]),
         minter_list: None,
         meta_list: None,
         admin_list: None,
@@ -1182,7 +1124,7 @@ fn should_allow_contract_to_batch_burn_token() {
 
     let change_security = cep85_change_security(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         security_lists,
     );
@@ -1191,14 +1133,14 @@ fn should_allow_contract_to_batch_burn_token() {
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::Hash(cep85_test_contract.value());
+    let minting_recipient = cep85_test_contract_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1214,7 +1156,7 @@ fn should_allow_contract_to_batch_burn_token() {
 
     let burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_test_contract,
+        &cep85_test_contract_hash,
         &burning_account,
         &owner,
         ids,
@@ -1228,17 +1170,15 @@ fn should_allow_contract_package_to_burn_token() {
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-        },
-        None,
-    );
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+    });
 
     let security_lists = SecurityLists {
         burner_list: Some(vec![Key::from(cep85_test_contract_package)]),
@@ -1250,7 +1190,7 @@ fn should_allow_contract_package_to_burn_token() {
 
     let change_security = cep85_change_security(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         security_lists,
     );
@@ -1259,13 +1199,13 @@ fn should_allow_contract_package_to_burn_token() {
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::Hash(cep85_test_contract_package.value());
+    let minting_recipient = cep85_test_contract_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1282,7 +1222,7 @@ fn should_allow_contract_package_to_burn_token() {
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_test_contract,
+        &cep85_test_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -1296,17 +1236,15 @@ fn should_allow_contract_package_to_batch_burn_token() {
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-        },
-        None,
-    );
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+    });
 
     let security_lists = SecurityLists {
         burner_list: Some(vec![Key::from(cep85_test_contract_package)]),
@@ -1318,7 +1256,7 @@ fn should_allow_contract_package_to_batch_burn_token() {
 
     let change_security = cep85_change_security(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         security_lists,
     );
@@ -1327,14 +1265,14 @@ fn should_allow_contract_package_to_batch_burn_token() {
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::Hash(cep85_test_contract_package.value());
+    let minting_recipient = cep85_test_contract_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1350,7 +1288,7 @@ fn should_allow_contract_package_to_batch_burn_token() {
 
     let burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_test_contract,
+        &cep85_test_contract_hash,
         &burning_account,
         &owner,
         ids,
@@ -1361,37 +1299,29 @@ fn should_allow_contract_package_to_batch_burn_token() {
 
 #[test]
 fn should_allow_operator_to_burn_token() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
-        },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(minting_account);
+    let minting_recipient =
+        Key::AddressableEntity(casper_types::EntityAddr::Account(minting_account.value()));
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1401,14 +1331,14 @@ fn should_allow_operator_to_burn_token() {
 
     mint_call.expect_success().commit();
 
-    let operator = Key::from(account_user_1);
-    let burning_account = account_user_1;
+    let operator = account_user_1_key;
+    let burning_account = account_user_1_account_hash;
     let owner: Key = minting_recipient;
     let burn_amount = U256::one();
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -1428,7 +1358,7 @@ fn should_allow_operator_to_burn_token() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &operator,
         approved,
@@ -1446,7 +1376,7 @@ fn should_allow_operator_to_burn_token() {
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -1457,38 +1387,30 @@ fn should_allow_operator_to_burn_token() {
 
 #[test]
 fn should_allow_operator_to_batch_burn_token() {
-    let (_, public_key_account_user_1) = create_dummy_key_pair(ACCOUNT_USER_1);
-    let account_user_1 = public_key_account_user_1.to_account_hash();
-    let mut test_accounts = HashMap::new();
-    test_accounts.insert(ACCOUNT_USER_1, account_user_1);
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
 
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep85_contract_hash,
             cep85_test_contract_package,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-            BURNER_LIST => vec![Key::from(account_user_1)]
-        },
-        Some(test_accounts),
-    );
-
-    // account_user_1 was created before genesis and is not yet funded so fund it
-    fund_account(&mut builder, account_user_1);
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+        BURNER_LIST => vec![account_user_1_key]
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(minting_account);
+    let minting_recipient =
+        Key::AddressableEntity(casper_types::EntityAddr::Account(minting_account.value()));
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1498,13 +1420,13 @@ fn should_allow_operator_to_batch_burn_token() {
 
     mint_call.expect_success().commit();
 
-    let operator = Key::from(account_user_1);
-    let burning_account = account_user_1;
+    let operator = account_user_1_key;
+    let burning_account = account_user_1_account_hash;
     let owner: Key = minting_recipient;
 
     let failing_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids.clone(),
@@ -1525,7 +1447,7 @@ fn should_allow_operator_to_batch_burn_token() {
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &operator,
         approved,
@@ -1543,7 +1465,7 @@ fn should_allow_operator_to_batch_burn_token() {
 
     let burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         ids,
@@ -1555,24 +1477,23 @@ fn should_allow_operator_to_batch_burn_token() {
 
 #[test]
 fn should_allow_contract_as_operator_to_burn_token() {
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-        },
-        None,
-    );
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+    });
 
     let security_lists = SecurityLists {
-        burner_list: Some(vec![Key::from(cep85_test_contract)]),
+        burner_list: Some(vec![cep85_test_contract_key]),
         minter_list: None,
         meta_list: None,
         admin_list: None,
@@ -1581,7 +1502,7 @@ fn should_allow_contract_as_operator_to_burn_token() {
 
     let change_security = cep85_change_security(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         security_lists,
     );
@@ -1590,14 +1511,13 @@ fn should_allow_contract_as_operator_to_burn_token() {
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
-    let minting_recipient = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1607,14 +1527,14 @@ fn should_allow_contract_as_operator_to_burn_token() {
 
     mint_call.expect_success().commit();
 
-    let operator = Key::from(cep85_test_contract);
+    let operator = cep85_test_contract_key;
     let burning_account = minting_account;
-    let owner = Key::from(account_user_1);
+    let owner = account_user_1_key;
     let burn_amount = U256::one();
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -1631,11 +1551,11 @@ fn should_allow_contract_as_operator_to_burn_token() {
     );
 
     let approved = true;
-    let approving_account = account_user_1;
+    let approving_account = account_user_1_account_hash;
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &approving_account,
         &operator,
         approved,
@@ -1653,7 +1573,7 @@ fn should_allow_contract_as_operator_to_burn_token() {
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_test_contract,
+        &cep85_test_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -1664,24 +1584,23 @@ fn should_allow_contract_as_operator_to_burn_token() {
 
 #[test]
 fn should_allow_contract_as_operator_to_batch_burn_token() {
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
+            cep85_test_contract_key,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-        },
-        None,
-    );
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+    });
 
     let security_lists = SecurityLists {
-        burner_list: Some(vec![Key::from(cep85_test_contract)]),
+        burner_list: Some(vec![cep85_test_contract_key]),
         minter_list: None,
         meta_list: None,
         admin_list: None,
@@ -1690,7 +1609,7 @@ fn should_allow_contract_as_operator_to_batch_burn_token() {
 
     let change_security = cep85_change_security(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         security_lists,
     );
@@ -1699,15 +1618,14 @@ fn should_allow_contract_as_operator_to_batch_burn_token() {
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
-    let minting_recipient = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1717,13 +1635,13 @@ fn should_allow_contract_as_operator_to_batch_burn_token() {
 
     mint_call.expect_success().commit();
 
-    let operator = Key::from(cep85_test_contract);
+    let operator = cep85_test_contract_key;
     let burning_account = minting_account;
-    let owner = Key::from(account_user_1);
+    let owner = account_user_1_key;
 
     let failing_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_test_contract,
+        &cep85_test_contract_hash,
         &burning_account,
         &owner,
         ids.clone(),
@@ -1740,11 +1658,11 @@ fn should_allow_contract_as_operator_to_batch_burn_token() {
     );
 
     let approved = true;
-    let approving_account = account_user_1;
+    let approving_account = account_user_1_account_hash;
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &approving_account,
         &operator,
         approved,
@@ -1762,7 +1680,7 @@ fn should_allow_contract_as_operator_to_batch_burn_token() {
 
     let burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_test_contract,
+        &cep85_test_contract_hash,
         &burning_account,
         &owner,
         ids,
@@ -1773,21 +1691,19 @@ fn should_allow_contract_as_operator_to_batch_burn_token() {
 
 #[test]
 fn should_allow_contract_package_as_operator_to_burn_token() {
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-        },
-        None,
-    );
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+    });
 
     let security_lists = SecurityLists {
         burner_list: Some(vec![Key::from(cep85_test_contract_package)]),
@@ -1799,7 +1715,7 @@ fn should_allow_contract_package_as_operator_to_burn_token() {
 
     let change_security = cep85_change_security(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         security_lists,
     );
@@ -1808,14 +1724,13 @@ fn should_allow_contract_package_as_operator_to_burn_token() {
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
-    let minting_recipient = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -1827,12 +1742,12 @@ fn should_allow_contract_package_as_operator_to_burn_token() {
 
     let operator = Key::from(cep85_test_contract_package);
     let burning_account = minting_account;
-    let owner = Key::from(account_user_1);
+    let owner = account_user_1_key;
     let burn_amount = U256::one();
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -1849,11 +1764,11 @@ fn should_allow_contract_package_as_operator_to_burn_token() {
     );
 
     let approved = true;
-    let approving_account = account_user_1;
+    let approving_account = account_user_1_account_hash;
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &approving_account,
         &operator,
         approved,
@@ -1871,7 +1786,7 @@ fn should_allow_contract_package_as_operator_to_burn_token() {
 
     let burn_call = cep85_burn(
         &mut builder,
-        &cep85_test_contract,
+        &cep85_test_contract_hash,
         &burning_account,
         &owner,
         &id,
@@ -1882,21 +1797,19 @@ fn should_allow_contract_package_as_operator_to_burn_token() {
 
 #[test]
 fn should_allow_contract_package_as_operator_to_batch_burn_token() {
+    let (account_user_1_key, account_user_1_account_hash, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            cep85_test_contract,
+            cep85_contract_hash,
+            cep85_test_contract_hash,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
-    ) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => true,
-        },
-        None,
-    );
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => true,
+    });
 
     let security_lists = SecurityLists {
         burner_list: Some(vec![Key::from(cep85_test_contract_package)]),
@@ -1908,7 +1821,7 @@ fn should_allow_contract_package_as_operator_to_batch_burn_token() {
 
     let change_security = cep85_change_security(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &DEFAULT_ACCOUNT_ADDR,
         security_lists,
     );
@@ -1917,15 +1830,14 @@ fn should_allow_contract_package_as_operator_to_batch_burn_token() {
     change_security.expect_success().commit();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let account_user_1 = *test_accounts.get(&ACCOUNT_USER_1).unwrap();
-    let minting_recipient = Key::from(account_user_1);
+    let minting_recipient = account_user_1_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::one()];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -1937,11 +1849,11 @@ fn should_allow_contract_package_as_operator_to_batch_burn_token() {
 
     let operator = Key::from(cep85_test_contract_package);
     let burning_account = minting_account;
-    let owner = Key::from(account_user_1);
+    let owner = account_user_1_key;
 
     let failing_burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_test_contract,
+        &cep85_test_contract_hash,
         &burning_account,
         &owner,
         ids.clone(),
@@ -1958,11 +1870,11 @@ fn should_allow_contract_package_as_operator_to_batch_burn_token() {
     );
 
     let approved = true;
-    let approving_account = account_user_1;
+    let approving_account = account_user_1_account_hash;
 
     let set_approval_for_all_call = cep85_set_approval_for_all(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &approving_account,
         &operator,
         approved,
@@ -1980,7 +1892,7 @@ fn should_allow_contract_package_as_operator_to_batch_burn_token() {
 
     let burn_call = cep85_batch_burn(
         &mut builder,
-        &cep85_test_contract,
+        &cep85_test_contract_hash,
         &burning_account,
         &owner,
         ids,
@@ -1991,21 +1903,25 @@ fn should_allow_contract_package_as_operator_to_batch_burn_token() {
 
 #[test]
 fn should_not_burn_in_non_burn_mode() {
-    let (mut builder, TestContext { cep85_token, .. }) = setup_with_args(
-        runtime_args! {
-            ARG_ENABLE_BURN => false,
+    let (
+        mut builder,
+        TestContext {
+            cep85_contract_hash,
+            ..
         },
-        None,
-    );
+    ) = setup_with_args(runtime_args! {
+        ARG_ENABLE_BURN => false,
+    });
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(minting_account);
+    let minting_recipient =
+        Key::AddressableEntity(casper_types::EntityAddr::Account(minting_account.value()));
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -2022,7 +1938,7 @@ fn should_not_burn_in_non_burn_mode() {
 
     let failing_burn_call = cep85_burn(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &burning_account,
         &owner,
         &id,

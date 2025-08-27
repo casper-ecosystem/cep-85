@@ -1,36 +1,36 @@
 use crate::utility::{
-    constants::ACCOUNT_USER_1,
     installer_request_builders::{
         cep85_batch_mint, cep85_check_balance_of, cep85_check_balance_of_batch,
         cep85_check_total_supply_of, cep85_check_total_supply_of_batch, cep85_mint,
         cep85_set_total_supply_of, cep85_set_total_supply_of_batch, setup, TestContext,
     },
-    support::assert_expected_error,
+    support::{assert_expected_error, get_test_account},
 };
 use casper_engine_test_support::DEFAULT_ACCOUNT_ADDR;
-use casper_types::{Key, U256};
-use cep85::error::Cep85Error;
+use casper_types::{EntityAddr, Key, U256};
+use cep85::{constants::NUMBER_OF_MINTED_TOKENS, error::Cep85Error};
 
 #[test]
 fn should_mint_nft() {
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep85_contract_hash,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::one();
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -58,24 +58,32 @@ fn should_mint_nft() {
 
 #[test]
 fn should_mint_fungible_token() {
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep85_contract_hash,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
     ) = setup();
 
+    let contract_entity_addr = EntityAddr::new_smart_contract(cep85_contract_hash.value());
+
+    let number_of_minted_tokens: u64 =
+        builder.get_value(contract_entity_addr, NUMBER_OF_MINTED_TOKENS);
+
+    assert_eq!(number_of_minted_tokens, 0);
+
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient = account_user_1_key;
     let mint_amount = U256::from(2);
     let id = U256::one();
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -100,29 +108,36 @@ fn should_mint_fungible_token() {
     let actual_total_supply =
         cep85_check_total_supply_of(&mut builder, &cep85_test_contract_package, &id).unwrap();
     assert_eq!(actual_total_supply, expected_supply);
+
+    let number_of_minted_tokens: u64 =
+        builder.get_value(contract_entity_addr, NUMBER_OF_MINTED_TOKENS);
+
+    assert_eq!(number_of_minted_tokens, 1);
 }
 
 #[test]
 fn should_batch_mint() {
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
     let (
         mut builder,
         TestContext {
-            cep85_token,
+            cep85_contract_hash,
             cep85_test_contract_package,
-            ref test_accounts,
             ..
         },
     ) = setup();
 
+    let contract_entity_addr = EntityAddr::new_smart_contract(cep85_contract_hash.value());
+
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient = account_user_1_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
     let amounts: Vec<U256> = vec![U256::one(), U256::from(2)];
 
     // batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -159,29 +174,36 @@ fn should_batch_mint() {
     assert_eq!(actual_total_supplies.len(), 2);
     assert_eq!(actual_total_supplies[0], Some(total_supplies[0]));
     assert_eq!(actual_total_supplies[1], Some(total_supplies[1]));
+
+    let number_of_minted_tokens: u64 =
+        builder.get_value(contract_entity_addr, NUMBER_OF_MINTED_TOKENS);
+
+    assert_eq!(number_of_minted_tokens, 2);
 }
 
 #[test]
 fn should_not_mint_above_total_supply() {
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            ref test_accounts,
+            cep85_contract_hash,
+
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient: Key = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient = account_user_1_key;
     let id = U256::one();
 
     let mint_amount = U256::from(2);
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -195,7 +217,7 @@ fn should_not_mint_above_total_supply() {
 
     let failing_mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -216,7 +238,7 @@ fn should_not_mint_above_total_supply() {
     let total_supply = U256::from(4);
     let set_total_supply_of_call = cep85_set_total_supply_of(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &id,
         &total_supply,
@@ -226,7 +248,7 @@ fn should_not_mint_above_total_supply() {
 
     let mint_call = cep85_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         &id,
@@ -250,18 +272,20 @@ fn should_not_mint_above_total_supply() {
 
 #[test]
 fn should_not_batch_mint_above_total_supply() {
+    let (account_user_1_key, _, _) = get_test_account("ACCOUNT_USER_1");
+
     let (
         mut builder,
         TestContext {
-            cep85_token,
-            ref test_accounts,
+            cep85_contract_hash,
+
             cep85_test_contract_package,
             ..
         },
     ) = setup();
 
     let minting_account = *DEFAULT_ACCOUNT_ADDR;
-    let minting_recipient = Key::from(*test_accounts.get(&ACCOUNT_USER_1).unwrap());
+    let minting_recipient = account_user_1_key;
     let ids: Vec<U256> = vec![U256::one(), U256::from(2)];
 
     let amounts: Vec<U256> = vec![U256::from(2), U256::from(3)];
@@ -269,7 +293,7 @@ fn should_not_batch_mint_above_total_supply() {
     // Batch_mint is only one recipient
     let mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -282,7 +306,7 @@ fn should_not_batch_mint_above_total_supply() {
     // Batch_mint is only one recipient
     let failing_mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),
@@ -304,7 +328,7 @@ fn should_not_batch_mint_above_total_supply() {
     let total_supplies = vec![U256::from(4), U256::from(6)];
     let set_total_supply_of_batch_call = cep85_set_total_supply_of_batch(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         ids.clone(),
         total_supplies.clone(),
@@ -314,7 +338,7 @@ fn should_not_batch_mint_above_total_supply() {
     // Mint tokens for each ID using batch function
     let batch_mint_call = cep85_batch_mint(
         &mut builder,
-        &cep85_token,
+        &cep85_contract_hash,
         &minting_account,
         &minting_recipient,
         ids.clone(),

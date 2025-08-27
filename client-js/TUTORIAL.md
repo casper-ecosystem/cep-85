@@ -118,7 +118,6 @@ const mintDeploy = cep85.mint(
     id: '1',
     amount: '10',
   },
-  { useSessionCode: true },
   '2000000000',
   USER1_KEYS.publicKey,
   [USER1_KEYS]
@@ -147,7 +146,6 @@ const transferDeploy = cep85.transfer(
     id: '1',
     amount: '5',
   },
-  { useSessionCode: true },
   '13000000000',
   USER1_KEYS.publicKey,
   [USER1_KEYS]

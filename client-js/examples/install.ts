@@ -1,71 +1,103 @@
-/* eslint-disable eslint-comments/disable-enable-pair */
-/* eslint-disable no-console */
-
+import {
+  CHAIN_NAME,
+  PRIVATE_KEY_FAUCET,
+  PRIVATE_KEY_USER_1,
+  RPC_URL,
+  SSE_URL,
+} from '../config';
 import {
   CEP85Client,
-  EventsMode
-} from "../src/index";
-
+  ContractWASM as wasm,
+  EVENTS_MODE,
+  type InstallArgs,
+  type TransactionParams,
+  type TransactionResult,
+} from '../dist';
 import {
-  FAUCET_KEYS,
-  getDeploy,
+  findKeyFromAccountNamedKeys,
   getAccountInfo,
-  getAccountNamedKeyValue,
-  USER1_KEYS,
-  name,
-  uri,
-  NETWORK_NAME,
-  NODE_URL
-} from "./common";
+  getSigningKey,
+} from '../tests/utils';
 
-const install = async () => {
-  const cc = new CEP85Client(NODE_URL, NETWORK_NAME);
-
-  const installDeploy = cc.install(
-    {
-      name,
-      uri,
-      events_mode: EventsMode.CES,
-      burner_list: [USER1_KEYS.publicKey],
-      enable_burn: true
-    },
-    "350000000000",
-    FAUCET_KEYS.publicKey,
-    [FAUCET_KEYS]
-  );
-
-  const hash = await installDeploy.send(NODE_URL);
-
-  console.log(`... Contract installation deployHash: ${hash}`);
-
-  await getDeploy(NODE_URL, hash);
-
-  console.log(`... Contract installed successfully.`);
-
-  const accountInfo = await getAccountInfo(
-    NODE_URL,
-    FAUCET_KEYS.publicKey
-  );
-
-  console.log(`... Account Info: `);
-  console.log(JSON.stringify(accountInfo, null, 2));
-
-  const contractHash = getAccountNamedKeyValue(
-    accountInfo,
-    `cep85_contract_hash_${name}`
-  );
-
-  const contractPackageHash = getAccountNamedKeyValue(
-    accountInfo,
-    `cep85_contract_package_hash_${name}`
-  );
-
-  console.log(`... Contract Hash: ${contractHash}`);
-  console.log(`... Contract Package Hash: ${contractPackageHash}`);
-};
-
-if (require.main === module) {
-  install().catch((error) => console.error(error));
+if (!PRIVATE_KEY_FAUCET) {
+  throw new Error('FAUCET_SECRET_KEY environment variable is not set.');
 }
 
-export { install };
+if (!PRIVATE_KEY_USER_1) {
+  throw new Error('PRIVATE_KEY_USER_1 environment variable is not set.');
+}
+
+const name = 'TEST_CEP85',
+  uri = 'https://test-cdn-domain/{id}.json',
+  eventsMode = EVENTS_MODE.CES,
+  enableBurn = true,
+  waitForTransactionProcessed = true,
+  sender = getSigningKey(PRIVATE_KEY_FAUCET),
+  ali = getSigningKey(PRIVATE_KEY_USER_1),
+  paymentAmount = String(550_000_000_000);
+
+const install = async () => {
+  const cep85 = new CEP85Client(RPC_URL, SSE_URL, CHAIN_NAME);
+
+  const params: TransactionParams = {
+    wasm,
+    sender: sender.publicKey,
+    paymentAmount,
+    signingKeys: [sender],
+  };
+
+  const args: InstallArgs = {
+    name,
+    uri,
+    eventsMode,
+    enableBurn,
+    burnerList: [ali.publicKey],
+  };
+
+  const transactionResult: TransactionResult = await cep85.install({
+    params,
+    args,
+    waitForTransactionProcessed,
+  });
+
+  if (!transactionResult.transactionInfo.transactionHash) {
+    throw Error('Invalid transaction hash');
+  }
+  return transactionResult;
+};
+
+install()
+  .then(async (transactionResult) => {
+    const { transactionInfo, executionResult } = transactionResult;
+    console.info(
+      `Contract installation transaction hash: ${transactionInfo.transactionHash.toHex()}`
+    );
+
+    if (executionResult) {
+      if (executionResult?.errorMessage) {
+        throw new Error(
+          `Error during installation.\n${executionResult?.errorMessage.toString()}`
+        );
+      } else {
+        console.info(
+          `Contract installation cost consumed: ${executionResult?.consumed}`
+        );
+      }
+    }
+
+    const account = await getAccountInfo(RPC_URL, sender.publicKey),
+      contractHash = findKeyFromAccountNamedKeys(
+        account,
+        `cep85_contract_hash_${name}`
+      ),
+      contractPackageHash = findKeyFromAccountNamedKeys(
+        account,
+        `cep85_contract_package_${name}`
+      );
+
+    console.info(`Contract Hash: ${contractHash}`);
+    console.info(`Contract Package Hash: ${contractPackageHash}`);
+  })
+  .catch((error) => {
+    console.error(error);
+  });

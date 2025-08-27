@@ -1,20 +1,40 @@
-import { CLBool, CLKey, CLList, CLMap, CLOption, CLString, CLU256, CLValue } from 'casper-js-sdk';
+import { CLValue, Hash, Message, TransactionHash } from 'casper-js-sdk';
+
+export enum CEP85_EVENTS {
+  Mint = 'Mint',
+  MintBatch = 'MintBatch',
+  Burn = 'Burn',
+  BurnBatch = 'BurnBatch',
+  ApprovalForAll = 'ApprovalForAll',
+  Transfer = 'Transfer',
+  TransferBatch = 'TransferBatch',
+  Uri = 'Uri',
+  UriBatch = 'UriBatch',
+  SetTotalSupply = 'SetTotalSupply',
+  ChangeSecurity = 'ChangeSecurity',
+  SetModalities = 'SetModalities',
+  Upgrade = 'Upgrade',
+}
+
+type EventName = keyof typeof CEP85_EVENTS;
 
 export type Event<E extends Record<string, CLValue>> = {
-  name: string;
-  contractHash: `hash-${string}`;
-  contractPackageHash: `hash-${string}`;
+  name: EventName;
+  contractHash: Hash;
+  contractPackageHash: Hash;
+  eventId: number;
   data: E;
 };
 
-export interface DeployInfo {
-  deployHash: string;
+export interface TransactionInfo {
+  transactionHash: TransactionHash;
   timestamp: string;
+  messages: Message[];
 }
 
-export type WithDeployInfo<E> = E & { deployInfo: DeployInfo; };
+export type WithTransactionInfo<E> = E & { transactionInfo: TransactionInfo };
 
-export type CEP85EventWithDeployInfo = WithDeployInfo<CEP85Event>;
+export type CEP85EventResult = WithTransactionInfo<CEP85Event>;
 
 export type CEP85Event = Event<
   | Mint
@@ -49,69 +69,69 @@ export type EventsMap = {
 };
 
 export type Mint = {
-  id: CLU256;
-  recipient: CLKey;
-  amount: CLU256;
+  id: CLValue;
+  recipient: CLValue;
+  amount: CLValue;
 };
 
 export type MintBatch = {
-  ids: CLList<CLU256>;
-  recipient: CLKey;
-  amounts: CLList<CLU256>;
+  ids: CLValue;
+  recipient: CLValue;
+  amounts: CLValue;
 };
 
 export type Burn = {
-  id: CLU256;
-  owner: CLKey;
-  amount: CLU256;
+  id: CLValue;
+  owner: CLValue;
+  amount: CLValue;
 };
 
 export type BurnBatch = {
-  ids: CLList<CLU256>;
-  owner: CLKey;
-  amounts: CLList<CLU256>;
+  ids: CLValue;
+  owner: CLValue;
+  amounts: CLValue;
 };
 
 export type ApprovalForAll = {
-  owner: CLKey,
-  operator: CLKey,
-  approved: CLBool,
+  owner: CLValue;
+  operator: CLValue;
+  approved: CLValue;
 };
 
 export type Transfer = {
-  operator: CLKey,
-  from: CLKey,
-  to: CLKey,
-  id: CLU256,
-  value: CLU256,
+  operator: CLValue;
+  from: CLValue;
+  to: CLValue;
+  id: CLValue;
+  value: CLValue;
 };
 
 export type TransferBatch = {
-  operator: CLKey,
-  from: CLKey,
-  to: CLKey,
-  ids: CLList<CLU256>,
-  values: CLList<CLU256>,
+  operator: CLValue;
+  from: CLValue;
+  to: CLValue;
+  ids: CLValue;
+  values: CLValue;
 };
 
 export type Uri = {
-  value: CLString,
-  id: CLOption<CLU256>,
+  value: CLValue;
+  id: CLValue;
 };
 
 export type UriBatch = {
-  value: CLString,
-  ids: CLList<CLU256>,
+  value: CLValue;
+  ids: CLValue;
 };
 
 export type SetTotalSupply = {
-  id: CLU256,
-  total_supply: CLU256,
+  id: CLValue;
+  total_supply: CLValue;
 };
 
 export type ChangeSecurity = {
-  admin: CLKey,
-  sec_change_map: CLMap<CLKey, CLValue>,
+  admin: CLValue;
+  sec_change_map: CLValue;
 };
 
 export type SetModalities = Record<string, never>;
